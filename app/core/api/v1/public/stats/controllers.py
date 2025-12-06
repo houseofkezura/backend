@@ -1,0 +1,121 @@
+from __future__ import annotations
+
+from flask import Response
+from sqlalchemy import func
+
+from app.utils.helpers.api_response import success_response, error_response
+from app.utils.helpers.user import get_current_user
+from app.models.order import Order
+from app.models.esim_purchase import EsimPurchase
+from app.models.payment import Payment
+from app.enums.esim import EsimPurchaseStatus
+from app.enums.orders import OrderStatus
+from app.enums.payments import PaymentStatus
+from app.logging import log_error
+
+
+class StatsController:
+    """Controller for system-wide statistics endpoints."""
+
+    @staticmethod
+    def get_stats() -> Response:
+        """
+        Get comprehensive statistics for the authenticated user.
+        
+        Returns:
+            Statistics including eSIM purchases, orders, payments, and totals
+        """
+        try:
+            current_user = get_current_user()
+            
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            # eSIM Purchase Statistics
+            esim_base_query = EsimPurchase.query.filter_by(user_id=current_user.id)
+            
+            esim_stats = {
+                "total_purchases": esim_base_query.count(),
+                "pending_purchases": esim_base_query.filter(
+                    EsimPurchase.status.in_([str(EsimPurchaseStatus.PENDING), str(EsimPurchaseStatus.AWAITING_PAYMENT)])
+                ).count(),
+                "paid_purchases": esim_base_query.filter_by(status=str(EsimPurchaseStatus.PAID)).count(),
+                "redeemed_purchases": esim_base_query.filter_by(status=str(EsimPurchaseStatus.REDEEMED)).count(),
+                "active_esims": esim_base_query.filter_by(status=str(EsimPurchaseStatus.REDEEMED)).count(),
+                "processing_purchases": esim_base_query.filter_by(status=str(EsimPurchaseStatus.PROCESSING)).count(),
+                "failed_purchases": esim_base_query.filter(
+                    EsimPurchase.status.in_([str(EsimPurchaseStatus.FAILED), str(EsimPurchaseStatus.CANCELLED)])
+                ).count(),
+            }
+            
+            # Calculate eSIM total spent
+            paid_and_redeemed_esim = esim_base_query.filter(
+                EsimPurchase.status.in_([str(EsimPurchaseStatus.PAID), str(EsimPurchaseStatus.REDEEMED)])
+            ).all()
+            esim_total_spent_ngn = sum(float(p.amount) for p in paid_and_redeemed_esim)
+            esim_total_spent_usd = sum(
+                float(p.usd_amount) if p.usd_amount else 0 
+                for p in paid_and_redeemed_esim
+            )
+            esim_stats["total_spent_ngn"] = round(esim_total_spent_ngn, 2)
+            esim_stats["total_spent_usd"] = round(esim_total_spent_usd, 2) if esim_total_spent_usd > 0 else None
+            
+            # Order Statistics
+            order_base_query = Order.query.filter_by(user_id=current_user.id)
+            
+            order_stats = {
+                "total_orders": order_base_query.count(),
+                "pending_orders": order_base_query.filter(
+                    Order.status.in_([OrderStatus.PENDING, OrderStatus.AWAITING_PAYMENT])
+                ).count(),
+                "paid_orders": order_base_query.filter(Order.status == OrderStatus.PAID).count(),
+                "processing_orders": order_base_query.filter(Order.status == OrderStatus.PROCESSING).count(),
+                "completed_orders": order_base_query.filter(
+                    Order.status.in_([OrderStatus.DELIVERED, OrderStatus.SHIPPED])
+                ).count(),
+                "cancelled_orders": order_base_query.filter(
+                    Order.status.in_([OrderStatus.CANCELLED, OrderStatus.FAILED])
+                ).count(),
+            }
+            
+            # Calculate order total spent
+            paid_orders = order_base_query.filter(Order.status == OrderStatus.PAID).all()
+            order_total_spent = sum(float(o.amount) for o in paid_orders)
+            order_stats["total_spent"] = round(order_total_spent, 2)
+            
+            # Payment Statistics
+            payment_base_query = Payment.query.filter_by(user_id=current_user.id)
+            
+            payment_stats = {
+                "total_payments": payment_base_query.count(),
+                "pending_payments": payment_base_query.filter_by(status=str(PaymentStatus.PENDING)).count(),
+                "processing_payments": payment_base_query.filter_by(status=str(PaymentStatus.PROCESSING)).count(),
+                "completed_payments": payment_base_query.filter_by(status=str(PaymentStatus.COMPLETED)).count(),
+                "failed_payments": payment_base_query.filter(
+                    Payment.status.in_([str(PaymentStatus.FAILED), str(PaymentStatus.CANCELLED), str(PaymentStatus.EXPIRED)])
+                ).count(),
+            }
+            
+            # Calculate payment totals
+            completed_payments = payment_base_query.filter_by(status=str(PaymentStatus.COMPLETED)).all()
+            payment_total_amount = sum(float(p.amount) for p in completed_payments)
+            payment_stats["total_amount"] = round(payment_total_amount, 2)
+            
+            # Overall Statistics
+            overall_stats = {
+                "total_spent_ngn": round(esim_total_spent_ngn + order_total_spent, 2),
+                "total_spent_usd": round(esim_total_spent_usd, 2) if esim_total_spent_usd > 0 else None,
+            }
+            
+            stats = {
+                "esim": esim_stats,
+                "orders": order_stats,
+                "payments": payment_stats,
+                "overall": overall_stats,
+            }
+            
+            return success_response("Statistics retrieved successfully", 200, stats)
+        except Exception as e:
+            log_error("Failed to fetch statistics", error=e)
+            return error_response("Failed to fetch statistics", 500)
+

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your eSIM is Ready!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .email-header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success-message p {
+            font-size: 16px;
+            color: #155724;
+            margin: 0;
+            font-weight: 600;
+        }
+        .info-section {
+            margin: 30px 0;
+        }
+        .info-section h2 {
+            font-size: 20px;
+            color: #333333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        .info-item {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            color: #333333;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .qr-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .qr-code {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            margin: 20px auto;
+            display: block;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #ffffff;
+        }
+        .instructions {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .instructions h3 {
+            font-size: 16px;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            color: #555555;
+        }
+        .instructions li {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .email-footer p {
+            font-size: 12px;
+            color: #6c757d;
+            margin: 5px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #667eea;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 30px 20px;
+            }
+            .qr-code {
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <div class="icon">📱</div>
+            <h1>Your eSIM is Ready!</h1>
+        </div>
+        
+        <div class="email-body">
+            <div class="greeting">
+                Hello,
+            </div>
+            
+            <div class="success-message">
+                <p>🎉 Congratulations! Your eSIM purchase has been successfully activated.</p>
+            </div>
+            
+            <div class="info-section">
+                <h2>eSIM Details</h2>
+                
+                {% if offer_id %}
+                <div class="info-item">
+                    <div class="info-label">Offer ID</div>
+                    <div class="info-value">{{ offer_id }}</div>
+                </div>
+                {% endif %}
+                
+                {% if activation_code %}
+                <div class="info-item">
+                    <div class="info-label">Activation Code</div>
+                    <div class="info-value">{{ activation_code }}</div>
+                </div>
+                {% endif %}
+                
+                {% if smdp %}
+                <div class="info-item">
+                    <div class="info-label">SM-DP+ Address</div>
+                    <div class="info-value">{{ smdp }}</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if qr_code %}
+            <div class="qr-container">
+                <h2 style="margin-bottom: 15px;">QR Code</h2>
+                <p style="color: #666; margin-bottom: 15px;">Scan this QR code with your device to install your eSIM:</p>
+                <img src="{{ qr_code }}" alt="eSIM QR Code" class="qr-code" />
+            </div>
+            {% endif %}
+            
+            <div class="instructions">
+                <h3>📋 How to Install Your eSIM</h3>
+                <ol>
+                    <li>Open your device's Settings app</li>
+                    <li>Navigate to Cellular/Mobile Data settings</li>
+                    <li>Tap "Add Cellular Plan" or "Add eSIM"</li>
+                    {% if qr_code %}
+                    <li>Scan the QR code above with your device camera</li>
+                    {% else %}
+                    <li>Enter the activation code manually: <strong>{{ activation_code }}</strong></li>
+                    {% endif %}
+                    <li>Follow the on-screen instructions to complete setup</li>
+                    <li>Your eSIM will be activated and ready to use!</li>
+                </ol>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                <p style="font-size: 14px; color: #856404; margin: 0;">
+                    <strong>💡 Tip:</strong> Make sure you have a stable internet connection when installing your eSIM. 
+                    If you encounter any issues, please contact our support team.
+                </p>
+            </div>
+        </div>
+        
+        <div class="email-footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>Need help? Contact our support team for assistance.</p>
+            <p>&copy; 2024 Your Company Name. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

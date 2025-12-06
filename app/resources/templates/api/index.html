@@ -1,0 +1,34 @@
+{% extends 'api/base/base.html' %}
+{% block title %} {{ site_title }} - {{ super() }}{% endblock %}
+
+{% block content %}
+
+
+<div class="h-screen">
+    <section class="h-full px-4 md:px-2 bg-background dark:bg-gray-900 flex items-center justify-center">
+        <div class="card bg-card text-card-foreground flex flex-col gap-6 border border-border shadow-sm py-8 px-6 lg:py-16 lg:px-6 rounded-lg items-center justify-center mx-auto max-w-screen-xl">
+            <div class="logo size-[190px] rounded-full border border-border fit-img">
+                <img src="{{ url_for('static', filename='api/img/logo.png') }}" alt="API Logo" class="w-full bg-cover object-cover transform-[scale(1.0)]">
+            </div>
+
+            <div class="mx-auto max-w-screen-sm text-center">
+                <h1 class="mb-1 text-3xl md:text-4xl tracking-tight font-bold">
+                    {{ site_title }} Backend
+                </h1>
+                <p class="mb-4 text-md tracking-tight font-medium"> {{ site_tagline }} </p>
+            </div>   
+
+            <div class="buttons-box flex gap-4">
+                <a href="/apidoc/swagger" target="_blank" class="site-btn cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 py-2 px-6 text-sm lg:text-sm rounded-lg">Swagger Docs</a>
+
+                <a href="/apidoc/redoc" target="_blank" class="site-btn cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] border bg-card shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 py-2 px-6 text-sm lg:text-sm rounded-lg">Redoc</a>
+
+                <a href="{{ url_for('api.index') }}" class="site-btn cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] border bg-card shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 py-2 px-6 text-sm lg:text-sm rounded-lg">View Website</a>
+            </div>
+        
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}
