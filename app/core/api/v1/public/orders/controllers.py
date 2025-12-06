@@ -11,7 +11,6 @@ from app.models.order import Order
 from app.models.user import AppUser
 from app.schemas.orders import CreateOrderRequest, UpdateOrderStatusRequest
 from app.enums.orders import OrderStatus
-from app.utils.esim.aggregator import EsimAggregatorClient
 from app.logging import log_error
 
 
@@ -32,20 +31,11 @@ class OrdersController:
             if not current_user:
                 return error_response("Unauthorized", 401)
             
-            # Fetch offer to get amount if not provided
-            amount = payload.amount
-            if amount is None:
-                client = EsimAggregatorClient()
-                offer = client.get_offer_by_id(payload.offer_id)
-                if not offer:
-                    return error_response(f"Offer '{payload.offer_id}' not found", 404)
-                amount = offer['price']
             
             # Create order
             new_order = Order()
             new_order.user_id = current_user.id
             new_order.status = OrderStatus.PENDING
-            new_order.amount = amount
             
             db.session.add(new_order)
             db.session.commit()
@@ -119,7 +109,7 @@ class OrdersController:
             if not order:
                 return error_response(f"Order '{order_id}' not found", 404)
             
-            return success_response("Order retrieved successfully", 200, {"order": order.to_dict(esim_purchases=True)})
+            return success_response("Order retrieved successfully", 200, {"order": order.to_dict()})
         except Exception as e:
             log_error(f"Failed to fetch order {order_id}", error=e)
             return error_response("Failed to fetch order", 500)

@@ -38,8 +38,14 @@ class Config(PaymentConfig):
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     BASE_LOG_LEVEL = os.getenv("BASE_LOG_LEVEL", "WARNING")
     
-    # JWT configurations
+    # JWT configurations (legacy, kept for admin/internal use)
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    
+    # Clerk configurations
+    CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
+    CLERK_PUBLISHABLE_KEY = os.getenv("CLERK_PUBLISHABLE_KEY")
+    CLERK_FRONTEND_API = os.getenv("CLERK_FRONTEND_API")
+    CLERK_BACKEND_API = os.getenv("CLERK_BACKEND_API", "https://api.clerk.com/v1")
     
     # Domains
     APP_DOMAIN = os.getenv("APP_DOMAIN") or "http://localhost:3000"

@@ -6,9 +6,7 @@ from sqlalchemy import func
 from app.utils.helpers.api_response import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.models.order import Order
-from app.models.esim_purchase import EsimPurchase
 from app.models.payment import Payment
-from app.enums.esim import EsimPurchaseStatus
 from app.enums.orders import OrderStatus
 from app.enums.payments import PaymentStatus
 from app.logging import log_error
@@ -31,34 +29,6 @@ class StatsController:
             if not current_user:
                 return error_response("Unauthorized", 401)
             
-            # eSIM Purchase Statistics
-            esim_base_query = EsimPurchase.query.filter_by(user_id=current_user.id)
-            
-            esim_stats = {
-                "total_purchases": esim_base_query.count(),
-                "pending_purchases": esim_base_query.filter(
-                    EsimPurchase.status.in_([str(EsimPurchaseStatus.PENDING), str(EsimPurchaseStatus.AWAITING_PAYMENT)])
-                ).count(),
-                "paid_purchases": esim_base_query.filter_by(status=str(EsimPurchaseStatus.PAID)).count(),
-                "redeemed_purchases": esim_base_query.filter_by(status=str(EsimPurchaseStatus.REDEEMED)).count(),
-                "active_esims": esim_base_query.filter_by(status=str(EsimPurchaseStatus.REDEEMED)).count(),
-                "processing_purchases": esim_base_query.filter_by(status=str(EsimPurchaseStatus.PROCESSING)).count(),
-                "failed_purchases": esim_base_query.filter(
-                    EsimPurchase.status.in_([str(EsimPurchaseStatus.FAILED), str(EsimPurchaseStatus.CANCELLED)])
-                ).count(),
-            }
-            
-            # Calculate eSIM total spent
-            paid_and_redeemed_esim = esim_base_query.filter(
-                EsimPurchase.status.in_([str(EsimPurchaseStatus.PAID), str(EsimPurchaseStatus.REDEEMED)])
-            ).all()
-            esim_total_spent_ngn = sum(float(p.amount) for p in paid_and_redeemed_esim)
-            esim_total_spent_usd = sum(
-                float(p.usd_amount) if p.usd_amount else 0 
-                for p in paid_and_redeemed_esim
-            )
-            esim_stats["total_spent_ngn"] = round(esim_total_spent_ngn, 2)
-            esim_stats["total_spent_usd"] = round(esim_total_spent_usd, 2) if esim_total_spent_usd > 0 else None
             
             # Order Statistics
             order_base_query = Order.query.filter_by(user_id=current_user.id)
@@ -103,12 +73,10 @@ class StatsController:
             
             # Overall Statistics
             overall_stats = {
-                "total_spent_ngn": round(esim_total_spent_ngn + order_total_spent, 2),
-                "total_spent_usd": round(esim_total_spent_usd, 2) if esim_total_spent_usd > 0 else None,
+                "total_spent_ngn": round( order_total_spent, 2),
             }
             
             stats = {
-                "esim": esim_stats,
                 "orders": order_stats,
                 "payments": payment_stats,
                 "overall": overall_stats,

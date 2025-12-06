@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from flask_jwt_extended import jwt_required
 from flask_pydantic_spec import Response
 
 from app.extensions.docs import spec, endpoint, SecurityScheme
 from app.schemas.response import SuccessResponse, ErrorResponse
 from app.schemas.profile import UpdateProfileRequest
+from app.utils.decorators.auth import customer_required
 from .controllers import ProfileController
 from . import bp
 
 
 @bp.get("")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Profile"],
@@ -25,7 +25,7 @@ def get_profile():
 
 
 @bp.patch("")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=UpdateProfileRequest,

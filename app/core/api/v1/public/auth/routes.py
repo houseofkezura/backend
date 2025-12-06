@@ -1,5 +1,4 @@
 from __future__ import annotations
-from flask_jwt_extended import jwt_required
 from flask_pydantic_spec import Response
 
 from .controllers import AuthController
@@ -124,7 +123,6 @@ def check_username_availability():
 
 
 @bp.post("/change-password")
-@jwt_required()
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=ChangePasswordRequest,

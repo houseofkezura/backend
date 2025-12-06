@@ -3,7 +3,7 @@ UUID validation utilities for the application.
 
 Author: Emmanuel Olowu
 Link: https://github.com/zeddyemy
-Package: Folio Builder
+Package: Kezura
 """
 
 from __future__ import annotations

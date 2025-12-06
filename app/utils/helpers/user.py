@@ -3,22 +3,60 @@ Author: Emmanuel Olowu
 Link: https://github.com/zeddyemy
 Copyright: © 2024 Emmanuel Olowu <zeddyemy@gmail.com>
 License: GNU, see LICENSE for more details.
-Package: StoreZed
+Package: Kezura
 """
-from flask import request
+from flask import request, g
 from typing import List, Optional, Any, cast
 import uuid
-from flask_jwt_extended import get_jwt_identity
-from flask_login import current_user as session_user
 
 from ...models import AppUser, Profile
 from .basics import generate_random_string
 from .loggers import console_log
 
 
+def get_current_user() -> Optional[AppUser]:
+    """
+    Get the current authenticated user from Flask g context.
+    
+    This function retrieves the user that was set by Clerk authentication decorators.
+    Falls back to legacy JWT/Flask-Login for backward compatibility if needed.
+    
+    Returns:
+        AppUser instance if authenticated, None otherwise.
+    """
+    # First, try to get from Flask g (set by Clerk decorators)
+    if hasattr(g, 'current_user') and g.current_user:
+        return g.current_user
+    
+    # Fallback to legacy JWT/Flask-Login for backward compatibility
+    if request.path.startswith('/api'):
+        # Try legacy JWT (for admin/internal endpoints that haven't migrated yet)
+        try:
+            from flask_jwt_extended import get_jwt_identity
+            jwt_identity = get_jwt_identity()
+            
+            if jwt_identity:
+                user_id = extract_user_id_from_jwt_identity(jwt_identity)
+                if user_id:
+                    from ...extensions import db
+                    return cast(Any, db.session).get(AppUser, user_id)
+        except Exception:
+            pass
+    else:
+        # Try Flask-Login for web routes
+        try:
+            from flask_login import current_user as session_user
+            if session_user and session_user.is_authenticated:
+                return cast(Optional[AppUser], session_user)
+        except Exception:
+            pass
+    
+    return None
+
+
 def extract_user_id_from_jwt_identity(jwt_identity: Any) -> Optional[uuid.UUID]:
     """
-    Extract user ID from JWT identity.
+    Extract user ID from JWT identity (legacy support).
     
     Handles both string (UUID as string) and dict (legacy format) for backward compatibility.
     
@@ -48,28 +86,6 @@ def extract_user_id_from_jwt_identity(jwt_identity: Any) -> Optional[uuid.UUID]:
                 return None
     
     return None
-
-
-def get_current_user() -> Optional[AppUser]:
-    if request.path.startswith('/api'):
-        # API request, use JWT identity
-        jwt_identity = get_jwt_identity()
-    
-        console_log("jwt_identity", jwt_identity)
-    
-        # Extract user ID from JWT identity (handles both string and dict formats)
-        user_id = extract_user_id_from_jwt_identity(jwt_identity)
-        if not user_id:
-            return None
-        
-        # SQLAlchemy 2.0: prefer Session.get
-        from ...extensions import db
-        current_user = cast(Any, db.session).get(AppUser, user_id)
-    else:
-        # Normal session request, use flask-login
-        current_user = cast(Optional[AppUser], session_user)
-    
-    return current_user
 
 
 def get_app_user_info(user_id: Optional[int]):

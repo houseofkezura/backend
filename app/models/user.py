@@ -18,7 +18,6 @@ from sqlalchemy.orm import Query, backref
 from sqlalchemy.orm import Mapped as M, DynamicMapped as DM  # type: ignore
 from sqlalchemy.dialects.postgresql import UUID
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
 import uuid
 
 from ..extensions import db
@@ -52,7 +51,7 @@ class TempUser(db.Model):
         }
 
 
-class AppUser(db.Model, UserMixin):
+class AppUser(db.Model):
     # from .role import UserRole
     
     id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -60,6 +59,7 @@ class AppUser(db.Model, UserMixin):
     email: M[str] = db.Column(db.String(255), nullable=True, unique=True)
     username: M[Optional[str]] = db.Column(db.String(50), nullable=True, unique=True)
     password_hash = db.Column(db.String(255), nullable=True)
+    has_updated_default_password = db.Column(db.Boolean, default=False, nullable=False)
     date_joined = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
     
     
@@ -69,7 +69,7 @@ class AppUser(db.Model, UserMixin):
     wallet = db.relationship('Wallet', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
     payments = db.relationship('Payment', back_populates='app_user', lazy='dynamic')
     subscriptions = db.relationship('Subscription', back_populates='app_user', lazy='dynamic')
-    orders = db.relationship('Order', back_populates='app_user', lazy='dynamic')
+    orders = db.relationship('Order', back_populates='app_user', lazy='dynamic', foreign_keys='Order.user_id')
     
     roles = db.relationship('UserRole', back_populates='user', foreign_keys='UserRole.app_user_id', cascade="all, delete-orphan") # roles assigned to the user.
     assigned_roles = db.relationship('UserRole', back_populates='assigner', foreign_keys='UserRole.assigner_id', cascade="all, delete-orphan") # roles that the user has assigned to others
@@ -184,6 +184,7 @@ class AppUser(db.Model, UserMixin):
             'username': self.username,
             "email": self.email,
             "date_joined": to_gmt1_or_none(self.date_joined),
+            'has_updated_default_password': self.has_updated_default_password,
             'wallet': wallet_info,
             "roles": self.role_names,
             **address_info,  # Merge address information

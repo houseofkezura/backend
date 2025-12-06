@@ -12,9 +12,7 @@ from pydantic import BaseModel, EmailStr
 from .auth import *
 from .response import *
 from .orders import *
-from .offers import *
 from .payments import *
-from .esim import *
 from .profile import *
 
 

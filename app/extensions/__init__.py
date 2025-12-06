@@ -14,9 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_caching import Cache
-from flask_admin import Admin
 
-from .login import init_flask_login
 from .docs import init_docs
 
 from config import Config
@@ -33,8 +31,6 @@ def initialize_extensions(app: Flask):
     """Initialize Flask extensions (DB, Mail, Auth, Cache, Migrations, CORS)."""
     db.init_app(app)
     mail.init_app(app)
-
-    init_flask_login(app)
 
     jwt_extended.init_app(app)
     app_cache.init_app(app)
