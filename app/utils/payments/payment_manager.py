@@ -327,26 +327,7 @@ class PaymentManager:
                 if payment_type == str(PaymentType.WALLET_TOP_UP):
                     user: AppUser = payment.app_user
                     credit_wallet(user.id, payment.amount, commit=False)
-                    
-                elif payment_type == str(PaymentType.ESIM_PURCHASE):
-                    esim_purchase_id = payment.meta_info.get('esim_purchase_id')
-                    if esim_purchase_id:
-                        from ...models.esim_purchase import EsimPurchase
-                        from ...enums.esim import EsimPurchaseStatus
-                        try:
-                            esim_purchase_uuid = uuid.UUID(esim_purchase_id)
-                            esim_purchase: Optional[EsimPurchase] = EsimPurchase.query.filter_by(id=esim_purchase_uuid).first()
-                            if esim_purchase:
-                                esim_purchase.update(status=str(EsimPurchaseStatus.PAID), payment_ref=payment.key, commit=False)
-                                log_event("eSIM purchase completed", {"esim_purchase_id": esim_purchase_id})
-                            else:
-                                log_error("eSIM purchase not found", {"esim_purchase_id": esim_purchase_id})
-                        except ValueError:
-                            log_error("Invalid eSIM purchase ID format", esim_purchase_id)
-                            raise ValueError(f"Invalid eSIM purchase ID format: {esim_purchase_id}")
-                    else:
-                        log_error("eSIM purchase ID not found", {"payment_id": payment.id})
-                        raise ValueError(f"eSIM purchase ID not found: {esim_purchase_id}")
+                
                 
                 elif payment_type == str(PaymentType.ORDER_PAYMENT):
                     # Handle order payment - update order status

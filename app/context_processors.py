@@ -13,8 +13,8 @@ def app_context_Processor():
     return {
         'CURRENT_USER': {},
         'SITE_INFO': {
-            "site_title": "eSimApp",
-            "site_tagline": "Connectivity at its peak",
+            "site_title": "House Of Kezura",
+            "site_tagline": "Luxury African Beauty E-Commerce Platform",
             "currency": "NGN",
         },
     }

@@ -60,20 +60,6 @@ class Config(PaymentConfig):
     CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
     
-    # eSIM Aggregator configurations
-    USE_MOCK = os.getenv("USE_MOCK", "false").lower() in ("true", "1", "yes")
-    ESIM_AGGREGATOR = os.getenv("ESIM_AGGREGATOR", "zendit").lower()  # Options: "zendit", "mock"
-    
-    # Zendit-specific configurations
-    ZENDIT_API_URL = os.getenv("ZENDIT_API_URL") or "https://test-api.zendit.io/v1"
-    ZENDIT_API_KEY = os.getenv("ZENDIT_API_KEY")
-    
-    # Legacy/fallback aggregator configs (for backward compatibility)
-    ESIM_AGGREGATOR_API_URL = os.getenv("ESIM_AGGREGATOR_API_URL") or ZENDIT_API_URL
-    ESIM_AGGREGATOR_API_KEY = os.getenv("ESIM_AGGREGATOR_API_KEY") or ZENDIT_API_KEY
-    
-    ESIM_OFFERS_CACHE_TTL = int(os.getenv("ESIM_OFFERS_CACHE_TTL", "3600"))  # 1 hour default
-    
     # ExchangeRate-API
     EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
     EXCHANGE_RATE_API_URL = f"https://v6.exchangerate-api.com/v6/{EXCHANGE_RATE_API_KEY}/latest"
