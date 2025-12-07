@@ -65,7 +65,8 @@ class AppUser(db.Model):
     
     # Relationships
     profile = db.relationship('Profile', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
-    address = db.relationship('Address', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
+    address = db.relationship('Address', back_populates="app_user", uselist=False, cascade="all, delete-orphan")  # Legacy single address
+    addresses = db.relationship('Address', back_populates="app_user", cascade="all, delete-orphan")  # Multiple addresses
     wallet = db.relationship('Wallet', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
     payments = db.relationship('Payment', back_populates='app_user', lazy='dynamic')
     subscriptions = db.relationship('Subscription', back_populates='app_user', lazy='dynamic')
@@ -246,11 +247,21 @@ class Address(db.Model):
     __tablename__ = "address"
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    country = db.Column(db.String(50), nullable=True)
+    label = db.Column(db.String(100), nullable=True)  # e.g., "Home", "Work"
+    line1 = db.Column(db.String(255), nullable=True)
+    line2 = db.Column(db.String(255), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
     state = db.Column(db.String(50), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
+    country = db.Column(db.String(50), nullable=True)
+    is_default = db.Column(db.Boolean, default=False, nullable=False)
     
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False,)
-    app_user = db.relationship('AppUser', back_populates="address")
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False, index=True)
+    app_user = db.relationship('AppUser', back_populates="addresses")
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
     
     def __repr__(self):
         return f'<address ID: {self.id}, country: {self.country}, user ID: {self.user_id}>'
@@ -262,10 +273,18 @@ class Address(db.Model):
     
     def to_dict(self):
         return {
-            'id': self.id,
-            'country': self.country,
+            'id': str(self.id),
+            'label': self.label,
+            'line1': self.line1,
+            'line2': self.line2,
+            'city': self.city,
             'state': self.state,
-            'user_id': self.user_id
+            'postal_code': self.postal_code,
+            'country': self.country,
+            'is_default': self.is_default,
+            'user_id': str(self.user_id),
+            'created_at': to_gmt1_or_none(self.created_at),
+            'updated_at': to_gmt1_or_none(self.updated_at),
         }
 
 

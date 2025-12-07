@@ -47,6 +47,12 @@ class ProfileController:
             
             profile_data = current_user.to_dict()
             
+            # Include loyalty information if available
+            from app.models.loyalty import LoyaltyAccount
+            loyalty_account = LoyaltyAccount.query.filter_by(user_id=current_user.id).first()
+            if loyalty_account:
+                profile_data["loyalty"] = loyalty_account.to_dict()
+            
             return success_response(
                 "Profile retrieved successfully",
                 200,

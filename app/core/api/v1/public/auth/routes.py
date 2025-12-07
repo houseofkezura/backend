@@ -3,6 +3,7 @@ from flask_pydantic_spec import Response
 
 from .controllers import AuthController
 from app.extensions.docs import spec, endpoint, SecurityScheme
+from app.utils.decorators.auth import customer_required
 from app.schemas.response import ApiResponse, SuccessResponse, ErrorResponse
 from app.schemas.auth import (
     VerifyEmailRequest, 
@@ -173,3 +174,37 @@ def verify_password_reset_code():
 def reset_password():
     """Reset password with verified code."""
     return AuthController.reset_password()
+
+
+@bp.get("/me")
+@customer_required
+@endpoint(
+    security=SecurityScheme.PUBLIC_BEARER,
+    tags=["Authentication"],
+    summary="Get Current User",
+    description="Get current authenticated user information (Clerk-based)"
+)
+@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse))
+def get_me():
+    """Get current user information."""
+    from app.utils.helpers.user import get_current_user
+    from app.utils.helpers.api_response import success_response, error_response
+    from flask import g
+    
+    current_user = get_current_user()
+    if not current_user:
+        return error_response("Unauthorized", 401)
+    
+    user_data = current_user.to_dict()
+    
+    # Include loyalty information
+    from app.models.loyalty import LoyaltyAccount
+    loyalty_account = LoyaltyAccount.query.filter_by(user_id=current_user.id).first()
+    if loyalty_account:
+        user_data["loyalty"] = loyalty_account.to_dict()
+    
+    return success_response(
+        "User information retrieved successfully",
+        200,
+        {"user": user_data}
+    )

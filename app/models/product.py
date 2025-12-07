@@ -122,7 +122,6 @@ class ProductVariant(db.Model):
     # Relationships
     product = relationship("Product", back_populates="variants")
     inventory = relationship("Inventory", back_populates="variant", uselist=False, cascade="all, delete-orphan")
-    media = relationship("Media", secondary="variant_media", lazy="dynamic")
     
     # Timestamps
     created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)

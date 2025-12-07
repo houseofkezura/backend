@@ -19,19 +19,16 @@ if TYPE_CHECKING:
     from .order import Order
 
 
-class LoyaltyTier:
-    """Loyalty tier constants."""
-    MUSE = "Muse"
-    ICON = "Icon"
-    EMPRESS = "Empress"
+# Loyalty tier constants
+LOYALTY_TIER_MUSE = "Muse"
+LOYALTY_TIER_ICON = "Icon"
+LOYALTY_TIER_EMPRESS = "Empress"
 
-
-class LoyaltyLedgerType:
-    """Loyalty ledger entry types."""
-    EARN = "earn"
-    REDEEM = "redeem"
-    ADJUST = "adjust"
-    EXPIRE = "expire"
+# Loyalty ledger entry types
+LEDGER_TYPE_EARN = "earn"
+LEDGER_TYPE_REDEEM = "redeem"
+LEDGER_TYPE_ADJUST = "adjust"
+LEDGER_TYPE_EXPIRE = "expire"
 
 
 class LoyaltyAccount(db.Model):
@@ -42,7 +39,7 @@ class LoyaltyAccount(db.Model):
     
     id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
-    tier: M[str] = db.Column(db.String(50), nullable=False, default=LoyaltyTier.MUSE)
+    tier: M[str] = db.Column(db.String(50), nullable=False, default=LOYALTY_TIER_MUSE)
     points_balance: M[int] = db.Column(db.Integer, nullable=False, default=0)
     lifetime_spend: M[float] = db.Column(db.Numeric(14, 2), nullable=False, default=0)
     

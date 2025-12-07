@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 import secrets
 import string
+import uuid
 
 from flask import current_app
 from sqlalchemy.exc import IntegrityError
@@ -29,9 +30,7 @@ from ...models.user import AppUser, Profile, Address
 from ...models.role import Role, UserRole
 from ...enums.orders import OrderStatus
 from ...enums.auth import RoleNames
-from ...utils.auth.clerk import create_clerk_user, get_or_create_app_user_from_clerk, AuthenticatedUser
-from ...utils.payments.payment_manager import PaymentManager
-from ...utils.currency.converter import convert_amount
+from ...utils.auth.clerk import create_clerk_user
 from ...logging import log_error, log_event
 from config import Config
 
@@ -124,7 +123,11 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         elif request.guest_token:
             cart = Cart.query.filter_by(guest_token=request.guest_token).first()
         elif request.cart_id:
-            cart = Cart.query.get(request.cart_id)
+            try:
+                cart_uuid = uuid.UUID(request.cart_id)
+                cart = Cart.query.get(cart_uuid)
+            except ValueError:
+                pass
         
         if not cart or not cart.items:
             return CheckoutResult(success=False, error="Cart is empty or not found")
@@ -229,7 +232,8 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         auto_account_created = False
         clerk_id = None
         
-        if not current_user and request.email and 200000 <= total <= 500000:
+        total_float = float(total)
+        if not current_user and request.email and 200000 <= total_float <= 500000:
             # Check if user already exists
             existing_user = AppUser.query.filter_by(email=request.email).first()
             
@@ -273,7 +277,19 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                     if request.shipping_address:
                         address.country = request.shipping_address.get("country")
                         address.state = request.shipping_address.get("state")
+                        address.line1 = request.shipping_address.get("line1")
+                        address.city = request.shipping_address.get("city")
+                        address.postal_code = request.shipping_address.get("postal_code")
                     db.session.add(address)
+                    
+                    # Create Loyalty Account (Muse tier)
+                    from ...models.loyalty import LoyaltyAccount
+                    loyalty_account = LoyaltyAccount()
+                    loyalty_account.user_id = app_user.id
+                    loyalty_account.tier = "Muse"
+                    loyalty_account.points_balance = 0
+                    loyalty_account.lifetime_spend = Decimal(str(total_float))
+                    db.session.add(loyalty_account)
                     
                     # Assign CUSTOMER role
                     role = Role.query.filter_by(name=RoleNames.CUSTOMER).first()
@@ -288,7 +304,7 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                     auto_account_created = True
                     log_event(f"Auto-created account for guest order: {order.id}, Clerk ID: {clerk_id}")
                     
-                    # TODO: Send welcome email with default password
+                    # TODO: Send welcome email with default password and account details
             else:
                 # Link order to existing user
                 order.user_id = existing_user.id
