@@ -159,3 +159,286 @@ class AdminProductController:
             db.session.rollback()
             return error_response("Failed to update product", 500)
 
+    @staticmethod
+    def list_products() -> Response:
+        """
+        List all products with optional filtering and pagination.
+        
+        Requires admin authentication.
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            # Get query parameters
+            page = request.args.get('page', 1, type=int)
+            per_page = request.args.get('per_page', 20, type=int)
+            search = request.args.get('search', type=str)
+            category = request.args.get('category', type=str)
+            launch_status = request.args.get('launch_status', type=str)
+            
+            # Build query
+            query = Product.query
+            
+            if search:
+                query = query.filter(
+                    db.or_(
+                        Product.name.ilike(f'%{search}%'),
+                        Product.description.ilike(f'%{search}%')
+                    )
+                )
+            
+            if category:
+                query = query.filter_by(category=category)
+            
+            if launch_status:
+                query = query.filter_by(launch_status=launch_status)
+            
+            # Paginate
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+            
+            products = [p.to_dict(include_variants=True) for p in pagination.items]
+            
+            return success_response(
+                "Products retrieved successfully",
+                200,
+                {
+                    "products": products,
+                    "pagination": {
+                        "page": page,
+                        "per_page": per_page,
+                        "total": pagination.total,
+                        "pages": pagination.pages
+                    }
+                }
+            )
+        except Exception as e:
+            log_error("Failed to list products", error=e)
+            return error_response("Failed to retrieve products", 500)
+
+    @staticmethod
+    def get_product(product_id: str) -> Response:
+        """
+        Get a single product by ID.
+        
+        Args:
+            product_id: Product ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+            except ValueError:
+                return error_response("Invalid product ID format", 400)
+            
+            product = Product.query.get(product_uuid)
+            if not product:
+                return error_response("Product not found", 404)
+            
+            return success_response(
+                "Product retrieved successfully",
+                200,
+                {"product": product.to_dict(include_variants=True)}
+            )
+        except Exception as e:
+            log_error(f"Failed to get product {product_id}", error=e)
+            return error_response("Failed to retrieve product", 500)
+
+    @staticmethod
+    def delete_product(product_id: str) -> Response:
+        """
+        Delete a product.
+        
+        Args:
+            product_id: Product ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+            except ValueError:
+                return error_response("Invalid product ID format", 400)
+            
+            product = Product.query.get(product_uuid)
+            if not product:
+                return error_response("Product not found", 404)
+            
+            db.session.delete(product)
+            db.session.commit()
+            
+            log_event(f"Product deleted: {product_id} by admin {current_user.id}")
+            
+            return success_response("Product deleted successfully", 200)
+        except Exception as e:
+            log_error(f"Failed to delete product {product_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to delete product", 500)
+
+    @staticmethod
+    def create_variant(product_id: str) -> Response:
+        """
+        Create a variant for a product.
+        
+        Args:
+            product_id: Product ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+            except ValueError:
+                return error_response("Invalid product ID format", 400)
+            
+            product = Product.query.get(product_uuid)
+            if not product:
+                return error_response("Product not found", 404)
+            
+            payload = CreateProductVariantRequest.model_validate(request.get_json())
+            
+            # Check SKU uniqueness
+            existing = ProductVariant.query.filter_by(sku=payload.sku).first()
+            if existing:
+                return error_response("Variant with this SKU already exists", 409)
+            
+            variant = ProductVariant()
+            variant.product_id = product.id
+            variant.sku = payload.sku
+            variant.price_ngn = payload.price_ngn
+            variant.price_usd = payload.price_usd
+            variant.weight_g = payload.weight_g
+            variant.attributes = payload.attributes.dict() if payload.attributes else {}
+            
+            if payload.media_ids:
+                if not variant.attributes:
+                    variant.attributes = {}
+                variant.attributes["media_ids"] = payload.media_ids
+            
+            db.session.add(variant)
+            db.session.flush()
+            
+            # Create inventory
+            inventory = Inventory()
+            inventory.variant_id = variant.id
+            inventory.quantity = 0
+            inventory.low_stock_threshold = 5
+            db.session.add(inventory)
+            
+            db.session.commit()
+            
+            log_event(f"Variant created: {variant.id} for product {product_id} by admin {current_user.id}")
+            
+            return success_response(
+                "Variant created successfully",
+                201,
+                {"variant": variant.to_dict()}
+            )
+        except Exception as e:
+            log_error(f"Failed to create variant for product {product_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to create variant", 500)
+
+    @staticmethod
+    def update_variant(product_id: str, variant_id: str) -> Response:
+        """
+        Update a product variant.
+        
+        Args:
+            product_id: Product ID
+            variant_id: Variant ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+                variant_uuid = uuid.UUID(variant_id)
+            except ValueError:
+                return error_response("Invalid ID format", 400)
+            
+            variant = ProductVariant.query.filter_by(id=variant_uuid, product_id=product_uuid).first()
+            if not variant:
+                return error_response("Variant not found", 404)
+            
+            payload = UpdateProductVariantRequest.model_validate(request.get_json())
+            
+            # Update fields
+            if payload.sku is not None:
+                # Check SKU uniqueness
+                existing = ProductVariant.query.filter_by(sku=payload.sku).filter(ProductVariant.id != variant_uuid).first()
+                if existing:
+                    return error_response("SKU already in use", 409)
+                variant.sku = payload.sku
+            if payload.price_ngn is not None:
+                variant.price_ngn = payload.price_ngn
+            if payload.price_usd is not None:
+                variant.price_usd = payload.price_usd
+            if payload.weight_g is not None:
+                variant.weight_g = payload.weight_g
+            if payload.attributes is not None:
+                variant.attributes = payload.attributes.dict()
+            if payload.media_ids is not None:
+                if not variant.attributes:
+                    variant.attributes = {}
+                variant.attributes["media_ids"] = payload.media_ids
+            
+            db.session.commit()
+            
+            log_event(f"Variant updated: {variant_id} by admin {current_user.id}")
+            
+            return success_response(
+                "Variant updated successfully",
+                200,
+                {"variant": variant.to_dict()}
+            )
+        except Exception as e:
+            log_error(f"Failed to update variant {variant_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to update variant", 500)
+
+    @staticmethod
+    def delete_variant(product_id: str, variant_id: str) -> Response:
+        """
+        Delete a product variant.
+        
+        Args:
+            product_id: Product ID
+            variant_id: Variant ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+                variant_uuid = uuid.UUID(variant_id)
+            except ValueError:
+                return error_response("Invalid ID format", 400)
+            
+            variant = ProductVariant.query.filter_by(id=variant_uuid, product_id=product_uuid).first()
+            if not variant:
+                return error_response("Variant not found", 404)
+            
+            db.session.delete(variant)
+            db.session.commit()
+            
+            log_event(f"Variant deleted: {variant_id} by admin {current_user.id}")
+            
+            return success_response("Variant deleted successfully", 200)
+        except Exception as e:
+            log_error(f"Failed to delete variant {variant_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to delete variant", 500)
+

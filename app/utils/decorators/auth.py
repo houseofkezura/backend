@@ -121,3 +121,18 @@ def roles_required(*required_roles: str) -> Callable[[Callable[P, R]], Callable[
 
         return cast(Callable[P, R], _impl)
     return decorator
+
+
+def admin_required(fn: Callable[P, R]) -> Callable[P, R]:
+    """
+    Decorator to require admin role (Super Admin, Admin, Operations, CRM Manager, Finance, Support).
+    
+    Convenience decorator for admin endpoints that require any admin role.
+    
+    Args:
+        fn: The function to decorate.
+        
+    Returns:
+        Decorated function that requires admin role.
+    """
+    return roles_required("Super Admin", "Admin", "Operations", "CRM Manager", "Finance", "Support")(fn)

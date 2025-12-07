@@ -25,6 +25,7 @@ class PendingRegistration:
     username: Optional[str]
     password_hash: str
     code_hash: str
+    password: Optional[str] = None  # Temporary plain password for Clerk user creation (cleared after use)
     attempts: int = 0
 
     def to_json(self) -> str:

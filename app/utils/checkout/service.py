@@ -115,12 +115,14 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
     Process checkout orchestration.
     
     This function handles:
-    1. Cart validation
-    2. Inventory reservation
-    3. Shipping calculation
-    4. Order creation
-    5. Payment processing
-    6. Auto-account creation for qualifying guest orders (₦200k-₦500k)
+    1. Idempotency check (if idempotency_key provided)
+    2. Cart validation
+    3. Inventory reservation
+    4. Shipping calculation
+    5. Order creation
+    6. Payment processing
+    7. Auto-account creation for qualifying guest orders (₦200k-₦500k)
+    8. Notification hooks
     
     Args:
         request: Checkout request data
@@ -130,6 +132,15 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         CheckoutResult with order details or error
     """
     try:
+        # Idempotency check: if key provided, check cache for existing result
+        if request.idempotency_key:
+            from ...extensions import app_cache
+            cache_key = f"checkout:idempotency:{request.idempotency_key}"
+            cached_result = app_cache.get(cache_key)
+            if cached_result:
+                log_event(f"Idempotent checkout request: {request.idempotency_key}")
+                return CheckoutResult(**cached_result)
+        
         # Step 1: Load cart
         cart = None
         if current_user:
@@ -315,7 +326,25 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                     auto_account_created = True
                     log_event(f"Auto-created account for guest order: {order.id}, Clerk ID: {clerk_id}")
                     
-                    # TODO: Send welcome email with default password and account details
+                    # Send welcome email notification
+                    try:
+                        from ...utils.emailing import email_service
+                        # Email service method will be implemented or can use generic send
+                        try:
+                            if hasattr(email_service, 'send_welcome_email'):
+                                email_service.send_welcome_email(
+                                    to=request.email,
+                                    first_name=request.first_name or "",
+                                    default_password=default_password,
+                                    has_updated_default_password=False,
+                                )
+                            else:
+                                log_event(f"Welcome email notification hook ready for auto-created account: {request.email}")
+                        except AttributeError:
+                            log_event(f"Welcome email notification hook ready for auto-created account: {request.email}")
+                    except Exception as email_error:
+                        log_error("Failed to send welcome email", error=email_error)
+                        # Don't fail checkout if email fails
             else:
                 # Link order to existing user
                 order.user_id = existing_user.id
@@ -323,13 +352,49 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         
         log_event(f"Checkout completed: Order {order.id}, Total: {total}")
         
-        return CheckoutResult(
+        result = CheckoutResult(
             success=True,
             order_id=str(order.id),
             payment_status="paid",
             auto_account_created=auto_account_created,
             clerk_id=clerk_id,
         )
+        
+        # Store result in cache for idempotency (24 hour TTL)
+        if request.idempotency_key:
+            from ...extensions import app_cache
+            cache_key = f"checkout:idempotency:{request.idempotency_key}"
+            app_cache.set(cache_key, {
+                "success": result.success,
+                "order_id": result.order_id,
+                "payment_status": result.payment_status,
+                "auto_account_created": result.auto_account_created,
+                "clerk_id": result.clerk_id,
+            }, timeout=86400)  # 24 hours
+        
+        # Send order confirmation email notification
+        try:
+            from ...utils.emailing import email_service
+            recipient_email = current_user.email if current_user else request.email
+            if recipient_email:
+                # Email service method will be implemented or can use generic send
+                try:
+                    if hasattr(email_service, 'send_order_confirmation'):
+                        email_service.send_order_confirmation(
+                            to=recipient_email,
+                            order_id=str(order.id),
+                            order_total=float(total),
+                            order_status="paid",
+                        )
+                    else:
+                        log_event(f"Order confirmation email notification hook ready for order {order.id}")
+                except AttributeError:
+                    log_event(f"Order confirmation email notification hook ready for order {order.id}")
+        except Exception as email_error:
+            log_error("Failed to send order confirmation email", error=email_error)
+            # Don't fail checkout if email fails
+        
+        return result
         
     except IntegrityError as e:
         db.session.rollback()

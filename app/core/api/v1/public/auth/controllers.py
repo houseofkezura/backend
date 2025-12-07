@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from flask import Response, request
-from flask_jwt_extended import create_access_token, decode_token, get_jwt, get_jwt_identity, jwt_required
 import uuid
 from email_validator import validate_email, EmailNotValidError
 
 from app.extensions import db
 from app.logging import log_error, log_event
 from app.models import Role, AppUser, Profile, Address
+from app.utils.auth.clerk import create_clerk_user, get_or_create_app_user_from_clerk, AuthenticatedUser
 from app.schemas.auth import (
     SignUpRequest, 
     LoginRequest, 
@@ -43,9 +43,9 @@ from app.utils.verification.password_recovery import (
 )
 from app.utils.helpers.basics import generate_random_number
 from app.enums import RoleNames
-from app.utils.helpers.user import get_app_user
+from app.utils.helpers.user import get_app_user, get_current_user
 from app.utils.helpers.api_response import success_response, error_response
-from app.utils.date_time import timedelta
+from app.utils.decorators.auth import customer_required
 
 
 class AuthController:
@@ -92,18 +92,19 @@ class AuthController:
         code_h = hash_code(code, salt=reg_id)
 
         # Prepare pending record
+        # Store plain password temporarily for Clerk user creation (will be cleared after use)
+        tmp_user = AppUser()
+        tmp_user.set_password(password)
+        
         pending = PendingRegistration(
             email=email,
             firstname=firstname,
             lastname=lastname,
             username=username,
-            password_hash=AppUser().set_password(password) or '',  # set_password returns None; we set below
+            password_hash=tmp_user.password_hash or '',
+            password=password,  # Store plain password temporarily for Clerk
             code_hash=code_h,
         )
-        # set_password returns None, so compute hash directly
-        tmp_user = AppUser()
-        tmp_user.set_password(password)
-        pending.password_hash = tmp_user.password_hash or ''
 
         store_pending_registration(reg_id, pending, ttl_minutes=15)
 
@@ -166,10 +167,25 @@ class AuthController:
 
         db.session.add_all([user_profile, user_address])
         db.session.commit()
+        
+        # Create Clerk user (use plain password from pending registration)
+        plain_password = getattr(pending, 'password', None)
+        if plain_password:
+            clerk_user_data = create_clerk_user(
+                email=new_user.email,
+                password=plain_password,
+                first_name=pending.firstname,
+                last_name=pending.lastname,
+            )
+            
+            if clerk_user_data:
+                new_user.clerk_id = clerk_user_data["clerk_id"]
+                db.session.commit()
+        
+        # Clear pending registration (removes plain password from cache)
         delete_pending_registration(payload.reg_id)
-
-        access_token = create_access_token(identity=str(new_user.id), expires_delta=timedelta(minutes=2880), additional_claims={'type': 'access'})
-        return success_response("Email verified and account created", 200, {"access_token": access_token, "user_data": new_user.to_dict()})
+        
+        return success_response("Email verified and account created. Please log in via Clerk.", 200, {"user_data": new_user.to_dict()})
 
     @staticmethod
     def resend_verification_code() -> Response:
@@ -203,58 +219,46 @@ class AuthController:
         return success_response("Verification code resent", 200)
 
     @staticmethod
-    @jwt_required()
     def validate_token() -> Response:
-        """Validate if a JWT token is valid and not expired."""
-        from app.utils.helpers.user import extract_user_id_from_jwt_identity
+        """
+        Validate Clerk token.
         
-        jwt_identity = get_jwt_identity()
-        user_id = extract_user_id_from_jwt_identity(jwt_identity)
+        This endpoint validates a Clerk session/JWT token and returns user info.
+        Clerk handles token refresh automatically, so this is mainly for validation.
+        """
+        from app.utils.decorators.auth import get_auth_token
+        from app.utils.auth.clerk import get_clerk_user_from_token
         
-        if not user_id:
-            return error_response("invalid token format", 401)
+        token = get_auth_token()
+        if not token:
+            return error_response("Missing authentication token", 401)
         
-        # Load full user data for validation and response
-        user = AppUser.query.filter_by(id=user_id).first()
-        if not user:
-            return error_response("user not found", 404)
+        clerk_user = get_clerk_user_from_token(token)
+        if not clerk_user:
+            return error_response("Invalid or expired token", 401)
         
-        # Get token type from JWT claims
-        claims = get_jwt()
-        token_type = claims.get("type", "access")
+        app_user = get_or_create_app_user_from_clerk(clerk_user)
+        if not app_user:
+            return error_response("Failed to load user", 500)
         
         return success_response("Token is valid", 200, {
             "valid": True,
-            "type": token_type,
-            "expires_at": claims.get("exp"),
-            "user_data": user.to_dict()
+            "user_data": app_user.to_dict()
         })
 
     @staticmethod 
-    @jwt_required()
     def refresh_token() -> Response:
-        """Refresh an access token."""
-        from app.utils.helpers.user import extract_user_id_from_jwt_identity
+        """
+        Token refresh is handled by Clerk automatically.
         
-        jwt_identity = get_jwt_identity()
-        user_id = extract_user_id_from_jwt_identity(jwt_identity)
-        
-        if not user_id:
-            return error_response("invalid token format", 401)
-        
-        # Quick existence check without loading full user data
-        user_exists = db.session.query(AppUser.id).filter_by(id=user_id).scalar() is not None
-        if not user_exists:
-            return error_response("user not found", 404)
-        
-        # Issue new token with string identity
-        new_token = create_access_token(
-            identity=str(user_id), 
-            expires_delta=timedelta(minutes=2880), 
-            additional_claims={'type': 'access'}
+        This endpoint is kept for backward compatibility but returns a message
+        directing clients to use Clerk's refresh mechanism.
+        """
+        return success_response(
+            "Token refresh is handled by Clerk. Use Clerk's refresh endpoint.", 
+            200,
+            {"message": "Clerk handles token refresh automatically"}
         )
-        
-        return success_response("Token refreshed", 200, {"access_token": new_token})
 
     @staticmethod
     def check_email_availability() -> Response:
@@ -297,51 +301,18 @@ class AuthController:
     @staticmethod
     def login() -> Response:
         """
-        Handle user login by verifying email/username and password,
-        checking for two-factor authentication, and returning an access token.
+        Login is handled by Clerk.
+        
+        This endpoint is deprecated. Clients should use Clerk's authentication
+        endpoints directly. This is kept for backward compatibility.
         """
-        payload = LoginRequest.model_validate(request.get_json())
-        email_username = payload.email_username
-        pwd = payload.password
-
-        if not email_username:
-            return error_response("email_username is empty", 400)
-
-        if not pwd or pwd is None:
-            return error_response("password not provided", 400)
-
-        # check if email_username is an email. And convert to lowercase if it's an email
-        try:
-            email_info = validate_email(email_username, check_deliverability=False)
-            email_username = email_info.normalized.lower()
-            log_event(f"email_username: {email_username}")
-        except EmailNotValidError as e:
-            email_username = email_username
-
-        # get user from db with the email/username.
-        user = get_app_user(email_username)
-
-        if not user:
-            return error_response('Email/username is incorrect or doesn\'t exist', 401)
-
-        if not user.password_hash:
-            return error_response("This user doesn't have a password yet", 400)
-
-        if not user.check_password(pwd):
-            return error_response('Password is incorrect', 401)
-
-        access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(minutes=2880), additional_claims={'type': 'access'})
-        user_data = user.to_dict()
-
-        extra_data = {
-            'access_token':access_token,
-            'user_data':user_data
-        }
-
-        return success_response("Logged in successfully", 200, extra_data)
+        return error_response(
+            "Login is handled by Clerk. Please use Clerk's authentication endpoints.", 
+            410  # Gone status
+        )
     
     @staticmethod
-    @jwt_required()
+    @customer_required
     def change_password() -> Response:
         """
         Change password for authenticated user.
@@ -349,8 +320,6 @@ class AuthController:
         Requires current password verification.
         """
         try:
-            from app.utils.helpers.user import get_current_user, extract_user_id_from_jwt_identity
-            
             current_user = get_current_user()
             if not current_user:
                 return error_response("Unauthorized", 401)

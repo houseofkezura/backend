@@ -14,6 +14,34 @@ from .controllers import AdminInventoryController
 from . import bp
 
 
+@bp.get("")
+@roles_required("Super Admin", "Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Inventory"],
+    summary="List Inventory",
+    description="List all inventory with filtering. Requires admin role."
+)
+@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_500=ErrorResponse))
+def list_inventory():
+    """List all inventory."""
+    return AdminInventoryController.list_inventory()
+
+
+@bp.get("/sku/<sku>")
+@roles_required("Super Admin", "Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Inventory"],
+    summary="Get Inventory by SKU",
+    description="Get inventory information by SKU. Requires admin role."
+)
+@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
+def get_inventory_by_sku(sku: str):
+    """Get inventory by SKU."""
+    return AdminInventoryController.get_inventory_by_sku(sku)
+
+
 @bp.post("/adjust")
 @roles_required("Super Admin", "Operations")
 @endpoint(

@@ -77,12 +77,12 @@ def resend_verification_code():
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Authentication"],
-    summary="Validate JWT Token",
-    description="Check if a JWT token is valid and not expired"
+    summary="Validate Clerk Token",
+    description="Check if a Clerk token is valid and return user info"
     )
-@spec.validate(resp=Response(HTTP_200=ApiResponse))
+@spec.validate(resp=Response(HTTP_200=ApiResponse, HTTP_401=ErrorResponse))
 def validate_token():
-    """Validate if a JWT token is valid and not expired."""
+    """Validate Clerk token and return user info."""
     return AuthController.validate_token()
 
 
@@ -90,12 +90,12 @@ def validate_token():
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Authentication"],
-    summary="Refresh Access Token",
-    description="Generate new access token using existing valid token"
+    summary="Refresh Token (Info)",
+    description="Token refresh is handled by Clerk automatically"
     )
-@spec.validate(resp=Response(HTTP_200=ApiResponse, HTTP_401=ErrorResponse, HTTP_404=ErrorResponse))
+@spec.validate(resp=Response(HTTP_200=ApiResponse))
 def refresh_token():
-    """Refresh an access token."""
+    """Info: Token refresh is handled by Clerk."""
     return AuthController.refresh_token()
 
 
@@ -124,12 +124,13 @@ def check_username_availability():
 
 
 @bp.post("/change-password")
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=ChangePasswordRequest,
     tags=["Authentication"],
     summary="Change Password",
-    description="Change password for authenticated user (requires current password)"
+    description="Change password for authenticated user (requires current password). Note: Password changes should ideally be handled by Clerk."
 )
 @spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_401=ErrorResponse))
 def change_password():
