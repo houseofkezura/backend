@@ -66,7 +66,6 @@ class AppUser(db.Model):
     # Relationships
     profile = db.relationship('Profile', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
     address = db.relationship('Address', back_populates="app_user", uselist=False, cascade="all, delete-orphan")  # Legacy single address
-    addresses = db.relationship('Address', back_populates="app_user", cascade="all, delete-orphan")  # Multiple addresses
     wallet = db.relationship('Wallet', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
     payments = db.relationship('Payment', back_populates='app_user', lazy='dynamic')
     subscriptions = db.relationship('Subscription', back_populates='app_user', lazy='dynamic')
@@ -257,7 +256,7 @@ class Address(db.Model):
     is_default = db.Column(db.Boolean, default=False, nullable=False)
     
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False, index=True)
-    app_user = db.relationship('AppUser', back_populates="addresses")
+    app_user = db.relationship('AppUser', back_populates="address")
     
     # Timestamps
     created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
