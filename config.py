@@ -73,6 +73,9 @@ class Config(PaymentConfig):
     # Currency conversion settings
     CURRENCY_MARKUP_PERCENTAGE = float(os.getenv("CURRENCY_MARKUP_PERCENTAGE", "0.0"))  # Optional markup (e.g., 3.0 for 3%)
     DEFAULT_CURRENCY = os.getenv("DEFAULT_CURRENCY", "NGN")  # Default currency for display
+    
+    # Guest account default password prefix
+    DEFAULT_GUEST_PREFIX = os.getenv("DEFAULT_GUEST_PREFIX", "kezura")
 
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL") or "sqlite:///db.sqlite3"

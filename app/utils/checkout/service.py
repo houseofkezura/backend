@@ -65,8 +65,24 @@ class CheckoutResult:
     clerk_id: Optional[str] = None
 
 
-# Default password for auto-created guest accounts
-DEFAULT_GUEST_PASSWORD = "kezura_1234"
+def generate_default_guest_password() -> str:
+    """
+    Generate a secure default password for auto-created guest accounts.
+    
+    Format: {DEFAULT_GUEST_PREFIX}_{random_string}
+    Uses cryptographically secure random generation.
+    
+    Returns:
+        A password string with prefix and random suffix
+    """
+    from config import Config
+    
+    # Generate random suffix (16 characters: alphanumeric + some special chars)
+    alphabet = string.ascii_letters + string.digits
+    random_suffix = ''.join(secrets.choice(alphabet) for _ in range(16))
+    
+    prefix = Config.DEFAULT_GUEST_PREFIX or "kezura"
+    return f"{prefix}_{random_suffix}"
 
 
 def calculate_shipping_cost(country: str, weight_g: int, method: str = "standard") -> float:
@@ -236,8 +252,8 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
             existing_user = AppUser.query.filter_by(email=request.email).first()
             
             if not existing_user:
-                # Use fixed default password for auto-created accounts
-                default_password = DEFAULT_GUEST_PASSWORD
+                # Generate secure default password for auto-created accounts
+                default_password = generate_default_guest_password()
                 
                 # Create Clerk user
                 clerk_user_data = create_clerk_user(
