@@ -29,10 +29,7 @@ class AddressController:
             if not current_user:
                 return error_response("Unauthorized", 401)
             
-            addresses = Address.query.filter_by(user_id=current_user.id).order_by(
-                Address.is_default.desc(),
-                Address.created_at.desc()
-            ).all()
+            addresses = Address.query.filter_by(user_id=current_user.id).all()
             
             return success_response(
                 "Addresses retrieved successfully",
@@ -56,20 +53,10 @@ class AddressController:
             
             payload = CreateAddressRequest.model_validate(request.get_json())
             
-            # If setting as default, unset other defaults
-            if payload.is_default:
-                Address.query.filter_by(user_id=current_user.id, is_default=True).update({"is_default": False})
-            
             address = Address()
             address.user_id = current_user.id
-            address.label = payload.label
-            address.line1 = payload.line1
-            address.line2 = payload.line2
-            address.city = payload.city
             address.state = payload.state
-            address.postal_code = payload.postal_code
             address.country = payload.country
-            address.is_default = payload.is_default
             
             db.session.add(address)
             db.session.commit()
@@ -109,27 +96,11 @@ class AddressController:
             
             payload = UpdateAddressRequest.model_validate(request.get_json())
             
-            # If setting as default, unset other defaults
-            if payload.is_default is True:
-                Address.query.filter_by(user_id=current_user.id, is_default=True).update({"is_default": False})
-            
             # Update fields
-            if payload.label is not None:
-                address.label = payload.label
-            if payload.line1 is not None:
-                address.line1 = payload.line1
-            if payload.line2 is not None:
-                address.line2 = payload.line2
-            if payload.city is not None:
-                address.city = payload.city
             if payload.state is not None:
                 address.state = payload.state
-            if payload.postal_code is not None:
-                address.postal_code = payload.postal_code
             if payload.country is not None:
                 address.country = payload.country
-            if payload.is_default is not None:
-                address.is_default = payload.is_default
             
             db.session.commit()
             

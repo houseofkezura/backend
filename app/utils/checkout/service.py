@@ -258,7 +258,6 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                     app_user = AppUser()
                     app_user.clerk_id = clerk_id
                     app_user.email = request.email
-                    app_user.has_updated_default_password = False
                     
                     db.session.add(app_user)
                     db.session.flush()
@@ -277,9 +276,6 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                     if request.shipping_address:
                         address.country = request.shipping_address.get("country")
                         address.state = request.shipping_address.get("state")
-                        address.line1 = request.shipping_address.get("line1")
-                        address.city = request.shipping_address.get("city")
-                        address.postal_code = request.shipping_address.get("postal_code")
                     db.session.add(address)
                     
                     # Create Loyalty Account (Muse tier)

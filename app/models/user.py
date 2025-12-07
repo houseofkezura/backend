@@ -59,17 +59,16 @@ class AppUser(db.Model):
     email: M[str] = db.Column(db.String(255), nullable=True, unique=True)
     username: M[Optional[str]] = db.Column(db.String(50), nullable=True, unique=True)
     password_hash = db.Column(db.String(255), nullable=True)
-    has_updated_default_password = db.Column(db.Boolean, default=False, nullable=False)
     date_joined = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
     
     
     # Relationships
     profile = db.relationship('Profile', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
-    address = db.relationship('Address', back_populates="app_user", uselist=False, cascade="all, delete-orphan")  # Legacy single address
+    address = db.relationship('Address', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
     wallet = db.relationship('Wallet', back_populates="app_user", uselist=False, cascade="all, delete-orphan")
     payments = db.relationship('Payment', back_populates='app_user', lazy='dynamic')
     subscriptions = db.relationship('Subscription', back_populates='app_user', lazy='dynamic')
-    orders = db.relationship('Order', back_populates='app_user', lazy='dynamic', foreign_keys='Order.user_id')
+    orders = db.relationship('Order', back_populates='app_user', lazy='dynamic')
     
     roles = db.relationship('UserRole', back_populates='user', foreign_keys='UserRole.app_user_id', cascade="all, delete-orphan") # roles assigned to the user.
     assigned_roles = db.relationship('UserRole', back_populates='assigner', foreign_keys='UserRole.assigner_id', cascade="all, delete-orphan") # roles that the user has assigned to others
@@ -184,7 +183,6 @@ class AppUser(db.Model):
             'username': self.username,
             "email": self.email,
             "date_joined": to_gmt1_or_none(self.date_joined),
-            'has_updated_default_password': self.has_updated_default_password,
             'wallet': wallet_info,
             "roles": self.role_names,
             **address_info,  # Merge address information
@@ -246,21 +244,11 @@ class Address(db.Model):
     __tablename__ = "address"
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    label = db.Column(db.String(100), nullable=True)  # e.g., "Home", "Work"
-    line1 = db.Column(db.String(255), nullable=True)
-    line2 = db.Column(db.String(255), nullable=True)
-    city = db.Column(db.String(100), nullable=True)
-    state = db.Column(db.String(50), nullable=True)
-    postal_code = db.Column(db.String(20), nullable=True)
     country = db.Column(db.String(50), nullable=True)
-    is_default = db.Column(db.Boolean, default=False, nullable=False)
+    state = db.Column(db.String(50), nullable=True)
     
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False,)
     app_user = db.relationship('AppUser', back_populates="address")
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
     
     def __repr__(self):
         return f'<address ID: {self.id}, country: {self.country}, user ID: {self.user_id}>'
@@ -273,18 +261,9 @@ class Address(db.Model):
     def to_dict(self):
         return {
             'id': str(self.id),
-            'label': self.label,
-            'line1': self.line1,
-            'line2': self.line2,
-            'city': self.city,
-            'state': self.state,
-            'postal_code': self.postal_code,
             'country': self.country,
-            'is_default': self.is_default,
-            'user_id': str(self.user_id),
-            'created_at': to_gmt1_or_none(self.created_at),
-            'updated_at': to_gmt1_or_none(self.updated_at),
+            'state': self.state,
+            'user_id': str(self.user_id)
         }
-
 
 
