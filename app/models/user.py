@@ -59,6 +59,7 @@ class AppUser(db.Model):
     email: M[str] = db.Column(db.String(255), nullable=True, unique=True)
     username: M[Optional[str]] = db.Column(db.String(50), nullable=True, unique=True)
     password_hash = db.Column(db.String(255), nullable=True)
+    has_updated_default_password = db.Column(db.Boolean, default=False, nullable=False)
     date_joined = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
     
     
@@ -183,6 +184,7 @@ class AppUser(db.Model):
             'username': self.username,
             "email": self.email,
             "date_joined": to_gmt1_or_none(self.date_joined),
+            'has_updated_default_password': self.has_updated_default_password,
             'wallet': wallet_info,
             "roles": self.role_names,
             **address_info,  # Merge address information

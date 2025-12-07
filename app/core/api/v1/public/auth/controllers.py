@@ -363,6 +363,8 @@ class AuthController:
             
             # Set new password
             current_user.set_password(payload.new_password)
+            # Mark that user has updated their default password
+            current_user.has_updated_default_password = True
             db.session.commit()
             
             log_event("Password changed", {"user_id": str(current_user.id)})
@@ -489,6 +491,8 @@ class AuthController:
             
             # Update password
             user.set_password(new_password)
+            # Mark that user has updated their default password
+            user.has_updated_default_password = True
             db.session.commit()
             
             # Delete reset record

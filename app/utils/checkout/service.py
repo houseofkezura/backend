@@ -65,10 +65,8 @@ class CheckoutResult:
     clerk_id: Optional[str] = None
 
 
-def generate_default_password(length: int = 16) -> str:
-    """Generate a random default password."""
-    alphabet = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+# Default password for auto-created guest accounts
+DEFAULT_GUEST_PASSWORD = "kezura_1234"
 
 
 def calculate_shipping_cost(country: str, weight_g: int, method: str = "standard") -> float:
@@ -238,8 +236,8 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
             existing_user = AppUser.query.filter_by(email=request.email).first()
             
             if not existing_user:
-                # Generate default password
-                default_password = generate_default_password()
+                # Use fixed default password for auto-created accounts
+                default_password = DEFAULT_GUEST_PASSWORD
                 
                 # Create Clerk user
                 clerk_user_data = create_clerk_user(
@@ -258,6 +256,7 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                     app_user = AppUser()
                     app_user.clerk_id = clerk_id
                     app_user.email = request.email
+                    app_user.has_updated_default_password = False
                     
                     db.session.add(app_user)
                     db.session.flush()
