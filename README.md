@@ -32,3 +32,6 @@
 - Use `uv` for dependency management.
 - Set `CLERK_SECRET_KEY` before running.
 
+## Frontend Integration Guide
+- See `FRONTEND_GUIDE.md` for endpoint usage, auth/RBAC expectations, and sample requests.
+
