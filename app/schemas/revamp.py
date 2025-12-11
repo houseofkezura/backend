@@ -14,3 +14,6 @@ class CreateRevampRequest(BaseModel):
     description: str = Field(..., min_length=1, description="Description of desired changes")
     images: Optional[List[str]] = Field(None, description="List of media IDs for reference images")
 
+
+
+

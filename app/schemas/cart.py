@@ -25,3 +25,6 @@ class ApplyPointsRequest(BaseModel):
     points_to_redeem: int = Field(..., ge=500, description="Points to redeem (minimum 500)")
     guest_token: Optional[str] = Field(None, description="Guest cart token (for unauthenticated users)")
 
+
+
+

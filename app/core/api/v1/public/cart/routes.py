@@ -4,10 +4,15 @@ Public cart routes.
 
 from __future__ import annotations
 
-from flask_pydantic_spec import Response
-
-from app.extensions.docs import spec, endpoint
-from app.schemas.response import SuccessResponse, ErrorResponse
+from app.extensions.docs import endpoint
+from app.schemas.response import (
+    SuccessResp,
+    BadRequestResp,
+    UnauthorizedResp,
+    ForbiddenResp,
+    NotFoundResp,
+    ServerErrorResp,
+)
 from app.schemas.cart import AddCartItemRequest, UpdateCartItemRequest, ApplyPointsRequest
 from .controllers import CartController
 from . import bp
@@ -17,9 +22,12 @@ from . import bp
 @endpoint(
     tags=["Cart"],
     summary="Get Cart",
-    description="Get the current user's cart or guest cart. No authentication required for guests."
+    description="Get the current user's cart or guest cart. No authentication required for guests.",
+    responses={
+        "200": SuccessResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_500=ErrorResponse))
 def get_cart():
     """Get cart contents."""
     return CartController.get_cart()
@@ -30,9 +38,14 @@ def get_cart():
     request_body=AddCartItemRequest,
     tags=["Cart"],
     summary="Add Item to Cart",
-    description="Add a product variant to the cart. No authentication required for guests."
+    description="Add a product variant to the cart. No authentication required for guests.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "404": NotFoundResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
 def add_item():
     """Add item to cart."""
     return CartController.add_item()
@@ -43,9 +56,15 @@ def add_item():
     request_body=UpdateCartItemRequest,
     tags=["Cart"],
     summary="Update Cart Item",
-    description="Update the quantity of a cart item. No authentication required for guests."
+    description="Update the quantity of a cart item. No authentication required for guests.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "403": ForbiddenResp,
+        "404": NotFoundResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_403=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
 def update_item(item_id: str):
     """Update cart item quantity."""
     return CartController.update_item(item_id)
@@ -55,9 +74,14 @@ def update_item(item_id: str):
 @endpoint(
     tags=["Cart"],
     summary="Remove Cart Item",
-    description="Remove an item from the cart. No authentication required for guests."
+    description="Remove an item from the cart. No authentication required for guests.",
+    responses={
+        "200": SuccessResp,
+        "403": ForbiddenResp,
+        "404": NotFoundResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_403=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
 def delete_item(item_id: str):
     """Remove item from cart."""
     return CartController.delete_item(item_id)
@@ -68,10 +92,19 @@ def delete_item(item_id: str):
     request_body=ApplyPointsRequest,
     tags=["Cart"],
     summary="Apply Loyalty Points",
-    description="Calculate discount from loyalty points. Requires authentication."
+    description="Calculate discount from loyalty points. Requires authentication.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "401": UnauthorizedResp,
+        "404": NotFoundResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_401=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
 def apply_points():
     """Apply loyalty points to cart."""
     return CartController.apply_points()
+
+
+
 

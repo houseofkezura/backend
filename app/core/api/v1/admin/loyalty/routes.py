@@ -4,10 +4,15 @@ Admin loyalty routes.
 
 from __future__ import annotations
 
-from flask_pydantic_spec import Response
-
-from app.extensions.docs import spec, endpoint, SecurityScheme
-from app.schemas.response import SuccessResponse, ErrorResponse
+from app.extensions.docs import endpoint, SecurityScheme
+from app.schemas.response import (
+    SuccessResp,
+    BadRequestResp,
+    UnauthorizedResp,
+    ForbiddenResp,
+    NotFoundResp,
+    ServerErrorResp,
+)
 from app.schemas.admin import LoyaltyAdjustRequest
 from app.utils.decorators.auth import roles_required
 from .controllers import AdminLoyaltyController
@@ -20,9 +25,14 @@ from . import bp
     security=SecurityScheme.ADMIN_BEARER,
     tags=["Admin - Loyalty"],
     summary="List Loyalty Accounts",
-    description="List all loyalty accounts. Requires admin role."
+    description="List all loyalty accounts. Requires admin role.",
+    responses={
+        "200": SuccessResp,
+        "401": UnauthorizedResp,
+        "403": ForbiddenResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_500=ErrorResponse))
 def list_accounts():
     """List all loyalty accounts."""
     return AdminLoyaltyController.list_accounts()
@@ -35,9 +45,16 @@ def list_accounts():
     request_body=LoyaltyAdjustRequest,
     tags=["Admin - Loyalty"],
     summary="Adjust Points",
-    description="Manually adjust points for a loyalty account. Requires admin role."
+    description="Manually adjust points for a loyalty account. Requires admin role.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "401": UnauthorizedResp,
+        "403": ForbiddenResp,
+        "404": NotFoundResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
 def adjust_points(account_id: str):
     """Adjust points for a loyalty account."""
     return AdminLoyaltyController.adjust_points(account_id)

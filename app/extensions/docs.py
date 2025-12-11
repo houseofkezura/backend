@@ -37,10 +37,12 @@ config = DocsConfig.from_dict({
     'add_default_responses': True
 })
 
+
+
 # Create the OpenAPI spec instance with our configuration
 spec_instance = FlaskOpenAPISpec(config)
 
-# Expose the spec object for @spec.validate decorators
+# Expose the spec object for documentation utilities
 spec = spec_instance.spec
 
 

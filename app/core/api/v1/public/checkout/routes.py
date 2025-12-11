@@ -4,10 +4,8 @@ Public checkout routes.
 
 from __future__ import annotations
 
-from flask_pydantic_spec import Response
-
-from app.extensions.docs import spec, endpoint
-from app.schemas.response import SuccessResponse, ErrorResponse
+from app.extensions.docs import endpoint
+from app.schemas.response import SuccessResp, BadRequestResp, ServerErrorResp
 from app.schemas.checkout import CheckoutRequest
 from .controllers import CheckoutController
 from . import bp
@@ -18,10 +16,17 @@ from . import bp
     request_body=CheckoutRequest,
     tags=["Checkout"],
     summary="Process Checkout",
-    description="Process checkout and create order. Supports both authenticated users and guest checkout. Guest orders between ₦200k-₦500k automatically create accounts."
+    description="Process checkout and create order. Supports both authenticated users and guest checkout. Guest orders between ₦200k-₦500k automatically create accounts.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_500=ErrorResponse))
 def create_checkout():
     """Process checkout."""
     return CheckoutController.create_checkout()
+
+
+
 

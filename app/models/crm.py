@@ -90,3 +90,6 @@ class CrmRating(db.Model):
             "created_at": to_gmt1_or_none(self.created_at),
         }
 
+
+
+

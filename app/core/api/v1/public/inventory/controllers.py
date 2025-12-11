@@ -52,3 +52,6 @@ class InventoryController:
             log_error(f"Failed to get inventory for SKU {sku}", error=e)
             return error_response("Failed to retrieve inventory information", 500)
 
+
+
+

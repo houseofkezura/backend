@@ -92,3 +92,6 @@ class InventoryAdjustRequest(BaseModel):
     adjust_delta: Optional[bool] = Field(False, description="If True, quantity is added/subtracted from current")
     low_stock_threshold: Optional[int] = Field(None, ge=0, description="Update low stock threshold")
 
+
+
+

@@ -20,3 +20,6 @@ class CreateB2BInquiryRequest(BaseModel):
     product_categories: Optional[List[str]] = Field(None, description="Product categories of interest")
     note: Optional[str] = Field(None, description="Additional message")
 
+
+
+

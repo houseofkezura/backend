@@ -37,3 +37,6 @@ class CheckoutRequest(BaseModel):
     first_name: Optional[str] = Field(None, description="First name (for guest checkout)")
     last_name: Optional[str] = Field(None, description="Last name (for guest checkout)")
 
+
+
+

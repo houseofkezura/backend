@@ -40,3 +40,6 @@ class CmsController:
             log_error(f"Failed to get CMS page {slug}", error=e)
             return error_response("Failed to retrieve page", 500)
 
+
+
+

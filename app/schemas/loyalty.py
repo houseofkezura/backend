@@ -19,3 +19,6 @@ class LoyaltyLedgerFilter(BaseModel):
     page: Optional[int] = Field(1, ge=1, description="Page number")
     per_page: Optional[int] = Field(20, ge=1, le=100, description="Items per page")
 
+
+
+

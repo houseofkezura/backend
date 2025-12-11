@@ -14,3 +14,6 @@ class CreateRatingRequest(BaseModel):
     stars: int = Field(..., ge=1, le=5, description="Rating (1-5 stars)")
     comment: Optional[str] = Field(None, max_length=1000, description="Optional comment")
 
+
+
+

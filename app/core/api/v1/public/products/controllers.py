@@ -238,3 +238,6 @@ class ProductController:
             log_error("Failed to get variants", error=e)
             return error_response("Failed to retrieve variants", 500)
 
+
+
+

@@ -121,3 +121,6 @@ CLIENT_ORIGINS=http://localhost:3000,http://localhost:5173
 - The `DEFAULT_GUEST_PREFIX` is used to generate secure random passwords for auto-created guest accounts
 - Idempotency keys in checkout are stored in cache (24-hour TTL) to prevent duplicate orders
 
+
+
+

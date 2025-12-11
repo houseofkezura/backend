@@ -61,3 +61,6 @@ class AssignRoleRequest(BaseModel):
     role: str = Field(..., min_length=1)
 
 
+
+
+

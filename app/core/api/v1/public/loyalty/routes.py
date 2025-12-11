@@ -4,10 +4,8 @@ Public loyalty routes.
 
 from __future__ import annotations
 
-from flask_pydantic_spec import Response
-
-from app.extensions.docs import spec, endpoint, SecurityScheme
-from app.schemas.response import SuccessResponse, ErrorResponse
+from app.extensions.docs import endpoint, SecurityScheme
+from app.schemas.response import SuccessResp, UnauthorizedResp, ServerErrorResp
 from app.utils.decorators.auth import customer_required
 from .controllers import LoyaltyController
 from . import bp
@@ -19,9 +17,13 @@ from . import bp
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Loyalty"],
     summary="Get Loyalty Information",
-    description="Get current user's loyalty tier, points balance, and progress to next tier"
+    description="Get current user's loyalty tier, points balance, and progress to next tier",
+    responses={
+        "200": SuccessResp,
+        "401": UnauthorizedResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse, HTTP_500=ErrorResponse))
 def get_loyalty_info():
     """Get loyalty account information."""
     return LoyaltyController.get_loyalty_info()
@@ -33,10 +35,17 @@ def get_loyalty_info():
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Loyalty"],
     summary="Get Loyalty Ledger",
-    description="Get loyalty points transaction history with filtering and pagination"
+    description="Get loyalty points transaction history with filtering and pagination",
+    responses={
+        "200": SuccessResp,
+        "401": UnauthorizedResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse, HTTP_500=ErrorResponse))
 def get_ledger():
     """Get loyalty ledger entries."""
     return LoyaltyController.get_ledger()
+
+
+
 

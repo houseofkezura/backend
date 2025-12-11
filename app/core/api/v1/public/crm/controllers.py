@@ -94,3 +94,6 @@ class CrmController:
             db.session.rollback()
             return error_response("Failed to submit rating", 500)
 
+
+
+

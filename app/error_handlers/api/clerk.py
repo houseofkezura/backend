@@ -77,3 +77,6 @@ def add_clerk_err_handler(bp: Blueprint):
     bp.register_error_handler(RevokedClerkTokenError, _handle_revoked_token)
     bp.register_error_handler(ClerkAuthError, _handle_clerk_auth_error)
 
+
+
+

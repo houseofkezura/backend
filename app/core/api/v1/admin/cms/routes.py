@@ -4,10 +4,17 @@ Admin CMS routes.
 
 from __future__ import annotations
 
-from flask_pydantic_spec import Response
-
-from app.extensions.docs import spec, endpoint, SecurityScheme
-from app.schemas.response import SuccessResponse, ErrorResponse
+from app.extensions.docs import endpoint, SecurityScheme
+from app.schemas.response import (
+    SuccessResp,
+    CreatedResp,
+    BadRequestResp,
+    UnauthorizedResp,
+    ForbiddenResp,
+    NotFoundResp,
+    ConflictResp,
+    ServerErrorResp,
+)
 from app.schemas.admin import CmsPageCreateRequest, CmsPageUpdateRequest
 from app.utils.decorators.auth import roles_required
 from .controllers import AdminCmsController
@@ -20,9 +27,14 @@ from . import bp
     security=SecurityScheme.ADMIN_BEARER,
     tags=["Admin - CMS"],
     summary="List CMS Pages",
-    description="List all CMS pages. Requires admin role."
+    description="List all CMS pages. Requires admin role.",
+    responses={
+        "200": SuccessResp,
+        "401": UnauthorizedResp,
+        "403": ForbiddenResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_500=ErrorResponse))
 def list_pages():
     """List all CMS pages."""
     return AdminCmsController.list_pages()
@@ -35,9 +47,16 @@ def list_pages():
     request_body=CmsPageCreateRequest,
     tags=["Admin - CMS"],
     summary="Create CMS Page",
-    description="Create a new CMS page. Requires admin role."
+    description="Create a new CMS page. Requires admin role.",
+    responses={
+        "201": CreatedResp,
+        "400": BadRequestResp,
+        "401": UnauthorizedResp,
+        "403": ForbiddenResp,
+        "409": ConflictResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_201=SuccessResponse, HTTP_400=ErrorResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_409=ErrorResponse, HTTP_500=ErrorResponse))
 def create_page():
     """Create a new CMS page."""
     return AdminCmsController.create_page()
@@ -50,9 +69,17 @@ def create_page():
     request_body=CmsPageUpdateRequest,
     tags=["Admin - CMS"],
     summary="Update CMS Page",
-    description="Update a CMS page. Requires admin role."
+    description="Update a CMS page. Requires admin role.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "401": UnauthorizedResp,
+        "403": ForbiddenResp,
+        "404": NotFoundResp,
+        "409": ConflictResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_404=ErrorResponse, HTTP_409=ErrorResponse, HTTP_500=ErrorResponse))
 def update_page(page_id: str):
     """Update a CMS page."""
     return AdminCmsController.update_page(page_id)
@@ -64,9 +91,16 @@ def update_page(page_id: str):
     security=SecurityScheme.ADMIN_BEARER,
     tags=["Admin - CMS"],
     summary="Delete CMS Page",
-    description="Delete a CMS page. Requires Super Admin or Admin role."
+    description="Delete a CMS page. Requires Super Admin or Admin role.",
+    responses={
+        "200": SuccessResp,
+        "400": BadRequestResp,
+        "401": UnauthorizedResp,
+        "403": ForbiddenResp,
+        "404": NotFoundResp,
+        "500": ServerErrorResp,
+    },
 )
-@spec.validate(resp=Response(HTTP_200=SuccessResponse, HTTP_400=ErrorResponse, HTTP_401=ErrorResponse, HTTP_403=ErrorResponse, HTTP_404=ErrorResponse, HTTP_500=ErrorResponse))
 def delete_page(page_id: str):
     """Delete a CMS page."""
     return AdminCmsController.delete_page(page_id)

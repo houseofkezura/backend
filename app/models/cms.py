@@ -91,3 +91,6 @@ class B2BInquiry(db.Model):
             "updated_at": to_gmt1_or_none(self.updated_at),
         }
 
+
+
+
