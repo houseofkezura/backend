@@ -22,7 +22,7 @@ from ..helpers.money import quantize_amount
 from quas_utils.api import success_response, error_response
 from ..app_settings.utils import get_active_payment_gateway, get_general_setting
 from ..helpers.site import get_site_url, get_platform_url
-from ..decorators.retry import retry
+from quas_utils.decorators import retry
 from ...enums import PaymentGatewayName, PaymentStatus, PaymentType
 from ...models import AppUser, Payment, Transaction, Subscription
 from quas_utils.misc import generate_random_string
