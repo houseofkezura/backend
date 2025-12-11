@@ -4,9 +4,10 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy.orm import Query, Mapped as M  # type: ignore
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+from datetime import timedelta
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, timedelta
+from quas_utils.date_time import QuasDateTime
 
 if TYPE_CHECKING:
     from .user import AppUser
@@ -26,8 +27,8 @@ class SubscriptionPlan(db.Model):
     features = db.Column(db.JSON, default=list)
     is_active = db.Column(db.Boolean(), default=True)
     
-    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     def update(self, commit=True, **kwargs):
         for key, value in kwargs.items():
@@ -47,14 +48,14 @@ class Subscription(db.Model):
     __tablename__ = "subscription"
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    start_date = db.Column(db.DateTime(timezone=True), nullable=False, default=DateTimeUtils.aware_utcnow)
+    start_date = db.Column(db.DateTime(timezone=True), nullable=False, default=QuasDateTime.aware_utcnow)
     end_date = db.Column(db.DateTime(timezone=True), nullable=False)
     is_active = db.Column(db.Boolean(), default=True)
     auto_renew = db.Column(db.Boolean(), default=False)
     meta_info = db.Column(db.JSON, default=dict)
     
-    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
 
     # Relationships
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=False)
@@ -65,8 +66,8 @@ class Subscription(db.Model):
 
     def extend_validity(self):
         """Extend subscription based on plan duration."""
-        if self.end_date < DateTimeUtils.aware_utcnow():
-            self.start_date = DateTimeUtils.aware_utcnow()
+        if self.end_date < QuasDateTime.aware_utcnow():
+            self.start_date = QuasDateTime.aware_utcnow()
         self.end_date = self.end_date + timedelta(days=self.plan.duration_days)
         self.is_active = True
         db.session.commit()
@@ -74,7 +75,7 @@ class Subscription(db.Model):
     @property
     def is_expired(self) -> bool:
         """Check if subscription has expired."""
-        return self.end_date < DateTimeUtils.aware_utcnow()
+        return self.end_date < QuasDateTime.aware_utcnow()
     
     def update(self, commit=True, **kwargs):
         for key, value in kwargs.items():

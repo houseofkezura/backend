@@ -17,8 +17,8 @@ import cloudinary.uploader
 
 from ...extensions import db
 from ...models import Media
-from .loggers import console_log, log_exception
-from .basics import generate_random_string
+from quas_utils.logging.loggers import console_log, log_exception
+from quas_utils.misc import generate_random_string
 from config import Config
 
 cloudinary.config( 

@@ -2,8 +2,8 @@
 from enum import Enum
 
 from ..extensions import db
-from ..utils.helpers.basics import generate_random_string
-from ..utils.date_time import DateTimeUtils
+from quas_utils.misc import generate_random_string
+from quas_utils.date_time import QuasDateTime
 from ..enums.settings import GeneralSettingsKeys, PaymentMethodSettingKeys
 
 
@@ -18,7 +18,7 @@ class GeneralSetting(db.Model):
     """
     key = db.Column(db.String(50), primary_key=True)
     value = db.Column(db.String(255), nullable=True)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
 
 
     def __repr__(self):
@@ -55,7 +55,7 @@ class PaymentMethodSettings(db.Model):
     method = db.Column(db.String(50), nullable=False)  # e.g., 'bacs', 'cod', 'gateway'
     key = db.Column(db.String(100), nullable=False)  # e.g., 'enabled', 'account_number'
     value = db.Column(db.Text, nullable=True)  # Store values like True/False, text, API keys
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     __table_args__ = (db.UniqueConstraint('method', 'key', name='uq_method_key'),)
     

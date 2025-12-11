@@ -11,7 +11,7 @@ from ...extensions import db
 from ...models.user import AppUser
 from ...models.payment import Payment, Transaction
 from ...enums.payments import PaymentStatus, TransactionType, PaymentType, PaymentGatewayName
-from ..helpers.basics import generate_random_string
+from quas_utils.misc import generate_random_string
 from ..helpers.money import quantize_amount
 
 def get_payment_providers() -> list[str]:

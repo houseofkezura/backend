@@ -3,7 +3,7 @@ from flask import request, abort, current_app
 from typing import Any, cast
 
 from app.logging import log_event
-from ..utils.helpers.api_response import error_response
+from quas_utils.api import error_response
 
 
 

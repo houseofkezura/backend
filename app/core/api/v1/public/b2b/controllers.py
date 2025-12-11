@@ -10,7 +10,7 @@ import json
 from app.extensions import db
 from app.models.cms import B2BInquiry
 from app.schemas.b2b import CreateB2BInquiryRequest
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.logging import log_error, log_event
 
 

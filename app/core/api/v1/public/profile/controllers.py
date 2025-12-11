@@ -4,7 +4,7 @@ from flask import Response, request
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.models.user import AppUser, Profile, Address
 from app.schemas.profile import UpdateProfileRequest

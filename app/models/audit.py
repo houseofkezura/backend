@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSON
 import uuid
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 
 
 class AuditLog(db.Model):
@@ -28,7 +28,7 @@ class AuditLog(db.Model):
     meta: M[Dict[str, Any]] = db.Column(JSON, default=dict)  # Additional metadata
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
     
     # Relationships
     user = db.relationship('AppUser', backref='audit_logs')

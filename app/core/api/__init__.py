@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from flask import Blueprint, current_app, render_template
 
-from app.utils.helpers.api_response import success_response
+from quas_utils.api import success_response
 
 
 def create_api_blueprint():

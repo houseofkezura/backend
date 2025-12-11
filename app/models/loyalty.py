@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 
 if TYPE_CHECKING:
     from .user import AppUser
@@ -44,8 +44,8 @@ class LoyaltyAccount(db.Model):
     lifetime_spend: M[float] = db.Column(db.Numeric(14, 2), nullable=False, default=0)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationships
     user = relationship('AppUser', backref='loyalty_account')
@@ -85,7 +85,7 @@ class LoyaltyLedger(db.Model):
     expires_at: M[Optional[datetime]] = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
     
     # Relationships
     account = relationship('LoyaltyAccount', back_populates='ledger_entries')

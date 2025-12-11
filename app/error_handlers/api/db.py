@@ -12,7 +12,7 @@ from sqlalchemy.exc import (
 )
 
 from app.logging import log_error
-from app.utils.helpers.api_response import error_response
+from quas_utils.api import error_response
 
 # Database errors → rollback and return appropriate code
 def _rollback():

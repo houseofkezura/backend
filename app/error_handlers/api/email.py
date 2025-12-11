@@ -5,7 +5,7 @@ from typing import Any
 from flask import Blueprint, request
 
 from app.logging import log_error
-from app.utils.helpers.api_response import error_response
+from quas_utils.api import error_response
 
 try:
     from email_validator import EmailNotValidError

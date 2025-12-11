@@ -11,7 +11,7 @@ from app.extensions import db
 from app.models.revamp import RevampRequest
 from app.models.order import OrderItem
 from app.schemas.revamp import CreateRevampRequest
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.logging import log_error, log_event
 

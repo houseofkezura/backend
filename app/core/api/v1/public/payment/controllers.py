@@ -6,7 +6,7 @@ from typing import Optional
 import uuid
 
 from app.extensions import db
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.models.order import Order
 from app.models.payment import Payment
@@ -53,11 +53,11 @@ class PaymentController:
             # On successful initialization
             if response["status"] == "success":
                 if not response.get("authorization_url", None):
-                    return error_response("payment initialization failed", 500, extra_data=response)
+                    return error_response("payment initialization failed", 500, resp_data=response)
                 
-                return success_response("payment initialized successfully", 200, extra_data=response)
+                return success_response("payment initialized successfully", 200, resp_data=response)
             else:
-                return error_response(f"{response.get('message', 'Unknown Payment initialization error')}", 500, extra_data=response)
+                return error_response(f"{response.get('message', 'Unknown Payment initialization error')}", 500, resp_data=response)
         except Exception as e:
             log_error("Failed to initialize payment", error=e)
             return error_response("Failed to initialize payment. Please try again.", 500)
@@ -84,7 +84,7 @@ class PaymentController:
             verification_response = payment_manager.verify_gateway_payment(payment)
             
             payment_manager.handle_gateway_payment(payment, verification_response)
-            payment_type = payment.meta_info.get("payment_type", str(PaymentType.ESIM_PURCHASE))
+            payment_type = payment.meta_info.get("payment_type", str(PaymentType.ORDER_PAYMENT))
             
             if verification_response['status'] != PaymentStatus.COMPLETED:
                 return error_response("Payment failed. Please try again.", 400, verification_response)
@@ -92,9 +92,7 @@ class PaymentController:
             
             if payment_type == str(PaymentType.WALLET_TOP_UP):
                 msg, code, data = "Your wallet has been credited successfully!", 200, None
-            elif payment_type == str(PaymentType.ESIM_PURCHASE):
-                esim_purchase_id = payment.meta_info.get("esim_purchase_id")
-                msg, code, data = "Your eSIM purchase completed successfully!", 200, {"esim_purchase_id": esim_purchase_id}
+            
             elif payment_type == str(PaymentType.ORDER_PAYMENT):
                 order_id = payment.meta_info.get("order_id")
                 msg, code, data = "Your order has been paid for!", 200, {"order_id": order_id}

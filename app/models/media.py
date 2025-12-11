@@ -19,7 +19,7 @@ from sqlalchemy import UUID, ForeignKey
 from sqlalchemy.orm import Mapped as M, relationship
 
 from app.extensions import db
-from app.utils.date_time import DateTimeUtils
+from quas_utils.date_time import QuasDateTime
 
 
 class Media(db.Model):
@@ -60,8 +60,8 @@ class Media(db.Model):
     usage_count: M[int] = db.Column(db.Integer, default=0)
 
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
 
     # Relationships
 

@@ -5,7 +5,7 @@ Admin authentication controller.
 from __future__ import annotations
 
 from flask import Response
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.utils.decorators.auth import roles_required
 

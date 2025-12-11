@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 
 if TYPE_CHECKING:
     from .user import AppUser
@@ -33,8 +33,8 @@ class Cart(db.Model):
     guest_token: M[Optional[str]] = db.Column(db.String(255), nullable=True, unique=True, index=True)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationships
     user = relationship("AppUser", backref="carts")
@@ -80,8 +80,8 @@ class CartItem(db.Model):
     unit_price: M[float] = db.Column(db.Numeric(14, 2), nullable=False)  # Snapshot of price at add time
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationships
     cart = relationship("Cart", back_populates="items")

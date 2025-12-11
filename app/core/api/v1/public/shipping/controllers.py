@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from flask import Response, request
 
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.checkout.service import calculate_shipping_cost
 from app.logging import log_error
 

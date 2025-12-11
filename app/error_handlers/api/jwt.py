@@ -6,7 +6,7 @@ from flask import Blueprint, request
 from werkzeug.exceptions import HTTPException, UnsupportedMediaType
 
 from app.logging import log_error
-from app.utils.helpers.api_response import error_response
+from quas_utils.api import error_response
 
 try:  # jwt-related exceptions are optional at import time
     from flask_jwt_extended.exceptions import (

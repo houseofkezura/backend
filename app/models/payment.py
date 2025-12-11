@@ -7,8 +7,8 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from ..extensions import db
-from ..utils.helpers.basics import generate_random_string
-from ..utils.date_time import DateTimeUtils
+from quas_utils.misc import generate_random_string
+from quas_utils.date_time import QuasDateTime
 from ..utils.payments.rates import convert_amount
 from ..enums.payments import PaymentStatus, TransactionType
 
@@ -31,8 +31,8 @@ class Payment(db.Model):
     status = db.Column(db.String(20), nullable=False, default=str(PaymentStatus.PENDING))  # Status of the payment request
     meta_info = db.Column(db.JSON, default=dict)  # Store payment type and related data
     
-    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
 
     # relationships
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=False)
@@ -114,8 +114,8 @@ class Transaction(db.Model):
     status = db.Column(db.String(80), nullable=False) # Status of the financial transaction
     meta_info = db.Column(db.JSON, default=dict)  # Store addition info or related data
     
-    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationship with the user model
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=False)

@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 
 
 class CmsPage(db.Model):
@@ -28,8 +28,8 @@ class CmsPage(db.Model):
     published_at: M[Optional[datetime]] = db.Column(db.DateTime(timezone=True), nullable=True)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     def __repr__(self) -> str:
         return f"<CmsPage {self.id}, Slug: {self.slug}, Title: {self.title}>"
@@ -67,8 +67,8 @@ class B2BInquiry(db.Model):
     status: M[str] = db.Column(db.String(50), nullable=False, default="new")  # new, contacted, in_negotiation, closed
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     def __repr__(self) -> str:
         return f"<B2BInquiry {self.id}, Business: {self.business_name}, Status: {self.status}>"

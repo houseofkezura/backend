@@ -11,7 +11,7 @@ import uuid
 from app.extensions import db
 from app.models.product import Product, ProductVariant, Inventory
 from app.schemas.products import CreateProductRequest, UpdateProductRequest, CreateProductVariantRequest, UpdateProductVariantRequest
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.logging import log_error, log_event
 

@@ -11,7 +11,7 @@ from app.extensions import db
 from app.models.crm import CrmRating, CrmStaff
 from app.models.order import Order
 from app.schemas.crm import CreateRatingRequest
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.enums.orders import OrderStatus
 from app.logging import log_error, log_event

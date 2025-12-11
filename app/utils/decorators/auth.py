@@ -15,8 +15,8 @@ from flask.typing import ResponseReturnValue
 from app.models.user import AppUser
 from app.models.role import UserRole as TUserRole
 from app.extensions import db
-from ..helpers.loggers import console_log
-from ..helpers.api_response import error_response
+from quas_utils.logging.loggers import console_log
+from quas_utils.api import error_response
 from ..helpers.roles import normalize_role
 from ..auth.clerk import get_clerk_user_from_token, get_or_create_app_user_from_clerk
 

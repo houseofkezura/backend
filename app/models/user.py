@@ -21,8 +21,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 
 from ..extensions import db
-from ..utils.helpers.basics import generate_random_string
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.misc import generate_random_string
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 from ..logging import log_event
 from .media import Media
 from config import Config
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 class TempUser(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = db.Column(db.String(255), nullable=False, unique=True)
-    date_joined = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
+    date_joined = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
     
     def __repr__(self):
         return f'<ID: {self.id}, email: {self.email}>'
@@ -60,7 +60,7 @@ class AppUser(db.Model):
     username: M[Optional[str]] = db.Column(db.String(50), nullable=True, unique=True)
     password_hash = db.Column(db.String(255), nullable=True)
     has_updated_default_password = db.Column(db.Boolean, default=False, nullable=False)
-    date_joined = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
+    date_joined = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
     
     
     # Relationships

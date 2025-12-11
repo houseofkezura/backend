@@ -37,7 +37,7 @@ from . import bp
     },
     tags=["Authentication"],
     summary="User Login",
-    description="Authenticate user with email/username and password to receive accesstoken"
+    description="Authenticate user with email/username and password to receive access token"
 )
 def login():
     """Authenticate and return access token."""

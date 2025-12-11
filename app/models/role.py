@@ -10,7 +10,7 @@ import uuid
 from ..extensions import db
 from .user import AppUser
 from ..enums.auth import RoleNames
-from ..utils.date_time import DateTimeUtils
+from quas_utils.date_time import QuasDateTime
 from ..logging import log_event
 
 
@@ -54,7 +54,7 @@ class UserRole(db.Model):
     app_user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), primary_key=True)
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), primary_key=True)
     assigner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=True)
-    assigned_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, nullable=False)
+    assigned_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, nullable=False)
 
     # Relationships to track who assigned the role
     user= db.relationship('AppUser', back_populates='roles', foreign_keys=[app_user_id])

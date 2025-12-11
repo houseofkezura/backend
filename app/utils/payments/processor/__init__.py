@@ -1,7 +1,7 @@
 from enum import Enum
 from decimal import Decimal
 from typing import TypedDict, Optional, Set, Any
-from ...helpers.basics import generate_random_string
+from quas_utils.misc import generate_random_string
 from ....enums.payments import PaymentStatus
 from ..types import PaymentWebhookData, TransferWebhookData
 

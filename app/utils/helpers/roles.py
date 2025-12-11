@@ -15,7 +15,7 @@ from ...extensions import db
 from ...enums.auth import RoleNames
 from ...models.role import Role
 from ...models.user import AppUser, Profile, Address
-from .loggers import console_log, log_exception
+from quas_utils.logging.loggers import console_log, log_exception
 
 def get_role_names(as_enum=False):
     """returns a list containing the names of all the roles"""

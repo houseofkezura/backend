@@ -6,7 +6,7 @@ from flask import Blueprint, request
 from werkzeug.exceptions import HTTPException, UnsupportedMediaType, NotFound, MethodNotAllowed, Unauthorized
 
 from app.logging import log_error
-from app.utils.helpers.api_response import error_response
+from quas_utils.api import error_response
 
 # HTTPException → use provided code/description
 def _handle_http_exception(err: HTTPException):

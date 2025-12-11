@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSON
 import uuid
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 from ..enums.orders import OrderStatus
 
 if TYPE_CHECKING:
@@ -54,8 +54,8 @@ class Order(db.Model):
     guest_phone: M[Optional[str]] = db.Column(db.String(120), nullable=True)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
 
     # Relationships
     app_user = db.relationship('AppUser', back_populates='orders')
@@ -127,7 +127,7 @@ class OrderItem(db.Model):
     unit_price: M[float] = db.Column(db.Numeric(14, 2), nullable=False)  # Snapshot of price at order time
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
     
     # Relationships
     order = relationship('Order', back_populates='items')
@@ -178,8 +178,8 @@ class Shipment(db.Model):
     estimated_delivery: M[Optional[datetime]] = db.Column(db.DateTime(timezone=True), nullable=True)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationships
     order = relationship('Order', back_populates='shipments')

@@ -8,7 +8,7 @@ from flask import Response
 
 from app.extensions import db
 from app.models.cms import CmsPage
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.logging import log_error
 
 

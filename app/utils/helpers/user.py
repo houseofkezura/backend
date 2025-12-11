@@ -10,8 +10,8 @@ from typing import List, Optional, Any, cast
 import uuid
 
 from ...models import AppUser, Profile
-from .basics import generate_random_string
-from .loggers import console_log
+from quas_utils.misc import generate_random_string
+from quas_utils.logging.loggers import console_log
 
 
 def get_current_user() -> Optional[AppUser]:

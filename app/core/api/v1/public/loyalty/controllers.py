@@ -16,7 +16,7 @@ from app.models.loyalty import (
     LOYALTY_TIER_EMPRESS,
 )
 from app.schemas.loyalty import RedeemPointsRequest, LoyaltyLedgerFilter
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.logging import log_error, log_event
 

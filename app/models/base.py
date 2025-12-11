@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped as M, DynamicMapped as DM  # type: ignore
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 from ..extensions import db
 
 
@@ -19,8 +19,8 @@ class BaseModel(Model):
     
     id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     
-    created_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     def save(self):
         """Save the model instance."""

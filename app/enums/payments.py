@@ -42,7 +42,6 @@ class PaymentType(Enum):
     Types of payments supported in the application.
     """
     WALLET_TOP_UP = "wallet_top_up"
-    ESIM_PURCHASE = "esim_purchase"
     ORDER_PAYMENT = "order_payment"
     SUBSCRIPTION = "subscription"
     

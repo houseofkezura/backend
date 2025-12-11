@@ -12,7 +12,7 @@ from app.extensions import db
 from app.models.user import AppUser
 from app.schemas.checkout import CheckoutRequest
 from app.utils.checkout.service import process_checkout, CheckoutRequest as CheckoutServiceRequest
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.logging import log_error, log_event
 

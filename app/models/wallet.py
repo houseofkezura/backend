@@ -13,7 +13,7 @@ import uuid
 
 from ..extensions import db
 from config import Config
-from ..utils.date_time import DateTimeUtils
+from quas_utils.date_time import QuasDateTime
 
 if TYPE_CHECKING:
     from .user import AppUser
@@ -25,7 +25,7 @@ class Wallet(db.Model):
     currency_name = db.Column(db.String(50), default='Naira', nullable=True)
     currency_code = db.Column(db.String(10), default='NGN', nullable=True)
     currency_symbol = db.Column(db.String(10), default=str('₦'), nullable=True)
-    date_created = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow)
+    date_created = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False,)
     
     app_user = db.relationship('AppUser', back_populates="wallet")

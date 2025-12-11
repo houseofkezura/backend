@@ -14,7 +14,7 @@ from app.extensions import db
 from app.models.cart import Cart, CartItem
 from app.models.product import ProductVariant, Inventory
 from app.schemas.cart import AddCartItemRequest, UpdateCartItemRequest, ApplyPointsRequest
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.logging import log_error, log_event
 

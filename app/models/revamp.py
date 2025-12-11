@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSON
 import uuid
 
 from ..extensions import db
-from ..utils.date_time import DateTimeUtils, to_gmt1_or_none
+from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
 
 if TYPE_CHECKING:
     from .user import AppUser
@@ -33,8 +33,8 @@ class RevampRequest(db.Model):
     assigned_to: M[Optional[uuid.UUID]] = db.Column(UUID(as_uuid=True), db.ForeignKey('crm_staff.id'), nullable=True)
     
     # Timestamps
-    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, index=True)
-    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=DateTimeUtils.aware_utcnow, onupdate=DateTimeUtils.aware_utcnow)
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationships
     user = relationship('AppUser', backref='revamp_requests')

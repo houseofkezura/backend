@@ -9,7 +9,7 @@ import uuid
 
 from app.extensions import db
 from app.models.cms import CmsPage
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.logging import log_error, log_event
 
@@ -77,8 +77,8 @@ class AdminCmsController:
             page.content = payload.content
             page.published = payload.published
             if payload.published:
-                from app.utils.date_time import DateTimeUtils
-                page.published_at = DateTimeUtils.aware_utcnow()
+                from quas_utils.date_time import QuasDateTime
+                page.published_at = QuasDateTime.aware_utcnow()
             
             db.session.add(page)
             db.session.commit()
@@ -128,8 +128,8 @@ class AdminCmsController:
             if payload.published is not None:
                 page.published = payload.published
                 if payload.published and not page.published_at:
-                    from app.utils.date_time import DateTimeUtils
-                    page.published_at = DateTimeUtils.aware_utcnow()
+                    from quas_utils.date_time import QuasDateTime
+                    page.published_at = QuasDateTime.aware_utcnow()
             
             db.session.commit()
             

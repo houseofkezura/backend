@@ -41,10 +41,10 @@ from app.utils.verification.password_recovery import (
     hash_reset_code,
     increment_attempts as increment_reset_attempts,
 )
-from app.utils.helpers.basics import generate_random_number
+from quas_utils.misc import generate_random_number
 from app.enums import RoleNames
 from app.utils.helpers.user import get_app_user, get_current_user
-from app.utils.helpers.api_response import success_response, error_response
+from quas_utils.api import success_response, error_response
 from app.utils.decorators.auth import customer_required
 
 
@@ -86,7 +86,7 @@ class AuthController:
                 return error_response('Username already taken', 409)
 
         # Generate a short code; store only hashed code and password hash in cache
-        from app.utils.helpers.basics import generate_random_number
+        from quas_utils.misc import generate_random_number
         code = str(generate_random_number(6))
         reg_id = generate_registration_id()
         code_h = hash_code(code, salt=reg_id)
@@ -201,7 +201,7 @@ class AuthController:
             return error_response("maximum resend attempts exceeded", 429)
         
         # Generate new code and update cache
-        from app.utils.helpers.basics import generate_random_number
+        from quas_utils.misc import generate_random_number
         from app.utils.verification.registration import hash_code
         
         new_code = str(generate_random_number(6))
