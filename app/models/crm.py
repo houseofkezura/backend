@@ -93,3 +93,4 @@ class CrmRating(db.Model):
 
 
 
+

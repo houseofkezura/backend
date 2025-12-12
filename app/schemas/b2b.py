@@ -23,3 +23,4 @@ class CreateB2BInquiryRequest(BaseModel):
 
 
 
+
