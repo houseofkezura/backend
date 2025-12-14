@@ -1,14 +1,16 @@
 from __future__ import annotations
 from .controllers import AuthController
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    ApiResp,
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ConflictResp,
-    TooManyRequestsResp,
-    NotFoundResp,
+from app.schemas.response_data import (
+    SignupData,
+    VerifyEmailData,
+    TokenValidationData,
+    RefreshTokenData,
+    EmailAvailabilityData,
+    UsernameAvailabilityData,
+    PasswordResetRequestData,
+    PasswordResetVerificationData,
+    ValidationErrorData,
 )
 from app.schemas.auth import (
     VerifyEmailRequest, 
@@ -31,9 +33,8 @@ from . import bp
 @endpoint(
     request_body=LoginRequest,
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
+        "400": ValidationErrorData,
+        "401": None,
     },
     tags=["Authentication"],
     summary="User Login",
@@ -47,9 +48,9 @@ def login():
 @endpoint(
     request_body=SignUpRequest,
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "409": ConflictResp,
+        "200": SignupData,
+        "400": ValidationErrorData,
+        "409": None,
     },
     tags=["Authentication"],
     summary="User Registration",
@@ -67,9 +68,9 @@ def sign_up():
     summary="Email Verification",
     description="Verify email with code to complete registration",
     responses={
-        "200": ApiResp,
-        "400": BadRequestResp,
-        "409": ConflictResp,
+        "200": VerifyEmailData,
+        "400": ValidationErrorData,
+        "409": None,
     }
     )
 def verify_email():
@@ -84,9 +85,9 @@ def verify_email():
     summary="Resend Verification Code",
     description="Resend email verification code for pending registration",
     responses={
-        "200": ApiResp,
-        "400": BadRequestResp,
-        "429": TooManyRequestsResp,
+        "200": None,
+        "400": ValidationErrorData,
+        "429": None,
     }
     )
 def resend_verification_code():
@@ -100,7 +101,7 @@ def resend_verification_code():
     tags=["Authentication"],
     summary="Validate JWT Token",
     description="Check if a JWT token is valid and not expired",
-    responses={"200": ApiResp}
+    responses={"200": TokenValidationData}
     )
 def validate_token():
     """Validate if a JWT token is valid and not expired."""
@@ -114,9 +115,9 @@ def validate_token():
     summary="Refresh Access Token",
     description="Generate new access token using existing valid token",
     responses={
-        "200": ApiResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
+        "200": RefreshTokenData,
+        "401": None,
+        "404": None,
     }
     )
 def refresh_token():
@@ -129,7 +130,7 @@ def refresh_token():
     request_body=CheckEmailRequest,
     tags=["Utilities"],
     summary="Check Email Availability",
-    responses={"200": ApiResp, "400": BadRequestResp},
+    responses={"200": EmailAvailabilityData, "400": ValidationErrorData},
 )
 def check_email_availability():
     """Check if an email is already taken."""
@@ -141,7 +142,7 @@ def check_email_availability():
     request_body=CheckUsernameRequest,
     tags=["Utilities"],
     summary="Check Username Availability",
-    responses={"200": ApiResp, "400": BadRequestResp},
+    responses={"200": UsernameAvailabilityData, "400": ValidationErrorData},
 )
 def check_username_availability():
     """Check if a username is already taken."""
@@ -156,9 +157,9 @@ def check_username_availability():
     summary="Change Password",
     description="Change password for authenticated user (requires current password)",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
     }
 )
 def change_password():
@@ -172,7 +173,7 @@ def change_password():
     tags=["Authentication"],
     summary="Request Password Reset",
     description="Request password reset code to be sent to email",
-    responses={"200": SuccessResp, "400": BadRequestResp}
+    responses={"200": PasswordResetRequestData, "400": ValidationErrorData}
 )
 def forgot_password():
     """Request password reset code."""
@@ -186,9 +187,9 @@ def forgot_password():
     summary="Verify Password Reset Code",
     description="Verify the password reset code sent to email",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "429": TooManyRequestsResp,
+        "200": PasswordResetVerificationData,
+        "400": ValidationErrorData,
+        "429": None,
     }
 )
 def verify_password_reset_code():
@@ -203,9 +204,9 @@ def verify_password_reset_code():
     summary="Reset Password",
     description="Reset password using verified reset code",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "404": NotFoundResp,
+        "200": None,
+        "400": ValidationErrorData,
+        "404": None,
     }
 )
 def reset_password():

@@ -5,7 +5,7 @@ Public B2B inquiry routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint
-from app.schemas.response import CreatedResp, BadRequestResp, ServerErrorResp
+from app.schemas.response_data import B2BInquiryData, ValidationErrorData
 from app.schemas.b2b import CreateB2BInquiryRequest
 from .controllers import B2BController
 from . import bp
@@ -18,9 +18,9 @@ from . import bp
     summary="Submit B2B Inquiry",
     description="Submit a wholesale/B2B inquiry. No authentication required.",
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "500": ServerErrorResp,
+        "201": B2BInquiryData,
+        "400": ValidationErrorData,
+        "500": None,
     },
 )
 def create_inquiry():

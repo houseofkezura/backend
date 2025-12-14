@@ -5,14 +5,10 @@ Public revamp request routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    CreatedResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    RevampRequestData,
+    RevampStatusData,
+    ValidationErrorData,
 )
 from app.schemas.revamp import CreateRevampRequest
 from app.utils.decorators.auth import customer_required
@@ -29,12 +25,12 @@ from . import bp
     summary="Create Revamp Request",
     description="Create a new revamp request for a wig from a previous order",
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "201": RevampRequestData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def create_revamp_request():
@@ -50,10 +46,10 @@ def create_revamp_request():
     summary="Get Revamp Request Status",
     description="Get the status of a revamp request",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": RevampStatusData,
+        "401": None,
+        "404": None,
+        "500": None,
     },
 )
 def get_revamp_status(revamp_id: str):

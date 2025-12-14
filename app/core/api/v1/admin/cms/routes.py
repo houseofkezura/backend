@@ -5,15 +5,12 @@ Admin CMS routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    CreatedResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ConflictResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    CmsPageListData,
+    CmsPageData,
+    CmsPageCreateData,
+    CmsPageUpdateData,
+    ValidationErrorData,
 )
 from app.schemas.admin import CmsPageCreateRequest, CmsPageUpdateRequest
 from app.utils.decorators.auth import roles_required
@@ -29,10 +26,10 @@ from . import bp
     summary="List CMS Pages",
     description="List all CMS pages. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": CmsPageListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_pages():
@@ -49,12 +46,12 @@ def list_pages():
     summary="Create CMS Page",
     description="Create a new CMS page. Requires admin role.",
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "201": CmsPageCreateData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "409": None,
+        "500": None,
     },
 )
 def create_page():
@@ -71,13 +68,13 @@ def create_page():
     summary="Update CMS Page",
     description="Update a CMS page. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "200": CmsPageUpdateData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
     },
 )
 def update_page(page_id: str):
@@ -93,12 +90,12 @@ def update_page(page_id: str):
     summary="Delete CMS Page",
     description="Delete a CMS page. Requires Super Admin or Admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def delete_page(page_id: str):

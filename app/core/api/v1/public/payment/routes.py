@@ -4,11 +4,12 @@ from flask import request
 from flask_jwt_extended import jwt_required
 
 from app.extensions.docs import endpoint, SecurityScheme, QueryParameter
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    NotFoundResp,
+from app.schemas.response_data import (
+    PaymentInitData,
+    PaymentVerificationData,
+    PaymentStatusData,
+    PaymentHistoryData,
+    ValidationErrorData,
 )
 from app.schemas.payments import CheckoutRequest, VerifyPaymentRequest, InitPaymentRequest
 from .controllers import PaymentController
@@ -24,9 +25,9 @@ from . import bp
     summary="Initialize Payment",
     description="Initialize payment for a product, service or order using a payment gateway",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
+        "200": PaymentInitData,
+        "400": ValidationErrorData,
+        "401": None,
     },
 )
 def initialize_payment():
@@ -42,9 +43,9 @@ def initialize_payment():
     summary="Verify Payment",
     description="Verify payment for a product, service or order",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
+        "200": PaymentVerificationData,
+        "400": ValidationErrorData,
+        "401": None,
     },
 )
 def verify_payment():
@@ -60,9 +61,9 @@ def verify_payment():
     summary="Create Payment Session",
     description="Initialize payment for an order or offer",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
+        "200": PaymentInitData,
+        "400": ValidationErrorData,
+        "401": None,
     },
 )
 def checkout():
@@ -76,8 +77,8 @@ def checkout():
     summary="Payment Webhook",
     description="Handle payment webhook from payment provider (Flutterwave/Stripe)",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
+        "200": None,
+        "400": ValidationErrorData,
     },
 )
 def webhook():
@@ -93,9 +94,9 @@ def webhook():
     summary="Get Payment Status",
     description="Check the status of a payment transaction",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
+        "200": PaymentStatusData,
+        "401": None,
+        "404": None,
     },
 )
 def get_payment_status(tx_id: str):
@@ -116,9 +117,9 @@ def get_payment_status(tx_id: str):
         QueryParameter("status", "string", required=False, description="Filter by payment status (pending, processing, completed, failed, cancelled, refunded, reversed, expired, abandoned)", default=None),
     ],
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
+        "200": PaymentHistoryData,
+        "400": ValidationErrorData,
+        "401": None,
     },
 )
 def get_payment_history():

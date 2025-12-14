@@ -5,13 +5,10 @@ Public address management routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    CreatedResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    AddressListData,
+    AddressData,
+    ValidationErrorData,
 )
 from app.schemas.addresses import CreateAddressRequest, UpdateAddressRequest
 from app.utils.decorators.auth import customer_required
@@ -27,9 +24,9 @@ from . import bp
     summary="List Addresses",
     description="Get all addresses for the authenticated user",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "500": ServerErrorResp,
+        "200": AddressListData,
+        "401": None,
+        "500": None,
     },
 )
 def list_addresses():
@@ -46,10 +43,10 @@ def list_addresses():
     summary="Create Address",
     description="Create a new address for the authenticated user",
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "500": ServerErrorResp,
+        "201": AddressData,
+        "400": ValidationErrorData,
+        "401": None,
+        "500": None,
     },
 )
 def create_address():
@@ -66,11 +63,11 @@ def create_address():
     summary="Update Address",
     description="Update an address",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": AddressData,
+        "400": ValidationErrorData,
+        "401": None,
+        "404": None,
+        "500": None,
     },
 )
 def update_address(address_id: str):
@@ -86,10 +83,10 @@ def update_address(address_id: str):
     summary="Delete Address",
     description="Delete an address",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": None,
+        "401": None,
+        "404": None,
+        "500": None,
     },
 )
 def delete_address(address_id: str):

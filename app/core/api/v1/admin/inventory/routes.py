@@ -5,13 +5,11 @@ Admin inventory routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    InventoryListData,
+    InventoryData,
+    InventoryAdjustData,
+    ValidationErrorData,
 )
 from app.schemas.products import InventoryAdjustRequest
 from app.utils.decorators.auth import roles_required
@@ -27,10 +25,10 @@ from . import bp
     summary="List Inventory",
     description="List all inventory with filtering. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": InventoryListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_inventory():
@@ -46,11 +44,11 @@ def list_inventory():
     summary="Get Inventory by SKU",
     description="Get inventory information by SKU. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": InventoryData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def get_inventory_by_sku(sku: str):
@@ -67,12 +65,12 @@ def get_inventory_by_sku(sku: str):
     summary="Adjust Inventory",
     description="Adjust inventory quantity for a product variant. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": InventoryAdjustData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def adjust_inventory():

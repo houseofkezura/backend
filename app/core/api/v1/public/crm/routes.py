@@ -5,14 +5,7 @@ Public CRM routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, QueryParameter
-from app.schemas.response import (
-    CreatedResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    NotFoundResp,
-    ConflictResp,
-    ServerErrorResp,
-)
+from app.schemas.response_data import RatingData, ValidationErrorData
 from app.schemas.crm import CreateRatingRequest
 from .controllers import CrmController
 from . import bp
@@ -28,12 +21,12 @@ from . import bp
         QueryParameter("email", "string", required=False, description="Email for guest orders"),
     ],
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "201": RatingData,
+        "400": ValidationErrorData,
+        "401": None,
+        "404": None,
+        "409": None,
+        "500": None,
     },
 )
 def create_rating():

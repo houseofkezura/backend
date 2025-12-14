@@ -5,13 +5,10 @@ Public cart routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    CartData,
+    CartItemData,
+    ValidationErrorData,
 )
 from app.schemas.cart import AddCartItemRequest, UpdateCartItemRequest, ApplyPointsRequest
 from .controllers import CartController
@@ -24,8 +21,8 @@ from . import bp
     summary="Get Cart",
     description="Get the current user's cart or guest cart. No authentication required for guests.",
     responses={
-        "200": SuccessResp,
-        "500": ServerErrorResp,
+        "200": CartData,
+        "500": None,
     },
 )
 def get_cart():
@@ -40,10 +37,10 @@ def get_cart():
     summary="Add Item to Cart",
     description="Add a product variant to the cart. No authentication required for guests.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": CartItemData,
+        "400": ValidationErrorData,
+        "404": None,
+        "500": None,
     },
 )
 def add_item():
@@ -58,11 +55,11 @@ def add_item():
     summary="Update Cart Item",
     description="Update the quantity of a cart item. No authentication required for guests.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": CartItemData,
+        "400": ValidationErrorData,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def update_item(item_id: str):
@@ -76,10 +73,10 @@ def update_item(item_id: str):
     summary="Remove Cart Item",
     description="Remove an item from the cart. No authentication required for guests.",
     responses={
-        "200": SuccessResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def delete_item(item_id: str):
@@ -94,11 +91,11 @@ def delete_item(item_id: str):
     summary="Apply Loyalty Points",
     description="Calculate discount from loyalty points. Requires authentication.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": CartData,
+        "400": ValidationErrorData,
+        "401": None,
+        "404": None,
+        "500": None,
     },
 )
 def apply_points():

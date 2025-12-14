@@ -5,14 +5,11 @@ Admin user routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ConflictResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    UserListData,
+    UserData,
+    RoleAssignmentData,
+    ValidationErrorData,
 )
 from app.schemas.admin import AssignRoleRequest
 from app.utils.decorators.auth import roles_required
@@ -28,10 +25,10 @@ from . import bp
     summary="List Users",
     description="List all users with filtering and pagination. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": UserListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_users():
@@ -47,12 +44,12 @@ def list_users():
     summary="Get User",
     description="Get a single user by ID. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": UserData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def get_user(user_id: str):
@@ -69,13 +66,13 @@ def get_user(user_id: str):
     summary="Assign Role",
     description="Assign a role to a user. Requires Super Admin or Admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "200": RoleAssignmentData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
     },
 )
 def assign_role(user_id: str):
@@ -92,12 +89,12 @@ def assign_role(user_id: str):
     summary="Revoke Role",
     description="Revoke a role from a user. Requires Super Admin or Admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": RoleAssignmentData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def revoke_role(user_id: str):
@@ -113,12 +110,12 @@ def revoke_role(user_id: str):
     summary="Deactivate User",
     description="Deactivate a user account. Requires Super Admin or Admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": UserData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def deactivate_user(user_id: str):

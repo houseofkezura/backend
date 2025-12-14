@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import SuccessResp, BadRequestResp, UnauthorizedResp, ConflictResp
+from app.schemas.response_data import ProfileData, ValidationErrorData
 from app.schemas.profile import UpdateProfileRequest
 from app.utils.decorators.auth import customer_required
 from .controllers import ProfileController
@@ -16,8 +16,8 @@ from . import bp
     summary="Get User Profile",
     description="Get the authenticated user's complete profile details including profile information, address, and wallet",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
+        "200": ProfileData,
+        "401": None,
     },
 )
 def get_profile():
@@ -34,10 +34,10 @@ def get_profile():
     summary="Update User Profile",
     description="Update the authenticated user's profile details. All fields are optional - only provided fields will be updated.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "409": ConflictResp,
+        "200": ProfileData,
+        "400": ValidationErrorData,
+        "401": None,
+        "409": None,
     },
 )
 def update_profile():

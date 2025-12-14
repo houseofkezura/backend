@@ -5,7 +5,7 @@ Admin CRM routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import SuccessResp, UnauthorizedResp, ForbiddenResp, ServerErrorResp
+from app.schemas.response_data import CrmRatingsListData
 from app.utils.decorators.auth import roles_required
 from .controllers import AdminCrmController
 from . import bp
@@ -19,10 +19,10 @@ from . import bp
     summary="List CRM Ratings",
     description="List all CRM ratings. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": CrmRatingsListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_ratings():

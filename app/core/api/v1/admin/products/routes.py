@@ -5,15 +5,12 @@ Admin product routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    CreatedResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ConflictResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    ProductListData,
+    ProductData,
+    ProductCreateData,
+    ProductVariantData,
+    ValidationErrorData,
 )
 from app.schemas.products import CreateProductRequest, UpdateProductRequest, CreateProductVariantRequest, UpdateProductVariantRequest
 from app.utils.decorators.auth import roles_required
@@ -30,12 +27,12 @@ from . import bp
     summary="Create Product",
     description="Create a new product with optional variants. Requires admin role.",
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "201": ProductCreateData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "409": None,
+        "500": None,
     },
 )
 def create_product():
@@ -51,10 +48,10 @@ def create_product():
     summary="List Products",
     description="List all products with filtering and pagination. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": ProductListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_products():
@@ -70,12 +67,12 @@ def list_products():
     summary="Get Product",
     description="Get a single product by ID. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": ProductData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def get_product(product_id: str):
@@ -92,13 +89,13 @@ def get_product(product_id: str):
     summary="Update Product",
     description="Update a product. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "200": ProductData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
     },
 )
 def update_product(product_id: str):
@@ -114,12 +111,12 @@ def update_product(product_id: str):
     summary="Delete Product",
     description="Delete a product. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def delete_product(product_id: str):
@@ -136,13 +133,13 @@ def delete_product(product_id: str):
     summary="Create Variant",
     description="Create a variant for a product. Requires admin role.",
     responses={
-        "201": CreatedResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "201": ProductVariantData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
     },
 )
 def create_variant(product_id: str):
@@ -159,13 +156,13 @@ def create_variant(product_id: str):
     summary="Update Variant",
     description="Update a product variant. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "409": ConflictResp,
-        "500": ServerErrorResp,
+        "200": ProductVariantData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
     },
 )
 def update_variant(product_id: str, variant_id: str):
@@ -181,12 +178,12 @@ def update_variant(product_id: str, variant_id: str):
     summary="Delete Variant",
     description="Delete a product variant. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def delete_variant(product_id: str, variant_id: str):

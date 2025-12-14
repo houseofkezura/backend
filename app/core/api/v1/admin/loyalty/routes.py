@@ -5,13 +5,10 @@ Admin loyalty routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    LoyaltyAccountListData,
+    LoyaltyAdjustData,
+    ValidationErrorData,
 )
 from app.schemas.admin import LoyaltyAdjustRequest
 from app.utils.decorators.auth import roles_required
@@ -27,10 +24,10 @@ from . import bp
     summary="List Loyalty Accounts",
     description="List all loyalty accounts. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": LoyaltyAccountListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_accounts():
@@ -47,12 +44,12 @@ def list_accounts():
     summary="Adjust Points",
     description="Manually adjust points for a loyalty account. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": LoyaltyAdjustData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def adjust_points(account_id: str):

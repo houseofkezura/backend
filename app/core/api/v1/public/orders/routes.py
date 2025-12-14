@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, QueryParameter
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    OrderListData,
+    OrderData,
+    ValidationErrorData,
 )
 from .controllers import OrdersController
 from . import bp
@@ -23,9 +21,9 @@ from . import bp
         QueryParameter("email", "string", required=False, description="Email for guest orders"),
     ],
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "500": ServerErrorResp,
+        "200": OrderListData,
+        "401": None,
+        "500": None,
     },
 )
 def list_orders():
@@ -42,10 +40,10 @@ def list_orders():
         QueryParameter("email", "string", required=False, description="Email for guest orders"),
     ],
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": OrderData,
+        "401": None,
+        "404": None,
+        "500": None,
     },
 )
 def get_order(order_id: str):
@@ -62,11 +60,11 @@ def get_order(order_id: str):
         QueryParameter("email", "string", required=False, description="Email for guest orders"),
     ],
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": OrderData,
+        "400": ValidationErrorData,
+        "401": None,
+        "404": None,
+        "500": None,
     },
 )
 def cancel_order(order_id: str):

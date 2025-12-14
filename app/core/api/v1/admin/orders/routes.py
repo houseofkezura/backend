@@ -5,13 +5,11 @@ Admin order routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    OrderListData,
+    OrderData,
+    OrderStatusUpdateData,
+    ValidationErrorData,
 )
 from app.schemas.admin import OrderStatusUpdateRequest
 from app.utils.decorators.auth import roles_required
@@ -27,10 +25,10 @@ from . import bp
     summary="List Orders",
     description="List all orders with filtering and pagination. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": OrderListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_orders():
@@ -46,12 +44,12 @@ def list_orders():
     summary="Get Order",
     description="Get a single order by ID. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": OrderData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def get_order(order_id: str):
@@ -68,12 +66,12 @@ def get_order(order_id: str):
     summary="Update Order Status",
     description="Update order status (fulfill, cancel, refund, etc.). Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": OrderStatusUpdateData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def update_order_status(order_id: str):
@@ -89,12 +87,12 @@ def update_order_status(order_id: str):
     summary="Cancel Order",
     description="Cancel an order. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": OrderData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def cancel_order(order_id: str):

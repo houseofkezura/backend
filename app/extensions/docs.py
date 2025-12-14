@@ -34,9 +34,11 @@ config = DocsConfig.from_dict({
     },
     'preserve_flask_routes': False,
     'clear_auto_discovered': True,
-    'add_default_responses': True
+    'add_default_responses': True,
+    'use_response_wrapper':True
 })
 
+config.use_response_wrapper = True
 
 
 # Create the OpenAPI spec instance with our configuration

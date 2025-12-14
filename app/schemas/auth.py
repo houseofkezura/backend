@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 
 
 class SignUpRequest(BaseModel):
@@ -20,6 +21,32 @@ class LoginRequest(BaseModel):
 
     email_username: str = Field(min_length=1)
     password: str = Field(min_length=1)
+
+
+class AvailabilityResponse(BaseModel):
+    """Response data for availability checks."""
+
+    value: str
+    available: bool
+
+
+class ResetCodeResponse(BaseModel):
+    """Response data for password reset code delivery."""
+
+    reset_id: Optional[str] = None
+
+
+class ResetCodeVerificationResponse(BaseModel):
+    """Response data for verifying a reset code."""
+
+    reset_id: str
+    verified: bool = True
+
+
+class RefreshInfoResponse(BaseModel):
+    """Response data for refresh-token guidance."""
+
+    message: str
 
 
 class VerifyEmailRequest(BaseModel):

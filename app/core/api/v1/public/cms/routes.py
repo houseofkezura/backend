@@ -5,7 +5,7 @@ Public CMS routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint
-from app.schemas.response import SuccessResp, NotFoundResp, ServerErrorResp
+from app.schemas.response_data import CmsPageData
 from .controllers import CmsController
 from . import bp
 
@@ -16,9 +16,9 @@ from . import bp
     summary="Get CMS Page",
     description="Get a published CMS page by slug. No authentication required.",
     responses={
-        "200": SuccessResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": CmsPageData,
+        "404": None,
+        "500": None,
     },
 )
 def get_page(slug: str):

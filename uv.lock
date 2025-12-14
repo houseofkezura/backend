@@ -58,11 +58,11 @@ wheels = [
 
 [[package]]
 name = "cachetools"
-version = "6.2.2"
+version = "6.2.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fb/44/ca1675be2a83aeee1886ab745b28cda92093066590233cc501890eb8417a/cachetools-6.2.2.tar.gz", hash = "sha256:8e6d266b25e539df852251cfd6f990b4bc3a141db73b939058d809ebd2590fc6", size = 31571, upload-time = "2025-11-13T17:42:51.465Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b5/44/5dc354b9f2df614673c2a542a630ef95d578b4a8673a1046d1137a7e2453/cachetools-6.2.3.tar.gz", hash = "sha256:64e0a4ddf275041dd01f5b873efa87c91ea49022b844b8c5d1ad3407c0f42f1f", size = 31641, upload-time = "2025-12-12T21:18:06.011Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e6/46/eb6eca305c77a4489affe1c5d8f4cae82f285d9addd8de4ec084a7184221/cachetools-6.2.2-py3-none-any.whl", hash = "sha256:6c09c98183bf58560c97b2abfcedcbaf6a896a490f534b031b661d3723b45ace", size = 11503, upload-time = "2025-11-13T17:42:50.232Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/de/aa4cfc69feb5b3d604310214369979bb222ed0df0e2575a1b6e7af1a5579/cachetools-6.2.3-py3-none-any.whl", hash = "sha256:3fde34f7033979efb1e79b07ae529c2c40808bdd23b0b731405a48439254fba5", size = 11554, upload-time = "2025-12-12T21:18:04.556Z" },
 ]
 
 [[package]]
@@ -190,7 +190,7 @@ wheels = [
 
 [[package]]
 name = "clerk-backend-api"
-version = "4.1.3"
+version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -199,9 +199,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyjwt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/9a/ecf7c2873e18fc1ec7d8dc8a4ae2fc4f8a8c94fca5ed0567c958a1a559a1/clerk_backend_api-4.1.3.tar.gz", hash = "sha256:98ad3cb168f5957a0784a329d420fa06aede34c67cd8ef78988d9a468a1bc973", size = 208947, upload-time = "2025-12-04T23:15:26.752Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/58/60/c08464d19b849a38860dd1adb5acc54bf5047e9fc740a6e85d84af14a39f/clerk_backend_api-4.2.0.tar.gz", hash = "sha256:e253f4dcde2fd62280e8f04d76db256be76e7142312d85ac2142cced7b8919e6", size = 216448, upload-time = "2025-12-11T20:20:39.079Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/97/d0733a67e047ff2fde4f9c721742725dfe861e072c8b65f4ae1f33deae77/clerk_backend_api-4.1.3-py3-none-any.whl", hash = "sha256:a004656a409bd6db64450f34b248e091eedb6ab399867761f6089ee987308a23", size = 424780, upload-time = "2025-12-04T23:15:25.143Z" },
+    { url = "https://files.pythonhosted.org/packages/82/1b/9444f4d406b0076d5a12a347fdfd5832f0f743e927391f35177e593ecfc6/clerk_backend_api-4.2.0-py3-none-any.whl", hash = "sha256:777a63a2821cb8965db81003b9d23a34443eaeb4cbedb4f6d98eb0037b934164", size = 441620, upload-time = "2025-12-11T20:20:37.916Z" },
 ]
 
 [[package]]
@@ -340,15 +340,15 @@ wheels = [
 
 [[package]]
 name = "flask-cors"
-version = "6.0.1"
+version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flask" },
     { name = "werkzeug" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/37/bcfa6c7d5eec777c4c7cf45ce6b27631cebe5230caf88d85eadd63edd37a/flask_cors-6.0.1.tar.gz", hash = "sha256:d81bcb31f07b0985be7f48406247e9243aced229b7747219160a0559edd678db", size = 13463, upload-time = "2025-06-11T01:32:08.518Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/74/0fc0fa68d62f21daef41017dafab19ef4b36551521260987eb3a5394c7ba/flask_cors-6.0.2.tar.gz", hash = "sha256:6e118f3698249ae33e429760db98ce032a8bf9913638d085ca0f4c5534ad2423", size = 13472, upload-time = "2025-12-12T20:31:42.861Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/f8/01bf35a3afd734345528f98d0353f2a978a476528ad4d7e78b70c4d149dd/flask_cors-6.0.1-py3-none-any.whl", hash = "sha256:c7b2cbfb1a31aa0d2e5341eea03a6805349f7a61647daee1a15c46bbe981494c", size = 13244, upload-time = "2025-06-11T01:32:07.352Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/af/72ad54402e599152de6d067324c46fe6a4f531c7c65baf7e96c63db55eaf/flask_cors-6.0.2-py3-none-any.whl", hash = "sha256:e57544d415dfd7da89a9564e1e3a9e515042df76e12130641ca6f3f2f03b699a", size = 13257, upload-time = "2025-12-12T20:31:41.3Z" },
 ]
 
 [[package]]
@@ -933,16 +933,16 @@ wheels = [
 
 [[package]]
 name = "quas-docs"
-version = "0.0.6"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flask" },
     { name = "flask-pydantic-spec" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/90/745bacfb489274c4ef7a00df43e8d245f2c4d6afdf11b483587d32c53670/quas_docs-0.0.6.tar.gz", hash = "sha256:410a1b75205907de82245897268f223001a8d365afcc6f54a70b1a1f65f7b1b4", size = 18178, upload-time = "2025-12-11T00:34:08.222Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/cb/3acaad9644600e6b4bed88005d0fc391218c001d61507da0cb999e8ccb54/quas_docs-0.1.2.tar.gz", hash = "sha256:7c29fa21391d43aa62d5c317ee7d7a2e0b94b55df471c0178a2738a18363ea13", size = 25668, upload-time = "2025-12-14T18:44:42.025Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/24/e3/f6655fe11ba7697fb6a3bdc850f41ac6c45b5858e3122a8f1d77451064d2/quas_docs-0.0.6-py3-none-any.whl", hash = "sha256:8be99f9349912cfe93d27b746afbf8914f593d67a83974611ec2006c6d7f4547", size = 13601, upload-time = "2025-12-11T00:34:06.807Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/8d/2c58ebc65e9e86c1791eace6c58196a34f08240d726ed80eeefbb90e245e/quas_docs-0.1.2-py3-none-any.whl", hash = "sha256:656e8eec81ef1b23b01fbce5a9ef8b3e67a39a7b433b31dc46e55ff48519ceea", size = 18836, upload-time = "2025-12-14T18:44:40.635Z" },
 ]
 
 [[package]]
@@ -1063,11 +1063,11 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.6.1"
+version = "2.6.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/5e/1d/0f3a93cca1ac5e8287842ed4eebbd0f7a991315089b1a0b01c7788aa7b63/urllib3-2.6.1.tar.gz", hash = "sha256:5379eb6e1aba4088bae84f8242960017ec8d8e3decf30480b3a1abdaa9671a3f", size = 432678, upload-time = "2025-12-08T15:25:26.773Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/24/a2a2ed9addd907787d7aa0355ba36a6cadf1768b934c652ea78acbd59dcd/urllib3-2.6.2.tar.gz", hash = "sha256:016f9c98bb7e98085cb2b4b17b87d2c702975664e4f060c6532e64d1c1a5e797", size = 432930, upload-time = "2025-12-11T15:56:40.252Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/56/190ceb8cb10511b730b564fb1e0293fa468363dbad26145c34928a60cb0c/urllib3-2.6.1-py3-none-any.whl", hash = "sha256:e67d06fe947c36a7ca39f4994b08d73922d40e6cca949907be05efa6fd75110b", size = 131138, upload-time = "2025-12-08T15:25:25.51Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/b9/4095b668ea3678bf6a0af005527f39de12fb026516fb3df17495a733b7f8/urllib3-2.6.2-py3-none-any.whl", hash = "sha256:ec21cddfe7724fc7cb4ba4bea7aa8e2ef36f607a4bab81aa6ce42a13dc3f03dd", size = 131182, upload-time = "2025-12-11T15:56:38.584Z" },
 ]
 
 [[package]]

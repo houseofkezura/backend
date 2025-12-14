@@ -5,13 +5,10 @@ Admin revamp routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import (
-    SuccessResp,
-    BadRequestResp,
-    UnauthorizedResp,
-    ForbiddenResp,
-    NotFoundResp,
-    ServerErrorResp,
+from app.schemas.response_data import (
+    RevampRequestListData,
+    RevampStatusUpdateData,
+    ValidationErrorData,
 )
 from app.schemas.admin import RevampStatusUpdateRequest
 from app.utils.decorators.auth import roles_required
@@ -27,10 +24,10 @@ from . import bp
     summary="List Revamp Requests",
     description="List all revamp requests. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "500": ServerErrorResp,
+        "200": RevampRequestListData,
+        "401": None,
+        "403": None,
+        "500": None,
     },
 )
 def list_requests():
@@ -47,12 +44,12 @@ def list_requests():
     summary="Update Revamp Request Status",
     description="Update revamp request status. Requires admin role.",
     responses={
-        "200": SuccessResp,
-        "400": BadRequestResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
-        "404": NotFoundResp,
-        "500": ServerErrorResp,
+        "200": RevampStatusUpdateData,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
     },
 )
 def update_request_status(request_id: str):

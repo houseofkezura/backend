@@ -5,7 +5,7 @@ Public shipping routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, QueryParameter
-from app.schemas.response import SuccessResp, ServerErrorResp
+from app.schemas.response_data import ShippingZonesData
 from .controllers import ShippingController
 from . import bp
 
@@ -19,8 +19,8 @@ from . import bp
         QueryParameter("country", "string", required=False, description="Country code (default: NG)", default="NG"),
     ],
     responses={
-        "200": SuccessResp,
-        "500": ServerErrorResp,
+        "200": ShippingZonesData,
+        "500": None,
     },
 )
 def get_shipping_zones():

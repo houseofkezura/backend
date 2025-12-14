@@ -5,7 +5,7 @@ Admin authentication routes.
 from __future__ import annotations
 
 from app.extensions.docs import endpoint, SecurityScheme
-from app.schemas.response import SuccessResp, UnauthorizedResp, ForbiddenResp
+from app.schemas.response_data import TokenValidationData
 from app.utils.decorators.auth import roles_required
 from .controllers import AdminAuthController
 from . import bp
@@ -19,9 +19,9 @@ from . import bp
     summary="Verify Admin Authentication",
     description="Verify that the current user has admin privileges",
     responses={
-        "200": SuccessResp,
-        "401": UnauthorizedResp,
-        "403": ForbiddenResp,
+        "200": TokenValidationData,
+        "401": None,
+        "403": None,
     },
 )
 def verify():
