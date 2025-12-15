@@ -101,7 +101,7 @@ class InventoryInfo(BaseModel):
     is_low_stock: bool
 
 
-class ProductVariantData(BaseModel):
+class ProductVariantDataModel(BaseModel):
     """Product variant data."""
     class Config:
         extra = "forbid"
@@ -135,7 +135,7 @@ class ProductDataModel(BaseModel):
     launch_status: str
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-    variants: Optional[List[ProductVariantData]] = None
+    variants: Optional[List[ProductVariantDataModel]] = None
 
 
 class OrderItemData(BaseModel):
@@ -148,14 +148,14 @@ class OrderItemData(BaseModel):
     quantity: int
     unit_price: float
     line_total: float
-    variant: Optional[ProductVariantData] = None
+    variant: Optional[ProductVariantDataModel] = None
     created_at: Optional[str] = None
 
 
 class OrderDataModel(BaseModel):
     """Order data model."""
     class Config:
-        extra = "allow"
+        extra = "forbid"
     
     id: str
     status: str
@@ -188,7 +188,7 @@ class CartItemDataModel(BaseModel):
     quantity: int
     unit_price: float
     line_total: float
-    variant: Optional[ProductVariantData] = None
+    variant: Optional[ProductVariantDataModel] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
@@ -503,7 +503,7 @@ class ProductVariantsData(BaseModel):
     class Config:
         extra = "forbid"
     
-    variants: List[ProductVariantData]
+    variants: List[ProductVariantDataModel]
 
 
 # Cart response data schemas
@@ -732,7 +732,7 @@ class ProductVariantData(BaseModel):
     class Config:
         extra = "forbid"
     
-    variant: ProductVariantData
+    variant: ProductVariantDataModel
 
 
 class InventoryAdjustData(BaseModel):
