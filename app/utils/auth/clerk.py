@@ -66,6 +66,8 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
     """
     try:
         client = get_clerk_client()
+        user_id = None
+        decoded_payload = None
         
         # Try to verify as a session token first
         try:
@@ -76,9 +78,6 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
                 return None
         except Exception:
             # If verify_token fails, try to decode as JWT
-            # For JWT tokens, we need to decode and verify using Clerk's public keys
-            # For MVP, we'll use a simpler approach: decode the JWT and extract user_id
-            # Then verify by fetching the user from Clerk
             try:
                 import jwt
                 from jwt import PyJWKClient
@@ -94,7 +93,7 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
                     signing_key = jwks_client.get_signing_key_from_jwt(token)
                     
                     # Verify and decode the token
-                    decoded = jwt.decode(
+                    decoded_payload = jwt.decode(
                         token,
                         signing_key.key,
                         algorithms=["RS256"],
@@ -102,7 +101,7 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
                         issuer=issuer,
                     )
                     
-                    user_id = decoded.get("sub")
+                    user_id = decoded_payload.get("sub")
                     if not user_id:
                         return None
                 else:
@@ -111,25 +110,69 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
                 log_error("Failed to decode JWT token", error=jwt_error)
                 return None
         
-        # Fetch user details from Clerk
-        user_response = client.users.read(user_id=user_id)
-        if user_response:
-            email_addresses = getattr(user_response, 'email_addresses', [])
-            phone_numbers = getattr(user_response, 'phone_numbers', [])
+        if not user_id:
+            return None
+        
+        # Try to extract user info from JWT payload first (more efficient)
+        if decoded_payload:
+            # JWT tokens often contain email and other claims
+            email = decoded_payload.get("email") or decoded_payload.get("https://clerk.dev/email")
+            first_name = decoded_payload.get("first_name") or decoded_payload.get("https://clerk.dev/first_name")
+            last_name = decoded_payload.get("last_name") or decoded_payload.get("https://clerk.dev/last_name")
             
-            return {
-                "user_id": user_id,
-                "email": email_addresses[0].email_address if email_addresses else None,
-                "phone": phone_numbers[0].phone_number if phone_numbers else None,
-                "first_name": getattr(user_response, 'first_name', None),
-                "last_name": getattr(user_response, 'last_name', None),
-                "metadata": getattr(user_response, 'public_metadata', {}) or {},
+            # If we have email from JWT, use it (avoid API call)
+            if email:
+                return {
+                    "user_id": user_id,
+                    "email": email,
+                    "phone": decoded_payload.get("phone_number") or decoded_payload.get("https://clerk.dev/phone_number"),
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "metadata": decoded_payload.get("https://clerk.dev/public_metadata", {}) or {},
+                }
+        
+        # Fallback: Fetch user details from Clerk API if not in JWT
+        # Use REST API directly for reliability
+        try:
+            secret_key = current_app.config.get("CLERK_SECRET_KEY")
+            api_url = f"https://api.clerk.com/v1/users/{user_id}"
+            headers = {
+                "Authorization": f"Bearer {secret_key}",
+                "Content-Type": "application/json"
             }
+            
+            api_response = requests.get(api_url, headers=headers, timeout=5)
+            if api_response.status_code == 200:
+                user_data = api_response.json()
+                email_addresses = user_data.get('email_addresses', [])
+                phone_numbers = user_data.get('phone_numbers', [])
+                
+                return {
+                    "user_id": user_id,
+                    "email": email_addresses[0].get('email_address') if email_addresses else None,
+                    "phone": phone_numbers[0].get('phone_number') if phone_numbers else None,
+                    "first_name": user_data.get('first_name'),
+                    "last_name": user_data.get('last_name'),
+                    "metadata": user_data.get('public_metadata', {}) or {},
+                }
+            else:
+                log_error(f"Clerk API returned status {api_response.status_code}", error=None)
+        except Exception as api_error:
+            log_error("Failed to fetch user from Clerk API", error=api_error)
+        
+        # Return minimal info if we have user_id but couldn't fetch details
+        # This allows authentication to proceed even if user details fetch fails
+        return {
+            "user_id": user_id,
+            "email": None,
+            "phone": None,
+            "first_name": None,
+            "last_name": None,
+            "metadata": {},
+        }
     except Exception as e:
         log_error("Failed to validate Clerk token", error=e)
         return None
-    
-    return None
 
 
 def get_clerk_user_from_token(token: str) -> Optional[AuthenticatedUser]:
