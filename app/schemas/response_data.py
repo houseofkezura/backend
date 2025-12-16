@@ -882,3 +882,8 @@ class InventoryListData(BaseModel):
     page: int
     per_page: int
     total_pages: int
+
+class ApiVersionDataModel(BaseModel):
+    name: str
+    version: str
+    env: str
