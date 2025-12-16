@@ -31,7 +31,7 @@ All requests are JSON; send `Content-Type: application/json`.
   - 401 Missing/invalid/expired token.
   - 403 Token ok but roles insufficient.
 
-### Public Auth Endpoints (`/api/v1/public/auth`)
+### Public Auth Endpoints (`/api/v1/auth`)
 > Clerk is source of truth; these exist for compatibility and password flows.
 
 - `POST /auth/login` *(Deprecated)* → returns `410 Gone` (use Clerk SDK).
@@ -140,7 +140,7 @@ curl -X GET https://api.example.com/api/v1/admin/products \
 
 ## Idempotent Checkout (example)
 ```bash
-curl -X POST https://api.example.com/api/v1/public/checkout \
+curl -X POST https://api.example.com/api/v1/checkout \
   -H "Authorization: Bearer <clerk_token_or_guest_optional>" \
   -H "Content-Type: application/json" \
   -d '{

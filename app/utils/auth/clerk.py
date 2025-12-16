@@ -112,7 +112,7 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
                 return None
         
         # Fetch user details from Clerk
-        user_response = client.users.get_user(user_id=user_id)
+        user_response = client.users.read(user_id=user_id)
         if user_response:
             email_addresses = getattr(user_response, 'email_addresses', [])
             phone_numbers = getattr(user_response, 'phone_numbers', [])
