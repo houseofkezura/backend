@@ -9,7 +9,7 @@ from .models.role import Role, UserRole
 from .logging import log_event, log_error
 
 from .enums.auth import RoleNames
-from .utils.auth.clerk import create_clerk_user
+from .utils.auth.clerk import create_clerk_user, get_clerk_user_by_email
 
 def seed_admin_user(clear: bool = False) -> None:
     """
@@ -64,20 +64,32 @@ def seed_admin_user(clear: bool = False) -> None:
     super_admin_username = current_app.config.get("SUPER_ADMIN_USERNAME") or "superadmin"
     
     try:
-        # Create user in Clerk first
-        clerk_user_data = create_clerk_user(
-            email=super_admin_email,
-            password=super_admin_password,
-            first_name=super_admin_firstname,
-            last_name=super_admin_lastname,
-            skip_password_checks=False
-        )
+        # Check if user already exists in Clerk
+        existing_clerk_user = get_clerk_user_by_email(super_admin_email)
         
-        if not clerk_user_data or not clerk_user_data.get("clerk_id"):
-            log_error("Failed to create Clerk user for super admin", error=None)
-            return
-        
-        clerk_id = clerk_user_data["clerk_id"]
+        if existing_clerk_user:
+            # User exists in Clerk, use existing user
+            clerk_id = existing_clerk_user.get('id')
+            log_event(
+                f"Found existing Clerk user for super admin. Email: {super_admin_email}, Clerk ID: {clerk_id}",
+                event_type="seeding"
+            )
+        else:
+            # Create user in Clerk
+            clerk_user_data = create_clerk_user(
+                email=super_admin_email,
+                password=super_admin_password,
+                first_name=super_admin_firstname,
+                last_name=super_admin_lastname,
+                username=super_admin_username,
+                skip_password_checks=False
+            )
+            
+            if not clerk_user_data or not clerk_user_data.get("clerk_id"):
+                log_error("Failed to create Clerk user for super admin", error=None)
+                return
+            
+            clerk_id = clerk_user_data["clerk_id"]
         
         # Create AppUser in database
         admin_user = AppUser()

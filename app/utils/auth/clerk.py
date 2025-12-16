@@ -11,6 +11,7 @@ from typing import Optional, Dict, Any
 from dataclasses import dataclass
 from flask import current_app
 import requests
+import re
 from clerk_backend_api import Clerk
 
 from ...logging import log_error, log_event
@@ -199,16 +200,68 @@ def get_clerk_user_from_token(token: str) -> Optional[AuthenticatedUser]:
     )
 
 
+def get_clerk_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """
+    Get a Clerk user by email address.
+    
+    Args:
+        email: User's email address.
+        
+    Returns:
+        Dictionary with user data if found, None otherwise.
+    """
+    try:
+        secret_key = current_app.config.get("CLERK_SECRET_KEY")
+        if not secret_key:
+            return None
+        
+        # Clerk API: List users and filter by email
+        # Note: Clerk API doesn't have direct email search, so we list and filter
+        api_url = "https://api.clerk.com/v1/users"
+        headers = {
+            "Authorization": f"Bearer {secret_key}",
+            "Content-Type": "application/json"
+        }
+        
+        # List users (with limit to avoid fetching too many)
+        # Clerk API supports email_address query parameter in some versions
+        params = {"limit": 500}  # Adjust limit as needed
+        api_response = requests.get(api_url, params=params, headers=headers, timeout=5)
+        
+        if api_response.status_code == 200:
+            response_data = api_response.json()
+            
+            # Clerk API returns either a list or an object with 'data' key
+            users = response_data
+            if isinstance(response_data, dict) and 'data' in response_data:
+                users = response_data['data']
+            
+            # Find user with matching email
+            if isinstance(users, list):
+                for user in users:
+                    email_addresses = user.get('email_addresses', [])
+                    if email_addresses:
+                        for addr in email_addresses:
+                            if addr.get('email_address', '').lower() == email.lower():
+                                return user
+        
+        return None
+    except Exception as e:
+        log_error("Failed to get Clerk user by email", error=e)
+        return None
+
+
 def create_clerk_user(
     email: str,
     password: Optional[str] = None,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
     phone: Optional[str] = None,
+    username: Optional[str] = None,
     skip_password_checks: bool = False,
 ) -> Optional[Dict[str, Any]]:
     """
-    Create a new user in Clerk via API.
+    Create a new user in Clerk via REST API.
     
     Args:
         email: User's email address.
@@ -216,17 +269,32 @@ def create_clerk_user(
         first_name: Optional first name.
         last_name: Optional last name.
         phone: Optional phone number.
+        username: Optional username. If not provided, will be generated from email.
         skip_password_checks: If True, skip password strength checks (for auto-generated passwords).
         
     Returns:
         Dictionary with clerk_id and other user info if successful, None otherwise.
     """
     try:
-        client = get_clerk_client()
+        secret_key = current_app.config.get("CLERK_SECRET_KEY")
+        if not secret_key:
+            log_error("CLERK_SECRET_KEY not configured", error=None)
+            return None
         
-        # Prepare user creation payload
+        # Generate username from email if not provided
+        if not username:
+            # Extract username part from email (before @)
+            username = email.split('@')[0]
+            # Clean username: remove special chars, keep alphanumeric and underscores
+            username = re.sub(r'[^a-zA-Z0-9_]', '', username)
+            # Ensure it's not empty
+            if not username:
+                username = f"user_{email.split('@')[0][:10]}"
+        
+        # Prepare user creation payload for REST API
         create_payload = {
             "email_address": [email],
+            "username": username,
         }
         
         if password:
@@ -241,22 +309,71 @@ def create_clerk_user(
         if phone:
             create_payload["phone_numbers"] = [phone]
         
-        # Create user in Clerk
-        user = client.users.create_user(**create_payload)
+        # Use REST API directly for reliability
+        api_url = "https://api.clerk.com/v1/users"
+        headers = {
+            "Authorization": f"Bearer {secret_key}",
+            "Content-Type": "application/json"
+        }
         
-        if user and hasattr(user, 'id'):
-            return {
-                "clerk_id": user.id,
-                "email": email,
-                "first_name": first_name,
-                "last_name": last_name,
-                "phone": phone,
-            }
+        api_response = requests.post(api_url, json=create_payload, headers=headers, timeout=10)
+        
+        if api_response.status_code in [200, 201]:
+            user_data = api_response.json()
+            clerk_id = user_data.get('id')
+            
+            if clerk_id:
+                return {
+                    "clerk_id": clerk_id,
+                    "email": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone": phone,
+                }
+            else:
+                log_error(f"Clerk API response missing user ID: {user_data}", error=None)
+                return None
+        elif api_response.status_code == 422:
+            # User might already exist, try to get existing user
+            error_data = api_response.json()
+            errors = error_data.get('errors', [])
+            
+            # Check if error is about existing identifier
+            identifier_exists = any(
+                err.get('code') == 'form_identifier_exists' 
+                for err in errors
+            )
+            
+            if identifier_exists:
+                # Try to get existing user by email
+                existing_user = get_clerk_user_by_email(email)
+                if existing_user and existing_user.get('id'):
+                    log_event(f"User already exists in Clerk, using existing user: {existing_user.get('id')}")
+                    return {
+                        "clerk_id": existing_user.get('id'),
+                        "email": email,
+                        "first_name": existing_user.get('first_name') or first_name,
+                        "last_name": existing_user.get('last_name') or last_name,
+                        "phone": phone,
+                    }
+            
+            error_detail = api_response.text
+            log_error(
+                f"Clerk API returned status {api_response.status_code}: {error_detail}",
+                error=None
+            )
+            return None
+        else:
+            error_detail = api_response.text
+            log_error(
+                f"Clerk API returned status {api_response.status_code}: {error_detail}",
+                error=None
+            )
+            return None
+            
     except Exception as e:
         log_error("Failed to create Clerk user", error=e)
         return None
-    
-    return None
 
 
 def get_or_create_app_user_from_clerk(clerk_user: AuthenticatedUser) -> Optional[AppUser]:

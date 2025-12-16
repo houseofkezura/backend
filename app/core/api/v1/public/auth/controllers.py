@@ -176,6 +176,7 @@ class AuthController:
                 password=plain_password,
                 first_name=pending.firstname,
                 last_name=pending.lastname,
+                username=pending.username,
             )
             
             if clerk_user_data:
