@@ -6,67 +6,119 @@ from .extensions import db
 from .models.user import AppUser, Profile, Address
 from .models.wallet import Wallet
 from .models.role import Role, UserRole
-from .logging import log_event
+from .logging import log_event, log_error
 
 from .enums.auth import RoleNames
+from .utils.auth.clerk import create_clerk_user
 
 def seed_admin_user(clear: bool = False) -> None:
     """
-    Seed the database with default Admin User.
+    Seed the database with default Super Admin User using Clerk.
     Args:
         clear (bool): If True, Clear existing admin before seeding.
     """
     
-    if inspect(db.engine).has_table("role"):
-        admin_role = Role.query.filter_by(name=RoleNames.ADMIN).first()
-        if not admin_role:
-            admin_role = Role()
-            admin_role.name = RoleNames.ADMIN
-            admin_role.slug = slugify(RoleNames.ADMIN.value)
-            db.session.add(admin_role)
-            db.session.commit()
+    if not inspect(db.engine).has_table("role"):
+        log_event("Role table does not exist, skipping admin user seeding", event_type="seeding")
+        return
     
-    if inspect(db.engine).has_table("app_user"):
-        admin = (
-            AppUser.query
-            .join(UserRole, AppUser.id == UserRole.app_user_id)
-            .join(Role, UserRole.role_id == Role.id)
-            .filter(Role.name == RoleNames.ADMIN)
-            .first()
+    # Get or create Super Admin role
+    super_admin_role = Role.query.filter_by(name=RoleNames.SUPER_ADMIN).first()
+    if not super_admin_role:
+        super_admin_role = Role()
+        super_admin_role.name = RoleNames.SUPER_ADMIN
+        super_admin_role.slug = slugify(RoleNames.SUPER_ADMIN.value)
+        db.session.add(super_admin_role)
+        db.session.commit()
+    
+    if not inspect(db.engine).has_table("app_user"):
+        log_event("AppUser table does not exist, skipping admin user seeding", event_type="seeding")
+        return
+    
+    # Check if super admin already exists
+    existing_super_admin = (
+        AppUser.query
+        .join(UserRole, AppUser.id == UserRole.app_user_id)
+        .join(Role, UserRole.role_id == Role.id)
+        .filter(Role.name == RoleNames.SUPER_ADMIN)
+        .first()
+    )
+
+    if clear and existing_super_admin:
+        # Note: This only deletes from our DB, not from Clerk
+        # You may want to handle Clerk deletion separately if needed
+        db.session.delete(existing_super_admin)
+        db.session.commit()
+        log_event("Super Admin deleted successfully", event_type="seeding")
+        return
+
+    if existing_super_admin:
+        log_event("Super Admin user already exists", event_type="seeding")
+        return
+    
+    # Get super admin credentials from config
+    super_admin_email = current_app.config.get("SUPER_ADMIN_EMAIL") or "admin@kezura.com"
+    super_admin_password = current_app.config.get("SUPER_ADMIN_PASSWORD") or "ChangeMe123!"
+    super_admin_firstname = current_app.config.get("SUPER_ADMIN_FIRSTNAME") or "Super"
+    super_admin_lastname = current_app.config.get("SUPER_ADMIN_LASTNAME") or "Admin"
+    super_admin_username = current_app.config.get("SUPER_ADMIN_USERNAME") or "superadmin"
+    
+    try:
+        # Create user in Clerk first
+        clerk_user_data = create_clerk_user(
+            email=super_admin_email,
+            password=super_admin_password,
+            first_name=super_admin_firstname,
+            last_name=super_admin_lastname,
+            skip_password_checks=False
         )
-
-        if clear and admin:
-            admin.delete()
-            db.session.close()
-            log_event("Admin deleted successfully")
+        
+        if not clerk_user_data or not clerk_user_data.get("clerk_id"):
+            log_error("Failed to create Clerk user for super admin", error=None)
             return
-
-        if not admin:
-            admin_user = AppUser()
-            admin_user.username = current_app.config["DEFAULT_ADMIN_USERNAME"]
-            admin_user.email = "admin@admin.com"
-            admin_user.password = current_app.config["DEFAULT_ADMIN_PASSWORD"]
-
-            db.session.add(admin_user)
-            db.session.flush()  # ensure admin_user.id
-
-            admin_user_profile = Profile()
-            admin_user_profile.firstname = "admin"
-            admin_user_profile.user_id = admin_user.id
-
-            admin_user_address = Address()
-            admin_user_address.user_id = admin_user.id
-
-            admin_user_wallet = Wallet()
-            admin_user_wallet.user_id = admin_user.id
-
-            db.session.add_all([admin_user_profile, admin_user_address, admin_user_wallet])
-            db.session.commit()
-
-            UserRole.assign_role(admin_user, admin_role)
-            log_event("Admin user created with default credentials", event_type="seeding")
-        else:
-            log_event("Admin user already exists", event_type="seeding")
+        
+        clerk_id = clerk_user_data["clerk_id"]
+        
+        # Create AppUser in database
+        admin_user = AppUser()
+        admin_user.clerk_id = clerk_id
+        admin_user.email = super_admin_email
+        admin_user.username = super_admin_username
+        
+        db.session.add(admin_user)
+        db.session.flush()  # Ensure admin_user.id is available
+        
+        # Create Profile
+        admin_user_profile = Profile()
+        admin_user_profile.firstname = super_admin_firstname
+        admin_user_profile.lastname = super_admin_lastname
+        admin_user_profile.user_id = admin_user.id
+        db.session.add(admin_user_profile)
+        
+        # Create Address
+        admin_user_address = Address()
+        admin_user_address.user_id = admin_user.id
+        db.session.add(admin_user_address)
+        
+        # Create Wallet
+        admin_user_wallet = Wallet()
+        admin_user_wallet.user_id = admin_user.id
+        db.session.add(admin_user_wallet)
+        
+        db.session.commit()
+        
+        # Assign Super Admin role
+        UserRole.assign_role(admin_user, super_admin_role, commit=True)
+        
+        log_event(
+            f"Super Admin user created successfully. Email: {super_admin_email}, Clerk ID: {clerk_id}",
+            event_type="seeding"
+        )
+        
+    except Exception as e:
+        log_error("Failed to create Super Admin user", error=e)
+        db.session.rollback()
+        raise
 
 
 def seed_roles(clear: bool = False) -> None:

@@ -76,6 +76,13 @@ class Config(PaymentConfig):
     
     # Guest account default password prefix
     DEFAULT_GUEST_PREFIX = os.getenv("DEFAULT_GUEST_PREFIX", "kezura")
+    
+    # Super Admin configurations (for seeding)
+    SUPER_ADMIN_EMAIL = os.getenv("SUPER_ADMIN_EMAIL", "admin@kezura.com")
+    SUPER_ADMIN_PASSWORD = os.getenv("SUPER_ADMIN_PASSWORD", "ChangeMe123!")
+    SUPER_ADMIN_USERNAME = os.getenv("SUPER_ADMIN_USERNAME", "superadmin")
+    SUPER_ADMIN_FIRSTNAME = os.getenv("SUPER_ADMIN_FIRSTNAME", "Super")
+    SUPER_ADMIN_LASTNAME = os.getenv("SUPER_ADMIN_LASTNAME", "Admin")
 
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL") or "sqlite:///db.sqlite3"
