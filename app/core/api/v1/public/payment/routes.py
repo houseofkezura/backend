@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from flask import request
-from flask_jwt_extended import jwt_required
-
 from app.extensions.docs import endpoint, SecurityScheme, QueryParameter
 from app.schemas.response_data import (
     PaymentInitData,
@@ -14,16 +12,17 @@ from app.schemas.response_data import (
 from app.schemas.payments import CheckoutRequest, VerifyPaymentRequest, InitPaymentRequest
 from .controllers import PaymentController
 from . import bp
+from app.utils.decorators.auth import customer_required
 
 
 @bp.post("/initialize")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=InitPaymentRequest,
     tags=["Payments"],
     summary="Initialize Payment",
-    description="Initialize payment for a product, service or order using a payment gateway",
+    description="Start a standalone payment (e.g., wallet top-up or ad-hoc) using the active payment gateway. Returns authorization_url and reference.",
     responses={
         "200": PaymentInitData,
         "400": ValidationErrorData,
@@ -35,13 +34,12 @@ def initialize_payment():
     return PaymentController.initialize_payment()
 
 @bp.post("/verify")
-@jwt_required()
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=VerifyPaymentRequest,
     tags=["Payments"],
     summary="Verify Payment",
-    description="Verify payment for a product, service or order",
+    description="Verify a payment by reference after returning from the gateway. Also usable as a fallback if webhook is delayed.",
     responses={
         "200": PaymentVerificationData,
         "400": ValidationErrorData,
@@ -53,13 +51,13 @@ def verify_payment():
     return PaymentController.verify()
 
 @bp.post("/checkout")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=CheckoutRequest,
     tags=["Payments"],
     summary="Create Payment Session",
-    description="Initialize payment for an order or offer",
+    description="Create a payment session for an existing order_id. Returns authorization_url and reference for redirect flows.",
     responses={
         "200": PaymentInitData,
         "400": ValidationErrorData,
@@ -75,7 +73,7 @@ def checkout():
 @endpoint(
     tags=["Payments"],
     summary="Payment Webhook",
-    description="Handle payment webhook from payment provider (Flutterwave/Stripe)",
+    description="Gateway webhook receiver. Verifies signature, normalizes payload, and finalizes payment/order state.",
     responses={
         "200": None,
         "400": ValidationErrorData,
@@ -87,12 +85,12 @@ def webhook():
 
 
 @bp.get("/status/<tx_id>")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Payments"],
     summary="Get Payment Status",
-    description="Check the status of a payment transaction",
+    description="Fetch payment status by reference for the current user (or guest via email query).",
     responses={
         "200": PaymentStatusData,
         "401": None,
@@ -105,12 +103,12 @@ def get_payment_status(tx_id: str):
 
 
 @bp.get("/history")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Payments"],
     summary="Get Payment History",
-    description="Get paginated payment history for the authenticated user with optional status filtering",
+    description="Paginated payment history for the signed-in user with optional status filter.",
     query_params=[
         QueryParameter("page", "integer", required=False, description="Page number for pagination", default=1),
         QueryParameter("per_page", "integer", required=False, description="Number of items per page", default=20),

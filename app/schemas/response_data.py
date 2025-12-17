@@ -633,7 +633,10 @@ class CheckoutData(BaseModel):
     class Config:
         extra = "forbid"
     
-    order: OrderDataModel
+    order_id: str
+    payment_status: Optional[str] = None
+    payment_reference: Optional[str] = None
+    authorization_url: Optional[str] = None
 
 
 # Shipping response data schemas

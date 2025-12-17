@@ -32,6 +32,7 @@ class PaymentController:
             payload = InitPaymentRequest.model_validate(request.get_json())
             amount = Decimal(str(payload.get("amount")).replace(",", ""))
             description = payload.get("description", None)
+            currency = payload.get("currency", "USD")
             current_user = get_current_user()
             
             if not current_user:
@@ -45,7 +46,7 @@ class PaymentController:
             # Start payment processing
             response = payment_manager.initialize_gateway_payment(
                 amount=amount,
-                currency="USD",
+                currency=currency,
                 user=current_user,
                 narration=description
             )
@@ -220,11 +221,18 @@ class PaymentController:
         """
         try:
             current_user = get_current_user()
+            guest_email = request.args.get("email")
             
-            if not current_user:
+            if not current_user and not guest_email:
                 return error_response("Unauthorized", 401)
             
-            payment = Payment.query.filter_by(key=tx_id, user_id=current_user.id).first()
+            query = Payment.query.filter_by(key=tx_id)
+            if current_user:
+                query = query.filter_by(user_id=current_user.id)
+            elif guest_email:
+                query = query.filter(Payment.meta_info['guest_email'].astext == guest_email)
+            
+            payment = query.first()
             
             if not payment:
                 return error_response(f"Payment '{tx_id}' not found", 404)

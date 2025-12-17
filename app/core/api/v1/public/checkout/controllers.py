@@ -74,6 +74,8 @@ class CheckoutController:
             response_data = {
                 "order_id": result.order_id,
                 "payment_status": result.payment_status,
+                "payment_reference": result.payment_reference,
+                "authorization_url": result.authorization_url,
             }
             
             # Include account creation info if applicable
@@ -91,6 +93,7 @@ class CheckoutController:
             log_error("Failed to process checkout", error=e)
             db.session.rollback()
             return error_response("Failed to process checkout", 500)
+
 
 
 

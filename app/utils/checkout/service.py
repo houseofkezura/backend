@@ -30,6 +30,8 @@ from ...models.user import AppUser, Profile, Address
 from ...models.role import Role, UserRole
 from ...enums.orders import OrderStatus
 from ...enums.auth import RoleNames
+from ...enums.payments import PaymentType
+from ...utils.payments.payment_manager import PaymentManager
 from ...utils.auth.clerk import create_clerk_user
 from ...logging import log_error, log_event
 from config import Config
@@ -60,6 +62,8 @@ class CheckoutResult:
     success: bool
     order_id: Optional[str] = None
     payment_status: Optional[str] = None
+    authorization_url: Optional[str] = None
+    payment_reference: Optional[str] = None
     error: Optional[str] = None
     auto_account_created: bool = False
     clerk_id: Optional[str] = None
@@ -210,7 +214,7 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         order.points_redeemed = points_redeemed
         order.total = Decimal(str(total))
         order.amount = Decimal(str(total))  # Legacy field
-        order.currency = "NGN"
+        order.currency = Config.DEFAULT_CURRENCY or "NGN"
         order.shipping_address = request.shipping_address or {}
         order.guest_email = request.email
         order.guest_phone = request.phone
@@ -229,135 +233,37 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         
         db.session.commit()
         
-        # Step 7: Process payment (simplified - in production, use payment gateway)
-        # For MVP, we'll mark as paid if payment_token is provided
-        payment_success = False
-        if request.payment_token:
-            # In production, call payment gateway here
-            # For now, simulate success
-            payment_success = True
+        # Step 7: Initialize payment via gateway
+        payment_manager = PaymentManager()
+        extra_meta = {
+            "order_id": str(order.id),
+            "guest_email": request.email,
+            "guest_token": request.guest_token,
+            "guest_phone": request.phone,
+            "guest_name": f"{(request.first_name or '').strip()} {(request.last_name or '').strip()}".strip(),
+            "currency": order.currency,
+        }
+        payment_response = payment_manager.initialize_gateway_payment(
+            amount=Decimal(str(total)),
+            currency=order.currency,
+            user=current_user,
+            payment_type=PaymentType.ORDER_PAYMENT,
+            narration=f"Payment for order {order.id}",
+            extra_meta=extra_meta,
+        )
         
-        if not payment_success:
-            order.status = OrderStatus.FAILED
-            db.session.commit()
-            return CheckoutResult(success=False, error="Payment failed")
-        
-        # Step 8: Finalize order and decrement inventory
-        order.status = OrderStatus.PAID
+        # Persist reference on order
+        order.payment_ref = payment_response.get("reference")
         db.session.commit()
         
-        # Decrement inventory
-        for item_data in items_to_order:
-            variant = item_data["variant"]
-            if variant.inventory:
-                variant.inventory.quantity -= item_data["quantity"]
-                db.session.commit()
-        
-        # Step 9: Auto-account creation for guest orders (₦200k-₦500k)
-        auto_account_created = False
-        clerk_id = None
-        
-        total_float = float(total)
-        if not current_user and request.email and 200000 <= total_float <= 500000:
-            # Check if user already exists
-            existing_user = AppUser.query.filter_by(email=request.email).first()
-            
-            if not existing_user:
-                # Generate secure default password for auto-created accounts
-                default_password = generate_default_guest_password()
-                
-                # Create Clerk user
-                clerk_user_data = create_clerk_user(
-                    email=request.email,
-                    password=default_password,
-                    first_name=request.first_name,
-                    last_name=request.last_name,
-                    phone=request.phone,
-                    skip_password_checks=True,
-                )
-                
-                if clerk_user_data:
-                    clerk_id = clerk_user_data["clerk_id"]
-                    
-                    # Create AppUser
-                    app_user = AppUser()
-                    app_user.clerk_id = clerk_id
-                    app_user.email = request.email
-                    app_user.has_updated_default_password = False
-                    
-                    db.session.add(app_user)
-                    db.session.flush()
-                    
-                    # Create Profile
-                    profile = Profile()
-                    profile.firstname = request.first_name or ""
-                    profile.lastname = request.last_name or ""
-                    profile.phone = request.phone
-                    profile.user_id = app_user.id
-                    db.session.add(profile)
-                    
-                    # Create Address
-                    address = Address()
-                    address.user_id = app_user.id
-                    if request.shipping_address:
-                        address.country = request.shipping_address.get("country")
-                        address.state = request.shipping_address.get("state")
-                    db.session.add(address)
-                    
-                    # Create Loyalty Account (Muse tier)
-                    from ...models.loyalty import LoyaltyAccount
-                    loyalty_account = LoyaltyAccount()
-                    loyalty_account.user_id = app_user.id
-                    loyalty_account.tier = "Muse"
-                    loyalty_account.points_balance = 0
-                    loyalty_account.lifetime_spend = Decimal(str(total_float))
-                    db.session.add(loyalty_account)
-                    
-                    # Assign CUSTOMER role
-                    role = Role.query.filter_by(name=RoleNames.CUSTOMER).first()
-                    if role:
-                        UserRole.assign_role(app_user, role, commit=False)
-                    
-                    # Link order to new user
-                    order.user_id = app_user.id
-                    
-                    db.session.commit()
-                    
-                    auto_account_created = True
-                    log_event(f"Auto-created account for guest order: {order.id}, Clerk ID: {clerk_id}")
-                    
-                    # Send welcome email notification
-                    try:
-                        from ...utils.emailing import email_service
-                        # Email service method will be implemented or can use generic send
-                        try:
-                            if hasattr(email_service, 'send_welcome_email'):
-                                email_service.send_welcome_email(
-                                    to=request.email,
-                                    first_name=request.first_name or "",
-                                    default_password=default_password,
-                                    has_updated_default_password=False,
-                                )
-                            else:
-                                log_event(f"Welcome email notification hook ready for auto-created account: {request.email}")
-                        except AttributeError:
-                            log_event(f"Welcome email notification hook ready for auto-created account: {request.email}")
-                    except Exception as email_error:
-                        log_error("Failed to send welcome email", error=email_error)
-                        # Don't fail checkout if email fails
-            else:
-                # Link order to existing user
-                order.user_id = existing_user.id
-                db.session.commit()
-        
-        log_event(f"Checkout completed: Order {order.id}, Total: {total}")
+        log_event(f"Checkout initialized: Order {order.id}, Total: {total}")
         
         result = CheckoutResult(
             success=True,
             order_id=str(order.id),
-            payment_status="paid",
-            auto_account_created=auto_account_created,
-            clerk_id=clerk_id,
+            payment_status=payment_response.get("status") or "pending_payment",
+            authorization_url=payment_response.get("authorization_url"),
+            payment_reference=payment_response.get("reference"),
         )
         
         # Store result in cache for idempotency (24 hour TTL)
@@ -368,31 +274,9 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
                 "success": result.success,
                 "order_id": result.order_id,
                 "payment_status": result.payment_status,
-                "auto_account_created": result.auto_account_created,
-                "clerk_id": result.clerk_id,
+                "authorization_url": result.authorization_url,
+                "payment_reference": result.payment_reference,
             }, timeout=86400)  # 24 hours
-        
-        # Send order confirmation email notification
-        try:
-            from ...utils.emailing import email_service
-            recipient_email = current_user.email if current_user else request.email
-            if recipient_email:
-                # Email service method will be implemented or can use generic send
-                try:
-                    if hasattr(email_service, 'send_order_confirmation'):
-                        email_service.send_order_confirmation(
-                            to=recipient_email,
-                            order_id=str(order.id),
-                            order_total=float(total),
-                            order_status="paid",
-                        )
-                    else:
-                        log_event(f"Order confirmation email notification hook ready for order {order.id}")
-                except AttributeError:
-                    log_event(f"Order confirmation email notification hook ready for order {order.id}")
-        except Exception as email_error:
-            log_error("Failed to send order confirmation email", error=email_error)
-            # Don't fail checkout if email fails
         
         return result
         

@@ -16,7 +16,7 @@ from . import bp
     request_body=CheckoutRequest,
     tags=["Checkout"],
     summary="Process Checkout",
-    description="Process checkout and create order. Supports both authenticated users and guest checkout. Guest orders between ₦200k-₦500k automatically create accounts.",
+    description="Create an order from cart and start payment. Supports guests (email/phone required) and authenticated users. Returns order_id, payment_reference, and authorization_url for gateway redirect.",
     responses={
         "200": CheckoutData,
         "400": ValidationErrorData,

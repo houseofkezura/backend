@@ -14,7 +14,7 @@ from . import bp
 @endpoint(
     tags=["Shipping"],
     summary="Get Shipping Zones",
-    description="Get shipping zones and methods for a country. No authentication required.",
+    description="Return shipping methods/costs/ETA per zone for a given country (default NG). Public.",
     query_params=[
         QueryParameter("country", "string", required=False, description="Country code (default: NG)", default="NG"),
     ],

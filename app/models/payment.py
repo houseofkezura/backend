@@ -35,7 +35,7 @@ class Payment(db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
 
     # relationships
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=False)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=True)
     app_user = db.relationship('AppUser', back_populates='payments')
     
     subscription_id = db.Column(UUID(as_uuid=True), db.ForeignKey('subscription.id'), nullable=True)
@@ -46,7 +46,15 @@ class Payment(db.Model):
     
     @property
     def currency_code(self):
-        return self.app_user.wallet.currency_code
+        # Prefer user's wallet if available; otherwise fall back to meta_info or default
+        if getattr(self, "app_user", None) and getattr(self.app_user, "wallet", None):
+            return self.app_user.wallet.currency_code
+        meta_currency = None
+        try:
+            meta_currency = (self.meta_info or {}).get("currency")
+        except Exception:
+            meta_currency = None
+        return meta_currency or "NGN"
     
     @classmethod
     def create_payment_record(cls, key, amount, payment_method, status, app_user, commit=True, **kwargs):
@@ -118,12 +126,20 @@ class Transaction(db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
     
     # Relationship with the user model
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=False)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=True)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=True)
     app_user = db.relationship('AppUser', backref=db.backref('transactions', lazy='dynamic'))
     
     @property
     def currency_code(self):
-        return self.app_user.wallet.currency_code
+        if getattr(self, "app_user", None) and getattr(self.app_user, "wallet", None):
+            return self.app_user.wallet.currency_code
+        meta_currency = None
+        try:
+            meta_currency = (self.meta_info or {}).get("currency")
+        except Exception:
+            meta_currency = None
+        return meta_currency or "NGN"
     
     def __repr__(self):
         return f'<ID: {self.id}, Transaction Reference: {self.key}, Transaction Type: {self.transaction_type}, Status: {self.status}>'

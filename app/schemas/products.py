@@ -96,3 +96,4 @@ class InventoryAdjustRequest(BaseModel):
 
 
 
+

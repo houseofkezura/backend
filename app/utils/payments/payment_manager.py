@@ -87,7 +87,7 @@ class PaymentManager:
         self,
         amount: Decimal,
         currency: str,
-        user: AppUser,
+        user: Optional[AppUser],
         payment_type: PaymentType = PaymentType.WALLET_TOP_UP,
         narration: Optional[str] = None,
         extra_meta: Optional[dict] = None,
@@ -112,7 +112,12 @@ class PaymentManager:
             if processor is None:
                 raise ValueError("No active payment processor configured")
             
+            if payment_type == PaymentType.WALLET_TOP_UP and user is None:
+                raise ValueError("User is required for wallet top-up payments")
+            
             amount = quantize_amount(amount)
+            
+            extra_meta = extra_meta or {}
             
             # Create payment and transaction records using processor's reference
             payment, transaction = record_payment_transaction(
@@ -123,6 +128,7 @@ class PaymentManager:
                 narration=narration or "",
                 reference=processor.reference,  # Using the processor's reference
                 payment_type=payment_type,
+                currency=currency,
                 extra_meta=extra_meta
             )
         
@@ -137,12 +143,28 @@ class PaymentManager:
             
             log_event("redirect_url", redirect_url)
             
+            customer_email = None
+            customer_name = None
+            customer_phone = None
+            if user:
+                customer_email = user.email
+                customer_name = user.full_name
+                try:
+                    customer_phone = user.profile.phone if user.profile else None
+                except Exception:
+                    customer_phone = None
+            else:
+                customer_email = extra_meta.get("guest_email")
+                customer_name = extra_meta.get("guest_name")
+                customer_phone = extra_meta.get("guest_phone")
+            
             customer_data = {
-                "email": user.email,
-                "name": user.full_name
+                "email": customer_email,
+                "name": customer_name,
+                "phone": customer_phone,
             }
             # user system currency
-            platform_currency = get_general_setting('CURRENCY', default='NGN')
+            platform_currency = currency or get_general_setting('CURRENCY', default='NGN')
             
             # Initialize payment with gateway
             response = processor.initialize_payment(amount, platform_currency, customer_data, redirect_url)
@@ -325,16 +347,18 @@ class PaymentManager:
             
             if payment.status != str(PaymentStatus.COMPLETED):
                 if payment_type == str(PaymentType.WALLET_TOP_UP):
-                    user: AppUser = payment.app_user
-                    credit_wallet(user.id, payment.amount, commit=False)
-                
+                    if payment.app_user:
+                        user: AppUser = payment.app_user
+                        credit_wallet(user.id, payment.amount, commit=False)
                 
                 elif payment_type == str(PaymentType.ORDER_PAYMENT):
-                    # Handle order payment - update order status
+                    # Handle order payment - update order status and inventory
                     order_id = payment.meta_info.get('order_id')
+                    guest_token = payment.meta_info.get('guest_token')
                     
                     if order_id:
                         from ...models.order import Order
+                        from ...models.cart import Cart
                         from ...enums.orders import OrderStatus
                         
                         try:
@@ -343,6 +367,20 @@ class PaymentManager:
                             
                             if order:
                                 order.update(status=str(OrderStatus.PAID), payment_ref=payment.key, commit=False)
+                                # Decrement inventory for order items
+                                for item in order.items:
+                                    variant = item.variant
+                                    if variant and variant.inventory:
+                                        variant.inventory.quantity = max(0, variant.inventory.quantity - item.quantity)
+                                # Clear cart for this user/guest to avoid stale items
+                                cart = None
+                                if order.user_id:
+                                    cart = Cart.query.filter_by(user_id=order.user_id).first()
+                                elif guest_token:
+                                    cart = Cart.query.filter_by(guest_token=guest_token).first()
+                                if cart:
+                                    for cart_item in list(cart.items):
+                                        db.session.delete(cart_item)
                                 log_event("order_payment_completed", f"Order payment completed for order_id={order_id}")
                             else:
                                 log_error("Order not found", {"order_id": order_id})
@@ -356,8 +394,9 @@ class PaymentManager:
                         subscription.extend_validity()
                 
                 # Update payment status
-                payment.update(status=str(PaymentStatus.COMPLETED))
-                transaction.update(status=str(PaymentStatus.COMPLETED))
+                payment.update(status=str(PaymentStatus.COMPLETED), commit=False)
+                if transaction:
+                    transaction.update(status=str(PaymentStatus.COMPLETED), commit=False)
         except Exception as e:
             log_error("payment_completion_failed", str(e), exc_info=e)
             raise e

@@ -143,12 +143,11 @@ curl -X GET https://api.example.com/api/v1/admin/products \
 curl -X POST https://api.example.com/api/v1/checkout \
   -H "Authorization: Bearer <clerk_token_or_guest_optional>" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: req-123" \
   -d '{
     "cart_id": "uuid",
     "shipping_address": { "country": "NG", "state": "Lagos", "full_name": "Ada", "phone": "+234..." },
     "payment_method": "card",
-    "payment_token": "tok_xxx",
-    "idempotency_key": "req-123",
     "email": "guest@example.com",
     "phone": "+234...",
     "first_name": "Ada",
@@ -156,7 +155,25 @@ curl -X POST https://api.example.com/api/v1/checkout \
   }'
 ```
 
+### End-to-end flow (frontend)
+1) Browse & cart  
+   - `GET /api/v1/products` (filters)  
+   - `POST /api/v1/cart/items` (include `guest_token` header/payload for guests)  
+   - `GET /api/v1/cart`
+2) Shipping quote  
+   - `GET /api/v1/shipping/zones?country=NG` to show costs/ETA.
+3) Checkout (creates order + payment session)  
+   - `POST /api/v1/checkout` with `cart_id`/`guest_token`, shipping address, contact, optional points, `Idempotency-Key` header.  
+   - Response: `{ order_id, payment_status, payment_reference, authorization_url }` (order is `pending_payment`).
+4) Redirect to pay  
+   - Open `authorization_url` (Paystack/Flutterwave/BitPay). Keep `payment_reference`.
+5) Confirm payment  
+   - After gateway redirect: `POST /api/v1/payment/verify { "reference": "<payment_reference>" }`.  
+   - Webhook also hits `/api/v1/payment/webhook` (source of truth). If verify lags, poll `GET /api/v1/orders/{order_id}` until `status = "paid"`.
+6) Post-payment UX  
+   - Show success, clear local cart, fetch `GET /api/v1/orders/{order_id}` for summary.
 
-
-
-
+### Notes
+- Guests can pay; verify works with just the `reference`.  
+- Use `Idempotency-Key` on checkout to retry safely.  
+- Order stays `pending_payment` until verify/webhook marks it `paid`.  

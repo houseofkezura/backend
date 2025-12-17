@@ -19,7 +19,7 @@ from . import bp
 @endpoint(
     tags=["Cart"],
     summary="Get Cart",
-    description="Get the current user's cart or guest cart. No authentication required for guests.",
+    description="Fetch the active cart for the signed-in user or for a guest (using X-Guest-Token). Returns an empty cart plus a guest_token when none exists.",
     responses={
         "200": CartData,
         "500": None,
@@ -35,7 +35,7 @@ def get_cart():
     request_body=AddCartItemRequest,
     tags=["Cart"],
     summary="Add Item to Cart",
-    description="Add a product variant to the cart. No authentication required for guests.",
+    description="Add a product variant to the cart. Works for guests (pass guest_token) and authenticated users.",
     responses={
         "200": CartItemData,
         "400": ValidationErrorData,
@@ -53,7 +53,7 @@ def add_item():
     request_body=UpdateCartItemRequest,
     tags=["Cart"],
     summary="Update Cart Item",
-    description="Update the quantity of a cart item. No authentication required for guests.",
+    description="Update quantity of a cart item. Validates ownership via user or guest_token.",
     responses={
         "200": CartItemData,
         "400": ValidationErrorData,
@@ -71,7 +71,7 @@ def update_item(item_id: str):
 @endpoint(
     tags=["Cart"],
     summary="Remove Cart Item",
-    description="Remove an item from the cart. No authentication required for guests.",
+    description="Remove an item from the cart. Validates ownership via user or guest_token.",
     responses={
         "200": None,
         "403": None,
@@ -89,7 +89,7 @@ def delete_item(item_id: str):
     request_body=ApplyPointsRequest,
     tags=["Cart"],
     summary="Apply Loyalty Points",
-    description="Calculate discount from loyalty points. Requires authentication.",
+    description="Estimate discount from loyalty points without charging. Requires authentication; redemption happens at checkout.",
     responses={
         "200": CartData,
         "400": ValidationErrorData,

@@ -33,13 +33,14 @@ def safe_compare_amounts(amount1, amount2):
 
 
 def record_payment_transaction(
-    user: AppUser,
+    user: AppUser | None,
     amount: Decimal,
     payment_method: str,
     status: PaymentStatus = PaymentStatus.PENDING,
     narration: str = None,
     reference: str = None,
     payment_type: PaymentType = PaymentType.WALLET_TOP_UP,
+    currency: str = "NGN",
     extra_meta: Optional[dict] = None) -> tuple[Payment, Transaction]:
     """
     Create payment and transaction records atomically.
@@ -65,6 +66,7 @@ def record_payment_transaction(
         # Prepare meta_info
         meta_info = {
             "payment_type": str(payment_type),
+            "currency": currency,
             **(extra_meta or {})
         }
 
