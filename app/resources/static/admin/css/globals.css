@@ -8,6 +8,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Tailwind Safelist for dynamically used classes
+ * 
+ * These classes are used in templates via macros but may not always be detected
+ * by Tailwind's JIT compiler. Adding them here ensures they're included in the build.
+ * 
+ * Grid column classes (1-12) for responsive layouts:
+ * - grid-cols-1 through grid-cols-12
+ * - sm:grid-cols-1 through sm:grid-cols-12
+ * - lg:grid-cols-1 through lg:grid-cols-12
+ * 
+ * Note: The render_grid macro now uses explicit class names, but this safelist
+ * serves as a fallback for any edge cases or future dynamic usage.
+ */
+@source "../../templates/admin/**/*.html";
+
 
 
 :root {

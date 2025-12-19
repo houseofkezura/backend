@@ -1,39 +1,22 @@
+{% from 'admin/macros/alerts.html' import render_alert %}
+
 <div id="alert-box" class="alert-box fit-main flex flex-col items-center justify-center gap-y-4 fixed top-18 left-0 z-50 w-full pointer-events-none">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        {% for category, message in messages %}
-
-            <div id="alert-{{ loop.index }}" class="flex alert-{{ category }} gap-x-4 min-w-96 items-center p-4 rounded-lg bg-gray-800 pointer-events-auto"
-                role="alert" data-auto-dismiss="5000">
-                <svg class="shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                    viewBox="0 0 20 20">
-                    <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                </svg>
+            {% for category, message in messages %}
+                {% set alert_type = "info" %}
+                {% if category == "error" or category == "danger" %}
+                    {% set alert_type = "error" %}
+                {% elif category == "success" %}
+                    {% set alert_type = "success" %}
+                {% elif category == "warning" %}
+                    {% set alert_type = "warning" %}
+                {% endif %}
                 
-                <span class="sr-only">Info</span>
-                
-                {# Add aria attributes #}
-                <div class="ms-3 text-sm font-medium" id="alert-message-{{ loop.index }}">
-                    {{ message|safe }}
-                    {% if category == 'info login' %} 
-                        Go to <a href="#" class="font-semibold underline hover:no-underline"> login page</a>
-                    {% endif %}
+                <div id="alert-{{ loop.index }}" class="pointer-events-auto min-w-96" role="alert" data-auto-dismiss="5000">
+                    {{ render_alert(message|safe, alert_type, dismissible=True, icon=True) }}
                 </div>
-
-                <button type="button"
-                    class="ms-auto -mx-1.5 -my-1.5 rounded-lg focus:ring-2 focus:ring-alert-{{ category }}-solid p-1.5 inline-flex items-center justify-center h-8 w-8 hover:bg-gray-800/10"
-                    data-dismiss-target="#alert-{{ loop.index }}" aria-label="Close">
-                    <span class="sr-only">Close</span>
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                </button>
-            </div>
-        
-        {% endfor %}
+            {% endfor %}
         {% endif %}
     {% endwith %}
-
 </div>

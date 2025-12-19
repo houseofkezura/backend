@@ -8,29 +8,29 @@
         {% if field.type == "BooleanField" %}
             <div class="theme-checkbox flex items-center gap-4">
                 {{ field(
-                    class="form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white size-8 checked:bg-theme-clr",
+                    class="form-control text-sm rounded-lg shadow-sm-light border border-outline-clr focus:ring-theme-clr focus:border-theme-clr p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 size-8 checked:bg-theme-clr",
                     autofocus=false,
                     id=field.id,
                     **kwargs
                 ) }}
-                <label for="{{ field.id }}" class="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                <label for="{{ field.id }}" class="block text-sm font-medium text-gray-900 cursor-pointer">
                     {{ field.label.text }}
                 </label>
             </div>
         {% elif field.type == "FileField" %}
-            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900">
                 {{ field.label.text }}
             </label>
             {{ field(
-                class="form-control block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400",
+                class="form-control block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none",
                 **kwargs
             ) }}
         {% else %}
-            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900">
                 {{ field.label.text }}
             </label>
             {{ field(
-                class="form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white",
+                class="form-control text-sm rounded-lg shadow-sm-light border border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900",
                 autofocus=true, id=field.id,
                 **kwargs
             ) }}
@@ -52,7 +52,7 @@
 
 <section class="">
     <div class="mx-auto max-w-screen-md lg:py-16 lg:pt-1">
-        <h2 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">General Settings</h2>
+        <h2 class="mb-6 text-2xl font-bold text-gray-900">General Settings</h2>
         
         <form method="post" action="{% block form_action %} {{ url_for('web_admin.general_settings') }} {% endblock %}" class="pt-2" id="general-settings-form" enctype="multipart/form-data">
             <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
@@ -62,10 +62,10 @@
                 {% endif %}
 
                 {# General Settings Section #}
-                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 dark:border-gray-700 min-h-64">
+                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 min-h-64">
                     <div class="card-header px-5 py-4 pb-2 mb-4 border-b border-outline-clr">
                         <p class="font-medium"> Basic Website settings </p>
-                        <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                        <small class="setting-description text-xs text-gray-600"> 
                             Provided basic website info for you and your customers
                         </small>
                     </div>
@@ -82,10 +82,10 @@
                 </div>
 
                 {# Currency Settings #}
-                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 dark:border-gray-700 min-h-64">
+                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 min-h-64">
                     <div class="card-header px-5 py-4 pb-2 mb-4 border-b border-outline-clr">
                         <p class="font-medium"> Currency options </p>
-                        <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                        <small class="setting-description text-xs text-gray-600"> 
                             The following options affect how prices are displayed on the frontend.
                         </small>
                     </div>

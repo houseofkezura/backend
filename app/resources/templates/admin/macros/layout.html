@@ -1,0 +1,164 @@
+{# Layout Components #}
+{# Usage: {% from 'admin/macros/layout.html' import render_page_header, render_section, render_container, render_grid %} #}
+
+{% macro render_page_header(title, description="", breadcrumbs="", actions="", classes="") -%}
+    {# Page header with title, description, breadcrumbs, and action buttons #}
+    <div class="mb-6 {{ classes }}">
+        {% if breadcrumbs %}
+            <nav class="mb-4 text-sm text-gray-600">
+                {{ breadcrumbs }}
+            </nav>
+        {% endif %}
+        
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                {% if title %}
+                    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+                {% endif %}
+                {% if description %}
+                    <p class="mt-1 text-sm text-gray-600">{{ description }}</p>
+                {% endif %}
+            </div>
+            
+            {% if actions %}
+                <div class="flex items-center gap-2">
+                    {{ actions }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro render_section(title="", description="", classes="") -%}
+    {# Section wrapper #}
+    <section class="mb-6 {{ classes }}">
+        {% if title %}
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">{{ title }}</h2>
+                {% if description %}
+                    <p class="mt-1 text-sm text-gray-600">{{ description }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div>
+            {{ caller() }}
+        </div>
+    </section>
+{%- endmacro %}
+
+{% macro render_container(classes="", max_width="full") -%}
+    {# Container with optional max width #}
+    {% set max_width_classes = {
+        "sm": "max-w-sm",
+        "md": "max-w-md",
+        "lg": "max-w-lg",
+        "xl": "max-w-xl",
+        "2xl": "max-w-2xl",
+        "4xl": "max-w-4xl",
+        "6xl": "max-w-6xl",
+        "full": ""
+    } %}
+    
+    {% set container_classes = max_width_classes.get(max_width, "") ~ " " ~ classes %}
+    <div class="{{ container_classes.strip() }}">
+        {{ caller() }}
+    </div>
+{%- endmacro %}
+
+{% macro render_grid(columns=1, gap=4, classes="", responsive=True) -%}
+    {# 
+        Responsive grid layout
+        IMPORTANT: We use explicit class names instead of concatenation so Tailwind can detect them during build.
+        Tailwind's JIT compiler only scans for complete class names, not dynamically concatenated ones.
+    #}
+    {% set gap_classes = {
+        2: "gap-2",
+        3: "gap-3",
+        4: "gap-4",
+        6: "gap-6",
+        8: "gap-8"
+    } %}
+    
+    {% set grid_gap = gap_classes.get(gap, gap_classes[4]) %}
+    
+    {# Map column values to explicit Tailwind classes #}
+    {% set column_classes = {
+        1: "grid-cols-1",
+        2: "grid-cols-2",
+        3: "grid-cols-3",
+        4: "grid-cols-4",
+        5: "grid-cols-5",
+        6: "grid-cols-6",
+        7: "grid-cols-7",
+        8: "grid-cols-8",
+        9: "grid-cols-9",
+        10: "grid-cols-10",
+        11: "grid-cols-11",
+        12: "grid-cols-12"
+    } %}
+    
+    {% set responsive_column_classes = {
+        1: "lg:grid-cols-1",
+        2: "lg:grid-cols-2",
+        3: "lg:grid-cols-3",
+        4: "lg:grid-cols-4",
+        5: "lg:grid-cols-5",
+        6: "lg:grid-cols-6",
+        7: "lg:grid-cols-7",
+        8: "lg:grid-cols-8",
+        9: "lg:grid-cols-9",
+        10: "lg:grid-cols-10",
+        11: "lg:grid-cols-11",
+        12: "lg:grid-cols-12"
+    } %}
+    
+    {% set base_column_class = column_classes.get(columns, "grid-cols-1") %}
+    {% set lg_column_class = responsive_column_classes.get(columns, "lg:grid-cols-1") %}
+    
+    {% if responsive %}
+        {% set grid_classes = "grid grid-cols-1 sm:grid-cols-2 " ~ lg_column_class ~ " " ~ grid_gap ~ " " ~ classes %}
+    {% else %}
+        {% set grid_classes = "grid " ~ base_column_class ~ " " ~ grid_gap ~ " " ~ classes %}
+    {% endif %}
+    
+    <div class="{{ grid_classes.strip() }}">
+        {{ caller() }}
+    </div>
+{%- endmacro %}
+
+{% macro render_breadcrumb(items, classes="") -%}
+    {# Breadcrumb navigation #}
+    <nav class="flex {{ classes }}" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            {% for item in items %}
+                <li class="inline-flex items-center">
+                    {% if not loop.last %}
+                        <a href="{{ item.url }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                            {{ item.text }}
+                        </a>
+                        <i class="bx bx-chevron-right mx-2 text-gray-400"></i>
+                    {% else %}
+                        <span class="text-sm font-medium text-gray-500" aria-current="page">{{ item.text }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </nav>
+{%- endmacro %}
+
+{% macro render_divider(classes="") -%}
+    {# Horizontal divider #}
+    <hr class="my-6 border-gray-200 {{ classes }}">
+{%- endmacro %}
+
+{% macro render_spacer(height=4) -%}
+    {# Vertical spacer #}
+    {% set height_classes = {
+        2: "h-2",
+        4: "h-4",
+        6: "h-6",
+        8: "h-8"
+    } %}
+    <div class="{{ height_classes.get(height, height_classes[4]) }}"></div>
+{%- endmacro %}
+

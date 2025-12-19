@@ -1,33 +1,40 @@
 {% extends 'admin/base/index.html' %}
+{% from 'admin/macros/cards.html' import render_stat_card %}
+{% from 'admin/macros/layout.html' import render_grid %}
+
 {% block title %}Admin Dashboard - {{ super() }}{% endblock %}
 
 {% block content %}
-
-{% macro render_stat_card(key, value) -%}
-    <div class="stat-item card flex items-center gap-y-6 shadow rounded-lg text-gray-900 bg-white hover:bg-gray-50">
-        <div class="card-body w-full p-6 py-8 flex flex-col gap-y-2">
-            {# Humanize key names (e.g., "total_products" → "Total Products") #}
-            <span class="stat-value text-4xl font-medium">{{ value }}</span>
-            <span class="stat-label text-sm font-medium text-gray-500"> {{ key|replace('_', ' ')|title }} </span>
-        </div>
-    </div>
-{%- endmacro %}
-
-<div class="rounded-lg">
-    <div class="stats-summary grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        {% for key, value in stats.items() if key != 'recent_orders' %}
+<div class="space-y-6">
+    {# Statistics Cards #}
+    {% call render_grid(columns=4, gap=4, responsive=True) %}
+        {% for key, value in stats.items() if key not in ['recent_orders', 'recent_products'] %}
             {% if key in ['total_products', 'total_categories', 'total_tags', 'total_users'] %}
-                {{ render_stat_card(key, value) }}
+                {% set icons = {
+                    'total_products': 'bx bx-package',
+                    'total_categories': 'bx bx-category',
+                    'total_tags': 'bx bx-purchase-tag',
+                    'total_users': 'bx bx-user'
+                } %}
+                {{ render_stat_card(
+                    label=key|replace('_', ' ')|title,
+                    value=value,
+                    icon=icons.get(key, 'bx bx-bar-chart'),
+                    icon_color='primary'
+                ) }}
             {% endif %}
         {% endfor %}
+    {% endcall %}
+    
+    {# Recent Orders and Products #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% with recent_orders=stats.recent_orders %}
+            {% include 'admin/pages/dashboard/components/recent_orders.html' %}
+        {% endwith %}
+        
+        {% with recent_products=stats.recent_products %}
+            {% include 'admin/pages/dashboard/components/recent_products.html' %}
+        {% endwith %}
     </div>
-    
-    {% with recent_orders=stats.recent_orders %}
-        {% include 'admin/pages/dashboard/components/recent_orders.html' %}
-    {% endwith %}
-    
-    {% with recent_products=stats.recent_products %}
-        {% include 'admin/pages/dashboard/components/recent_products.html' %}
-    {% endwith %}
 </div>
 {% endblock %}

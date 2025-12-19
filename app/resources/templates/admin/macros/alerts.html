@@ -1,0 +1,92 @@
+{# Alert/Notification Components #}
+{# Usage: {% from 'admin/macros/alerts.html' import render_alert, render_banner %} #}
+
+{% macro render_alert(message, type="info", dismissible=True, icon=True, classes="") -%}
+    {# 
+        type: success, error, warning, info
+    #}
+    {% set type_config = {
+        "success": {
+            "bg": "bg-green-50",
+            "border": "border-green-200",
+            "text": "text-green-800",
+            "icon": "bx-check-circle",
+            "icon_color": "text-green-600"
+        },
+        "error": {
+            "bg": "bg-red-50",
+            "border": "border-red-200",
+            "text": "text-red-800",
+            "icon": "bx-error-circle",
+            "icon_color": "text-red-600"
+        },
+        "warning": {
+            "bg": "bg-yellow-50",
+            "border": "border-yellow-200",
+            "text": "text-yellow-800",
+            "icon": "bx-error",
+            "icon_color": "text-yellow-600"
+        },
+        "info": {
+            "bg": "bg-blue-50",
+            "border": "border-blue-200",
+            "text": "text-blue-800",
+            "icon": "bx-info-circle",
+            "icon_color": "text-blue-600"
+        }
+    } %}
+    
+    {% set config = type_config.get(type, type_config["info"]) %}
+    {% set base_classes = "flex items-center p-4 rounded-lg border " ~ config.bg ~ " " ~ config.border ~ " " ~ config.text %}
+    
+    <div class="{{ base_classes }} {{ classes }}" role="alert">
+        {% if icon %}
+            <i class="{{ config.icon }} {{ config.icon_color }} text-xl mr-3"></i>
+        {% endif %}
+        <div class="flex-1 text-sm font-medium">
+            {{ message }}
+        </div>
+        {% if dismissible %}
+            <button type="button" class="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 hover:bg-gray-100 focus:ring-2 focus:ring-gray-300" aria-label="Close">
+                <i class="bx bx-x text-lg"></i>
+            </button>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{% macro render_banner(message, type="info", classes="") -%}
+    {# Full-width banner alert #}
+    {% set type_config = {
+        "success": "bg-green-600",
+        "error": "bg-red-600",
+        "warning": "bg-yellow-600",
+        "info": "bg-blue-600"
+    } %}
+    
+    {% set bg_class = type_config.get(type, type_config["info"]) %}
+    {% set base_classes = "w-full px-4 py-3 text-white text-sm font-medium " ~ bg_class %}
+    
+    <div class="{{ base_classes }} {{ classes }}" role="alert">
+        <div class="container mx-auto flex items-center justify-between">
+            <span>{{ message }}</span>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro render_inline_alert(message, type="info", classes="") -%}
+    {# Inline alert for forms #}
+    {% set type_config = {
+        "success": "text-green-600 bg-green-50 border-green-200",
+        "error": "text-red-600 bg-red-50 border-red-200",
+        "warning": "text-yellow-600 bg-yellow-50 border-yellow-200",
+        "info": "text-blue-600 bg-blue-50 border-blue-200"
+    } %}
+    
+    {% set alert_classes = type_config.get(type, type_config["info"]) %}
+    {% set base_classes = "p-3 rounded-lg border text-sm " ~ alert_classes %}
+    
+    <div class="{{ base_classes }} {{ classes }}">
+        {{ message }}
+    </div>
+{%- endmacro %}
+

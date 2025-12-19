@@ -1,72 +1,62 @@
-<div class="flex items-center min-h-48 mb-4">
-        <div class="card shadow rounded-lg text-gray-900 bg-white w-full pb-2 overflow-y-hidden">
-            <div class="card-header px-5 py-4 pb-2 mb-6 border-b border-outline-clr">
-                <p class="font-medium"> Recent Product </p>
-                <small class="setting-description text-xs text-gray-600 dark:text-white"> 
-                    First glance at the most recently created products.
-                </small>
-            </div>
-            <div class="card-body">
-                {% if recent_products %}
-                <div class="mb-8">
-                    <table class="w-full lg:rounded-lg text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th scope="col" class="px-6 py-3">
-                                    Name
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Price ({{ SITE_INFO["currency"] }})
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    categories
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Date
-                                </th>
+{% from 'admin/macros/cards.html' import render_card %}
+{% from 'admin/macros/empty_states.html' import render_empty_state %}
+{% from 'admin/macros/buttons.html' import render_link_button %}
+
+<div class="mb-4">
+    {% call render_card(header="Recent Products", header_description="First glance at the most recently created products.") %}
+        {% if recent_products %}
+            <div class="mb-6 overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Name</th>
+                            <th scope="col" class="px-6 py-3">Price ({{ GENERAL_SETTINGS["currency"] }})</th>
+                            <th scope="col" class="px-6 py-3">Categories</th>
+                            <th scope="col" class="px-6 py-3">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in recent_products %}
+                            <tr class="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                <td scope="row" class="px-6 py-4 text-gray-900">
+                                    <div>
+                                        <div class="text-base font-semibold">{{ product.name }}</div>
+                                        <div class="font-normal text-gray-500 uppercase text-xs">ID: {{ product.id }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-900">
+                                    {{ format_monetary_value(product.selling_price) }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-900">
+                                    {% if product.categories %}
+                                        {% for product_cat in product.categories %}{{ product_cat.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-gray-900">
+                                    <div>
+                                        <div class="text-base font-semibold capitalize">{{ product.pub_status }}</div>
+                                        <div class="font-normal text-gray-500 text-xs">{{ product.created_at.strftime('%b %d, %Y - %I:%M %p') }}</div>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-        
-                        <tbody>
-                            {% for product in recent_products %}
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    <td scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                                        <div class="">
-                                            <div class="text-base font-semibold"> {{ product.name }} </div>
-                                            <div class="font-normal text-gray-500 uppercase"> id: {{ product.id }}</div>
-                                        </div>
-                                    </td>
-        
-                                    <td class="px-6 py-4">
-                                        {{ product.selling_price or product.price_ngn or product.price_usd or 0 }}
-                                    </td>
-        
-                                    <td class="px-6 py-4">
-                                        {% if product.categories %}
-                                            {% for product_cat in product.categories %} {{product_cat.name}}, {% endfor %}
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    </td>
-        
-                                    <td class="px-6 py-4">
-                                        <div class="text-base font-semibold capitalize"> {{product.pub_status}} </div>
-                                        <div class="font-normal text-gray-500">{{ product.created_at.strftime('%b %d, %Y - %I:%M %p') }}</div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="actions px-6 pb-8">
-                    <a href="#" class="btn text-sm font-medium rounded-lg border border-outline-clr py-2 px-4 hover:bg-gray-100"> View all products </a>
-                </div>
-                {% else %}
-                <div class="flex flex-col items-center justify-center gap-y-2 min-h-48">
-                    <h4>There are no product on your store yet.</h4>
-                    {{ render_btn("Add New Products", "full", "rounded", "mt-2 text-sm font-medium rounded-lg border border-outline-clr py-2 px-4 text-white bg-primary hover:bg-primary/90") }}
-                </div>
-                {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
+            
+            <div class="flex justify-end">
+                {{ render_link_button("View all products", "#", "outline", "sm") }}
+            </div>
+        {% else %}
+            {{ render_empty_state(
+                title="No products yet",
+                description="There are no products on your store yet.",
+                icon="bx bx-package",
+                action_text="Add New Products",
+                action_url="#"
+            ) }}
+        {% endif %}
+    {% endcall %}
+</div>

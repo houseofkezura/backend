@@ -1,0 +1,127 @@
+{# Card Components #}
+{# Usage: {% from 'admin/macros/cards.html' import render_card, render_stat_card, render_info_card %} #}
+
+{% macro render_card(classes="", header="", header_description="", footer="", padding="default") -%}
+    {# 
+        padding: none, sm, default, lg
+    #}
+    {% set padding_classes = {
+        "none": "",
+        "sm": "p-4",
+        "default": "p-6",
+        "lg": "p-8"
+    } %}
+    
+    {% set card_padding = padding_classes.get(padding, padding_classes["default"]) %}
+    {% set base_classes = "bg-white rounded-lg shadow border border-gray-200 overflow-hidden" %}
+    
+    <div class="{{ base_classes }} {{ classes }}">
+        {% if header or header_description %}
+            <div class="card-header px-6 py-4 border-b border-gray-200">
+                {% if header %}
+                    <h3 class="text-lg font-semibold text-gray-900">{{ header }}</h3>
+                {% endif %}
+                {% if header_description %}
+                    <p class="mt-1 text-sm text-gray-600">{{ header_description }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <div class="card-body {{ card_padding }}">
+            {{ caller() }}
+        </div>
+        
+        {% if footer %}
+            <div class="card-footer px-6 py-4 border-t border-gray-200 bg-gray-50">
+                {{ footer }}
+            </div>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{% macro render_stat_card(label, value, icon="", trend="", trend_value="", classes="", icon_color="primary") -%}
+    {# Stat card for dashboard metrics #}
+    {% set icon_colors = {
+        "primary": "text-primary",
+        "blue": "text-blue-600",
+        "green": "text-green-600",
+        "yellow": "text-yellow-600",
+        "red": "text-red-600",
+        "purple": "text-purple-600"
+    } %}
+    
+    {% set icon_color_class = icon_colors.get(icon_color, icon_colors["primary"]) %}
+    {% set base_classes = "bg-white rounded-lg shadow border border-gray-200 hover:shadow-md transition-shadow" %}
+    
+    <div class="{{ base_classes }} {{ classes }}">
+        <div class="p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 mb-1">{{ label }}</p>
+                    <p class="text-3xl font-semibold text-gray-900">{{ value }}</p>
+                    {% if trend and trend_value %}
+                        <div class="mt-2 flex items-center text-sm">
+                            {% if trend == "up" %}
+                                <span class="text-green-600 font-medium">↑ {{ trend_value }}</span>
+                            {% elif trend == "down" %}
+                                <span class="text-red-600 font-medium">↓ {{ trend_value }}</span>
+                            {% else %}
+                                <span class="text-gray-600">{{ trend_value }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% if icon %}
+                    <div class="shrink-0">
+                        <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <i class="{{ icon }} text-2xl {{ icon_color_class }}"></i>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro render_info_card(title, description="", icon="", action_text="", action_url="#", classes="") -%}
+    {# Info/alert style card #}
+    {% set base_classes = "bg-blue-50 border border-blue-200 rounded-lg" %}
+    
+    <div class="{{ base_classes }} {{ classes }}">
+        <div class="p-4">
+            <div class="flex">
+                {% if icon %}
+                    <div class="shrink-0">
+                        <i class="{{ icon }} text-blue-600 text-xl"></i>
+                    </div>
+                {% endif %}
+                <div class="ml-3 flex-1">
+                    {% if title %}
+                        <h3 class="text-sm font-medium text-blue-900">{{ title }}</h3>
+                    {% endif %}
+                    {% if description %}
+                        <div class="mt-2 text-sm text-blue-700">
+                            <p>{{ description }}</p>
+                        </div>
+                    {% endif %}
+                    {% if action_text and action_url %}
+                        <div class="mt-4">
+                            <a href="{{ action_url }}" class="text-sm font-medium text-blue-900 hover:text-blue-700">
+                                {{ action_text }} →
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro render_simple_card(content, classes="") -%}
+    {# Simple card without header/footer #}
+    {% set base_classes = "bg-white rounded-lg shadow border border-gray-200 p-6" %}
+    <div class="{{ base_classes }} {{ classes }}">
+        {{ content }}
+    </div>
+{%- endmacro %}
+

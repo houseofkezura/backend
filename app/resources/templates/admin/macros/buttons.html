@@ -1,0 +1,128 @@
+{# Button Components #}
+{# Usage: {% from 'admin/macros/buttons.html' import render_button, render_icon_button, render_link_button %} #}
+
+{% macro render_button(text="Submit", type="primary", size="md", shape="rounded", classes="", btn_type="button", data_type="", icon="", icon_position="left", disabled=False) -%}
+    {# 
+        type: primary, secondary, outline, ghost, danger
+        size: sm, md, lg
+        shape: rounded, pill, square
+        icon_position: left, right
+    #}
+    
+    {% set type_classes = {
+        "primary": "bg-primary text-white hover:bg-primary/90",
+        "secondary": "bg-gray-600 text-white hover:bg-gray-700",
+        "outline": "border border-gray-300 text-gray-700 hover:bg-gray-50",
+        "ghost": "text-gray-700 hover:bg-gray-100",
+        "danger": "bg-red-600 text-white hover:bg-red-700"
+    } %}
+    
+    {% set size_classes = {
+        "sm": "px-3 py-1.5 text-sm",
+        "md": "px-4 py-2 text-sm",
+        "lg": "px-6 py-3 text-base"
+    } %}
+    
+    {% set shape_classes = {
+        "rounded": "rounded-lg",
+        "pill": "rounded-full",
+        "square": "rounded-none"
+    } %}
+    
+    {% set base_classes = "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed" %}
+    {% set type_class = type_classes.get(type, type_classes["primary"]) %}
+    {% set size_class = size_classes.get(size, size_classes["md"]) %}
+    {% set shape_class = shape_classes.get(shape, shape_classes["rounded"]) %}
+    
+    {% set btn_classes = base_classes ~ " " ~ type_class ~ " " ~ size_class ~ " " ~ shape_class ~ " " ~ classes %}
+    
+    <button 
+        type="{{ btn_type }}" 
+        {% if data_type %}data-type="{{ data_type }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        class="{{ btn_classes.strip() }}">
+        {% if icon and icon_position == "left" %}
+            <i class="{{ icon }} mr-2"></i>
+        {% endif %}
+        <span class="btn-txt">{{ text }}</span>
+        {% if icon and icon_position == "right" %}
+            <i class="{{ icon }} ml-2"></i>
+        {% endif %}
+        <span class="load-ico hidden ml-2">
+            <i class="bx bx-loader-alt animate-spin"></i>
+        </span>
+    </button>
+{%- endmacro %}
+
+{% macro render_link_button(text="Link", url="#", type="primary", size="md", shape="rounded", classes="", icon="", icon_position="left") -%}
+    {% set type_classes = {
+        "primary": "bg-primary text-white hover:bg-primary/90",
+        "secondary": "bg-gray-600 text-white hover:bg-gray-700",
+        "outline": "border border-gray-300 text-gray-700 hover:bg-gray-50",
+        "ghost": "text-gray-700 hover:bg-gray-100",
+        "danger": "bg-red-600 text-white hover:bg-red-700"
+    } %}
+    
+    {% set size_classes = {
+        "sm": "px-3 py-1.5 text-sm",
+        "md": "px-4 py-2 text-sm",
+        "lg": "px-6 py-3 text-base"
+    } %}
+    
+    {% set shape_classes = {
+        "rounded": "rounded-lg",
+        "pill": "rounded-full",
+        "square": "rounded-none"
+    } %}
+    
+    {% set base_classes = "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" %}
+    {% set type_class = type_classes.get(type, type_classes["primary"]) %}
+    {% set size_class = size_classes.get(size, size_classes["md"]) %}
+    {% set shape_class = shape_classes.get(shape, shape_classes["rounded"]) %}
+    
+    {% set btn_classes = base_classes ~ " " ~ type_class ~ " " ~ size_class ~ " " ~ shape_class ~ " " ~ classes %}
+    
+    <a href="{{ url }}" class="{{ btn_classes.strip() }}">
+        {% if icon and icon_position == "left" %}
+            <i class="{{ icon }} mr-2"></i>
+        {% endif %}
+        <span>{{ text }}</span>
+        {% if icon and icon_position == "right" %}
+            <i class="{{ icon }} ml-2"></i>
+        {% endif %}
+    </a>
+{%- endmacro %}
+
+{% macro render_icon_button(icon, url="#", type="ghost", size="md", classes="", tooltip="", btn_type="button") -%}
+    {# Icon-only button #}
+    {% set type_classes = {
+        "primary": "bg-primary text-white hover:bg-primary/90",
+        "secondary": "bg-gray-600 text-white hover:bg-gray-700",
+        "outline": "border border-gray-300 text-gray-700 hover:bg-gray-50",
+        "ghost": "text-gray-600 hover:bg-gray-100",
+        "danger": "bg-red-600 text-white hover:bg-red-700"
+    } %}
+    
+    {% set size_classes = {
+        "sm": "p-1.5",
+        "md": "p-2",
+        "lg": "p-3"
+    } %}
+    
+    {% set base_classes = "inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" %}
+    {% set type_class = type_classes.get(type, type_classes["ghost"]) %}
+    {% set size_class = size_classes.get(size, size_classes["md"]) %}
+    
+    {% set btn_classes = base_classes ~ " " ~ type_class ~ " " ~ size_class ~ " " ~ classes %}
+    
+    {% if btn_type == "button" %}
+        <button type="button" class="{{ btn_classes.strip() }}" {% if tooltip %}title="{{ tooltip }}"{% endif %}>
+            <i class="{{ icon }}"></i>
+        </button>
+    {% else %}
+        <a href="{{ url }}" class="{{ btn_classes.strip() }}" {% if tooltip %}title="{{ tooltip }}"{% endif %}>
+            <i class="{{ icon }}"></i>
+        </a>
+    {% endif %}
+{%- endmacro %}
+

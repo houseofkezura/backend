@@ -1,0 +1,187 @@
+{# Form Components #}
+{# Usage: {% from 'admin/macros/forms.html' import render_input, render_select, render_textarea, render_checkbox, render_radio, render_file_input, render_label, render_form_group, render_field_error %} #}
+
+{% macro render_input(name, type="text", placeholder="", classes="", value="", required=False, label="", id="", disabled=False, readonly=False, autofocus=False) -%}
+    {% set input_id = id or name %}
+    {% set base_classes = "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" %}
+    {% set input_classes = base_classes ~ " " ~ classes %}
+    
+    {% if label %}
+        {{ render_label(input_id, label, required) }}
+    {% endif %}
+    
+    <input 
+        type="{{ type }}" 
+        name="{{ name }}" 
+        id="{{ input_id }}" 
+        placeholder="{{ placeholder }}" 
+        value="{{ value }}"
+        class="{{ input_classes.strip() }}"
+        {% if required %}required{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if readonly %}readonly{% endif %}
+        {% if autofocus %}autofocus{% endif %}>
+{%- endmacro %}
+
+{% macro render_select(name, options, classes="", selected="", label="", id="", required=False, disabled=False, multiple=False) -%}
+    {% set select_id = id or name %}
+    {% set base_classes = "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" %}
+    {% set select_classes = base_classes ~ " " ~ classes %}
+    
+    {% if label %}
+        {{ render_label(select_id, label, required) }}
+    {% endif %}
+    
+    <select 
+        name="{{ name }}" 
+        id="{{ select_id }}" 
+        class="{{ select_classes.strip() }}"
+        {% if required %}required{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if multiple %}multiple{% endif %}>
+        {% for option in options %}
+            {% if option is mapping %}
+                <option value="{{ option.value }}" {% if option.value == selected or (selected is iterable and option.value in selected) %}selected{% endif %}>
+                    {{ option.text }}
+                </option>
+            {% else %}
+                <option value="{{ option }}" {% if option == selected or (selected is iterable and option in selected) %}selected{% endif %}>
+                    {{ option }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+{%- endmacro %}
+
+{% macro render_textarea(name, placeholder="", classes="", value="", required=False, label="", id="", rows=4, disabled=False, readonly=False) -%}
+    {% set textarea_id = id or name %}
+    {% set base_classes = "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors resize-y" %}
+    {% set textarea_classes = base_classes ~ " " ~ classes %}
+    
+    {% if label %}
+        {{ render_label(textarea_id, label, required) }}
+    {% endif %}
+    
+    <textarea 
+        name="{{ name }}" 
+        id="{{ textarea_id }}" 
+        placeholder="{{ placeholder }}" 
+        rows="{{ rows }}"
+        class="{{ textarea_classes.strip() }}"
+        {% if required %}required{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if readonly %}readonly{% endif %}>{{ value }}</textarea>
+{%- endmacro %}
+
+{% macro render_checkbox(name, text="", classes="", checked=False, id="", value="", required=False, disabled=False) -%}
+    {% set checkbox_id = id or name %}
+    {% set base_classes = "w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-2 focus:ring-primary focus:ring-offset-0" %}
+    {% set checkbox_classes = base_classes ~ " " ~ classes %}
+    
+    <label class="flex items-center cursor-pointer">
+        <input 
+            type="checkbox" 
+            name="{{ name }}" 
+            id="{{ checkbox_id }}" 
+            value="{{ value or 'on' }}"
+            class="{{ checkbox_classes.strip() }}"
+            {% if checked %}checked{% endif %}
+            {% if required %}required{% endif %}
+            {% if disabled %}disabled{% endif %}>
+        {% if text %}
+            <span class="ml-2 text-sm text-gray-700">{{ text }}</span>
+        {% endif %}
+    </label>
+{%- endmacro %}
+
+{% macro render_radio(name, value, text="", classes="", checked=False, id="", required=False, disabled=False) -%}
+    {% set radio_id = id or (name ~ "_" ~ value) %}
+    {% set base_classes = "w-4 h-4 text-primary bg-gray-100 border-gray-300 focus:ring-2 focus:ring-primary focus:ring-offset-0" %}
+    {% set radio_classes = base_classes ~ " " ~ classes %}
+    
+    <label class="flex items-center cursor-pointer">
+        <input 
+            type="radio" 
+            name="{{ name }}" 
+            id="{{ radio_id }}" 
+            value="{{ value }}"
+            class="{{ radio_classes.strip() }}"
+            {% if checked %}checked{% endif %}
+            {% if required %}required{% endif %}
+            {% if disabled %}disabled{% endif %}>
+        {% if text %}
+            <span class="ml-2 text-sm text-gray-700">{{ text }}</span>
+        {% endif %}
+    </label>
+{%- endmacro %}
+
+{% macro render_file_input(name, label="", classes="", id="", accept="", required=False, multiple=False, disabled=False) -%}
+    {% set file_id = id or name %}
+    {% set base_classes = "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" %}
+    {% set file_classes = base_classes ~ " " ~ classes %}
+    
+    {% if label %}
+        {{ render_label(file_id, label, required) }}
+    {% endif %}
+    
+    <input 
+        type="file" 
+        name="{{ name }}" 
+        id="{{ file_id }}" 
+        class="{{ file_classes.strip() }}"
+        {% if accept %}accept="{{ accept }}"{% endif %}
+        {% if required %}required{% endif %}
+        {% if multiple %}multiple{% endif %}
+        {% if disabled %}disabled{% endif %}>
+{%- endmacro %}
+
+{% macro render_label(for_id, text, required=False, classes="") -%}
+    {% set base_classes = "block mb-2 text-sm font-medium text-gray-900" %}
+    {% set label_classes = base_classes ~ " " ~ classes %}
+    <label for="{{ for_id }}" class="{{ label_classes.strip() }}">
+        {{ text }}
+        {% if required %}<span class="text-red-600 ml-1">*</span>{% endif %}
+    </label>
+{%- endmacro %}
+
+{% macro render_form_group(classes="") -%}
+    <div class="form-group {{ classes }}">
+        {{ caller() }}
+    </div>
+{%- endmacro %}
+
+{% macro render_field_error(error, classes="") -%}
+    <p class="mt-1 text-sm text-red-600 {{ classes }}">{{ error }}</p>
+{%- endmacro %}
+
+{% macro render_field_description(description, classes="") -%}
+    <p class="mt-1 text-xs text-gray-500 {{ classes }}">{{ description }}</p>
+{%- endmacro %}
+
+{% macro render_form_field(field, wrapper_classes="") -%}
+    {# Renders a WTForms field with proper styling #}
+    <div class="form-group mb-4 {{ wrapper_classes }}">
+        {% if field.type == "BooleanField" %}
+            {{ render_checkbox(field.name, field.label.text, checked=field.data, id=field.id, required=field.flags.required) }}
+        {% elif field.type == "FileField" %}
+            {{ render_file_input(field.name, field.label.text, id=field.id, required=field.flags.required) }}
+        {% elif field.type == "SelectField" %}
+            {{ render_select(field.name, field.choices, selected=field.data, label=field.label.text, id=field.id, required=field.flags.required) }}
+        {% elif field.type == "TextAreaField" %}
+            {{ render_textarea(field.name, value=field.data or "", label=field.label.text, id=field.id, required=field.flags.required) }}
+        {% else %}
+            {{ render_input(field.name, type=field.type.lower().replace("field", ""), value=field.data or "", placeholder=field.label.text, label=field.label.text, id=field.id, required=field.flags.required) }}
+        {% endif %}
+        
+        {% if field.description %}
+            {{ render_field_description(field.description) }}
+        {% endif %}
+        
+        {% if field.errors %}
+            {% for error in field.errors %}
+                {{ render_field_error(error) }}
+            {% endfor %}
+        {% endif %}
+    </div>
+{%- endmacro %}
+
