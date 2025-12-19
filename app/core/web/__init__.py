@@ -13,8 +13,4 @@ def create_web_blueprint():
     """Create and return the web blueprint."""
     web_bp = Blueprint("web", __name__, url_prefix="/")
 
-    @web_bp.route("/", methods=["GET"])
-    def index():
-        return redirect(url_for("api.index"))
-
     return web_bp

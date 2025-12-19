@@ -1,0 +1,111 @@
+{% extends 'web_admin/base/base.html' %}
+{% block title %}General Settings - {{ super() }}{% endblock %}
+
+{% block content %}
+
+{% macro render_field(field) -%}
+    <div class="form-group !mb-0 sm:col-span-2" data-field="{{ field.name }}">
+        {% if field.type == "BooleanField" %}
+            <div class="theme-checkbox flex items-center gap-4">
+                {{ field(
+                    class="form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white size-8 checked:bg-theme-clr",
+                    autofocus=false,
+                    id=field.id,
+                    **kwargs
+                ) }}
+                <label for="{{ field.id }}" class="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                    {{ field.label.text }}
+                </label>
+            </div>
+        {% elif field.type == "FileField" %}
+            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ field.label.text }}
+            </label>
+            {{ field(
+                class="form-control block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400",
+                **kwargs
+            ) }}
+        {% else %}
+            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ field.label.text }}
+            </label>
+            {{ field(
+                class="form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white",
+                autofocus=true, id=field.id,
+                **kwargs
+            ) }}
+        {% endif %}
+
+        {% if field.description %}
+            <small class="text-gray-400 block mt-1">{{ field.description }}</small>
+        {% endif %}
+
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <div class="alert alert-error form-error text-red-600 text-sm mt-1" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+<section class="">
+    <div class="mx-auto max-w-screen-md lg:py-16 lg:pt-1">
+        <h2 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">General Settings</h2>
+        
+        <form method="post" action="{% block form_action %} {{ url_for('web_admin.general_settings') }} {% endblock %}" class="pt-2" id="general-settings-form" enctype="multipart/form-data">
+            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
+                <!-- CSRF protection -->
+                {% if 'csrf_token' in form %}
+                {{form.csrf_token}}
+                {% endif %}
+
+                {# General Settings Section #}
+                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 dark:border-gray-700 min-h-64">
+                    <div class="card-header px-5 py-4 pb-2 mb-4 border-b border-outline-clr">
+                        <p class="font-medium"> Basic Website settings </p>
+                        <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                            Provided basic website info for you and your customers
+                        </small>
+                    </div>
+
+                    <div class="card-body px-5 py-5 pt-1">
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
+                            {% for field in form %}
+                                {% if field.id in ['site_title', 'tagline', 'platform_url', 'site_url', 'admin_email', 'timezone', 'week_starts_on'] %}
+                                    {{ render_field(field) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Currency Settings #}
+                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 dark:border-gray-700 min-h-64">
+                    <div class="card-header px-5 py-4 pb-2 mb-4 border-b border-outline-clr">
+                        <p class="font-medium"> Currency options </p>
+                        <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                            The following options affect how prices are displayed on the frontend.
+                        </small>
+                    </div>
+
+                    <div class="card-body px-5 py-5 pt-1">
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
+                            {% for field in form %}
+                                {% if field.id in ['currency', 'currency_position', 'thousand_separator', 'decimal_separator', 'number_of_decimals'] %}
+                                    {{ render_field(field) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <button type="submit" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-theme-clr hover:bg-theme-hvr-clr">
+                {{ form.submit.label.text }}
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'admin/base/index.html' %}
+{% block title %}Admin Dashboard - {{ super() }}{% endblock %}
+
+{% block content %}
+
+{% macro render_stat_card(key, value) -%}
+    <div class="stat-item card flex items-center gap-y-6 shadow rounded-lg text-gray-900 bg-white hover:bg-gray-50">
+        <div class="card-body w-full p-6 py-8 flex flex-col gap-y-2">
+            {# Humanize key names (e.g., "total_products" → "Total Products") #}
+            <span class="stat-value text-4xl font-medium">{{ value }}</span>
+            <span class="stat-label text-sm font-medium text-gray-500"> {{ key|replace('_', ' ')|title }} </span>
+        </div>
+    </div>
+{%- endmacro %}
+
+<div class="rounded-lg">
+    <div class="stats-summary grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {% for key, value in stats.items() if key != 'recent_orders' %}
+            {% if key in ['total_products', 'total_categories', 'total_tags', 'total_users'] %}
+                {{ render_stat_card(key, value) }}
+            {% endif %}
+        {% endfor %}
+    </div>
+    
+    {% with recent_orders=stats.recent_orders %}
+        {% include 'admin/pages/dashboard/components/recent_orders.html' %}
+    {% endwith %}
+    
+    {% with recent_products=stats.recent_products %}
+        {% include 'admin/pages/dashboard/components/recent_products.html' %}
+    {% endwith %}
+</div>
+{% endblock %}

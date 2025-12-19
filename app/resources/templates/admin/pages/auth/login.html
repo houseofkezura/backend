@@ -1,0 +1,112 @@
+{% extends 'admin/base/auth_base.html' %}
+{% block title %}Login - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="form-wrapper h-full my-auto flex align-center justify-center">
+    <div class="card w-full md:w-96 xl:w-4/12 p-6 rounded-lg bg-transparent text-foreground min-h-[490px] flex justify-center items-center">
+        <div id="clerk-loading" class="w-full flex flex-col justify-center items-center gap-4">
+            <div class="w-12 h-12 border-4 border-[#c3622d]/30 border-t-[#c3622d] rounded-full animate-spin"></div>
+            <p class="text-sm text-gray-950">Loading secure sign-in…</p>
+        </div>
+
+        {% if clerk_publishable_key %}
+            <div id="clerk-wrapper" class="w-full mx-auto [&>*:first-child]:mx-auto hidden">
+                <div id="clerk-sign-in" class="w-full hidden"></div>
+            </div>
+        {% else %}
+            <div class="alert alert-error text-sm mb-4">Clerk publishable key is not configured.</div>
+        {% endif %}
+
+        <div id="clerk-fallback" class="hidden">
+            <h3 class="form-heading mb-6 font-bold text-2xl">Admin Login</h3>
+            <p class="text-sm text-foreground mb-6">
+                Sign in with your Clerk account to continue.
+            </p>
+            {% if sign_in_url %}
+            <div class="mt-4">
+                <a href="{{ sign_in_url }}" class="btn inline-flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-center text-white rounded-lg bg-[#c3622d] hover:bg-[#a45224] border border-[#c3622d] cursor-pointer transition-colors">
+                    Continue with Clerk (Hosted)
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if clerk_publishable_key %}
+    <script async crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <script>
+        window.addEventListener("load", async () => {
+            // Ensure stale cookies/local storage are cleared on entry to login page
+            try {
+                Object.keys(localStorage || {}).forEach(k => {
+                    if (k.toLowerCase().includes("clerk")) localStorage.removeItem(k);
+                });
+            } catch (e) {}
+            try {
+                ["__session", "clerk_session", "__clerk"].forEach(name => {
+                    document.cookie = `${name}=; Max-Age=0; path=/;`;
+                    document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname};`;
+                });
+            } catch (e) {}
+
+            if (!window.Clerk) return;
+            const localization = {
+                signIn: {
+                    start: {
+                        title: "Kezura Admin Login",
+                        subtitle: "Sign in to access the admin dashboard",
+                    },
+                },
+            };
+            try {
+                await window.Clerk.load({ localization });
+                const mountElBox = document.getElementById("clerk-wrapper");
+                const mountEl = document.getElementById("clerk-sign-in");
+                const loadingEl = document.getElementById("clerk-loading");
+                const fallbackEl = document.getElementById("clerk-fallback");
+
+                window.Clerk.mountSignIn(mountEl, {
+                    redirectUrl: "{{ redirect_target }}",
+                    afterSignInUrl: "{{ redirect_target }}",
+                    // Do not offer sign-up or social for admin UI
+                    signUpUrl: undefined,
+                    appearance: {
+                        variables: {
+                            colorPrimary: "#c3622d",
+                            colorText: "#0f172a",
+                            borderRadius: "10px",
+                            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+                        },
+                        elements: {
+                            socialButtonsBlockButton: { display: "none" },
+                            socialButtons: { display: "none" },
+                            dividerRow: { display: "none" },
+                            dividerText: { display: "none" },
+                            footerAction: { display: "none" },
+                            footerActionText: { display: "none" },
+                            footer: { display: "none" },
+                        },
+                    },
+                    localization,
+                });
+
+                // Show widget, hide loading + fallback
+                if (loadingEl) loadingEl.classList.add("hidden"); mountElBox.classList.remove("hidden");
+                mountEl.classList.remove("hidden");
+                if (fallbackEl) fallbackEl.classList.add("hidden");
+            } catch (e) {
+                console.error("Failed to load Clerk SignIn", e);
+                // On failure, hide loading and show fallback
+                const loadingEl = document.getElementById("clerk-loading");
+                const fallbackEl = document.getElementById("clerk-fallback");
+                if (loadingEl) loadingEl.classList.add("hidden");
+                if (fallbackEl) fallbackEl.classList.remove("hidden");
+            }
+        });
+    </script>
+    {% endif %}
+{% endblock %}

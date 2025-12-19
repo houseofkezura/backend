@@ -15,6 +15,8 @@ def register_blueprints(app: Flask) -> None:
     from .core.api.v1.public import create_api_v1_public_blueprint
     from .error_handlers.api import attach_api_err_handlers
     from .core.web import create_web_blueprint
+    from .core.web.public import create_web_public_blueprint
+    from .core.web.admin import create_web_admin_blueprint
     
     # Create the blueprints
     api_bp = create_api_blueprint()
@@ -22,6 +24,8 @@ def register_blueprints(app: Flask) -> None:
     v1_admin_api = create_api_v1_admin_blueprint()
     v1_public_api = create_api_v1_public_blueprint()
     web_bp = create_web_blueprint()
+    web_public_bp = create_web_public_blueprint()
+    web_admin_bp = create_web_admin_blueprint()
     
     # Attach JSON error handlers to all API scopes BEFORE registration
     attach_api_err_handlers(api_bp)
@@ -37,6 +41,9 @@ def register_blueprints(app: Flask) -> None:
 
     # Register the root API blueprint
     app.register_blueprint(api_bp)
+    
+    # Register the web public blueprint
+    register_sub_blueprints(web_bp, [web_public_bp, web_admin_bp])
     
     # Register the web blueprint
     app.register_blueprint(web_bp)

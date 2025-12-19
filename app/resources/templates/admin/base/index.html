@@ -1,0 +1,46 @@
+{% from 'admin/macros/macros.html' import render_btn %}
+{% set site_title = SITE_INFO["site_title"] %}
+{% set site_tagline = SITE_INFO["site_tagline"] %}
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<title>{% block title %} Admin {% endblock %}</title>
+		
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='admin/css/output.css') }}">
+
+		{% block css_js_links %}{% endblock %}
+        {% block css_js_scripts %}{% endblock %}
+	</head>
+
+	<body class="" style="background: #edf2f7;">
+        {% include 'admin/components/header.html' %}
+
+        <section id="wrapper" class="min-h-svh pt-16">
+            {% include 'admin/components/sidebar.html' %}
+
+            <!-- Main content -->
+            <section id="main" class="dash-main p-5 min-h-svh flex flex-col gap-y-4 bg-gray-50 dark:bg-gray-800 lg:min-h-[calc(100svh-theme(width.16))]">
+                {% include 'admin/components/alert_modal.html' %}
+
+                <div class="overflow-auto h-full">
+                    {% block content %}{% endblock %}
+                </div>
+            </section>
+        </section>
+
+
+        {% block scripts %}
+        {% endblock %}
+        
+        <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+
+        <script src="{{ url_for('static', filename='admin/js/script.js') }}"></script>
+        <script src="{{ url_for('static', filename='admin/js/alert.js') }}"></script>
+	</body>
+</html>

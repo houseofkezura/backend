@@ -1,0 +1,84 @@
+{% extends 'admin/base/auth_base.html' %}
+{% block title %}Sign Up - {{ super() }}{% endblock %}
+
+{% block css_js_links %}{% endblock %}
+
+
+{% block content %}
+
+
+<div class="form-wrapper h-full my-auto flex align-center justify-center">
+    <form method="post" class="form card w-full md:w-96 xl:w-4/12 p-6 rounded-lg shadow border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700" action="" id="signup-form" enctype="multipart/form-data">
+        <div class="card-body text-gray-900 dark:text-white">
+            {% if 'csrf_token' in form %}
+            {{form.csrf_token}}
+            {% endif %}
+            <h3 class="form-heading mb-6 font-bold text-2xl">Sign Up</h3>
+            
+            <div class="form-group">
+                <label for="email" class="block mb-2 text-sm font-medium">Email</label>
+                {{ form.email(class_ = 'form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white', placeholder='example@mail.com', autofocus = true) }}
+                {% for error in form.email.errors %}
+                <div class="alert alert-error form-error" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor%}
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="block mb-2 text-sm font-medium">Username</label>
+                {{ form.username(class_ = 'form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white', autofocus = true) }}
+                {% for error in form.username.errors %}
+                <div class="alert alert-error form-error" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor%}
+            </div>
+
+            <div class="form-group">
+                <label for="firstName" class="block mb-2 text-sm font-medium">First Name</label>
+                {{ form.firstname(class_ = 'form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white', autofocus = true) }}
+                {% for error in form.firstname.errors %}
+                <div class="alert alert-error form-error" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor%}
+            </div>
+
+            <div class="form-group">
+                <label for="lastName" class="block mb-2 text-sm font-medium">Last Name</label>
+                {{ form.lastname(class_ = 'form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white', autofocus = true) }}
+                {% for error in form.lastname.errors %}
+                <div class="alert alert-error form-error" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor%}
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="block mb-2 text-sm font-medium">Password</label>
+                {{ form.password(class_ = 'form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white', placeholder='password', autofocus = true) }}
+
+                {% for error in form.password.errors %}
+                <div class="alert alert-error form-error" role="alert">
+                    {{ error }}
+                </div> {% endfor%}
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPasswd" class="block mb-2 text-sm font-medium">Confirm Password</label>
+                {{ form.confirmPasswd(class_ = 'form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white', placeholder='confirm password', autofocus = true) }}
+
+                {% for error in form.confirmPasswd.errors %}
+                <div class="alert alert-error form-error" role="alert">
+                    {{ error }}
+                </div> {% endfor%}
+            </div>
+
+            <input type="submit" value="Sign Up" class="btn btn inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-theme-clr hover:bg-theme-hvr-clr cursor-pointer">
+        </div>
+    </form>
+</div>
+
+
+{% endblock %}

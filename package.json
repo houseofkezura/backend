@@ -1,0 +1,13 @@
+{
+	"scripts": {
+		"build:admin-css": "npx tailwindcss -i ./app/resources/static/admin/css/globals.css -o ./app/resources/static/admin/css/output.css --watch",
+		"build:public-css": "npx tailwindcss -i ./app/resources/static/public/css/globals.css -o ./app/resources/static/public/css/output.css --watch",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"license": "ISC",
+	"dependencies": {
+		"@tailwindcss/cli": "^4.1.18",
+		"flowbite": "^4.0.1",
+		"tailwindcss": "^4.1.18"
+	}
+}

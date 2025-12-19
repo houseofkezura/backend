@@ -1,0 +1,68 @@
+{% macro render_btn(text="Submit", type="full", shape="rounded", classes="", tag="a", url="#", btn_type="button", data_type="") -%}
+    {# Set base styles based on the type #}
+    {% if type == "outline" %}
+        {% set base_classes = "border border-primary text-primary hover:bg-primary hover:text-white" %}
+    {% elif type == "full" %}
+        {% set base_classes = "bg-primary text-white hover:bg-primary/85" %}
+    {% else %}
+        {% set base_classes = "" %}
+    {% endif %}
+
+    {# Determine shape classes. Pill takes precedence over rounded. #}
+    {% if shape == "pill" %}
+        {% set shape_class = "rounded-full" %}
+    {% elif shape == "rounded" %}
+        {% set shape_class = "rounded-lg" %}
+    {% else %}
+        {% set shape_class = "" %}
+    {% endif %}
+
+    {# Combine all classes #}
+    {% set btn_classes = "site-btn loadable py-1.5 px-4 " ~ base_classes ~ " " ~ shape_class ~ " " ~ classes %}
+
+    {# Render based on the tag type #}
+    {% if tag == "button" %}
+        <button type="{{ btn_type }}" {% if data_type %}data-type="{{ data_type }}"{% endif %} class="{{ btn_classes.strip() }}">
+            <span class="btn-txt">
+                {{ text }}
+            </span>
+            <span class="load-ico hidden">
+                <i class="bx bx-loader-alt"></i>
+            </span>
+        </button>
+    {% else %}
+        <a href="{{ url }}" {% if data_type %}data-type="{{ data_type }}"{% endif %} class="{{ btn_classes.strip() }} cursor-pointer">
+            <span class="btn-txt">
+                {{ text }}
+            </span>
+            <span class="load-ico hidden">
+                <i class="bx bx-loader-alt"></i>
+            </span>
+        </a>
+    {% endif %}
+{%- endmacro %}
+
+{% macro render_input(name, type="text", placeholder="", classes="", value="", required=False) -%}
+    <input type="{{ type }}" name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder }}" class="input {{ classes }}" value="{{ value }}" {% if required %}required{% endif %}>
+{%- endmacro %}
+
+{% macro render_select(name, options, classes="", selected="") -%}
+    <select name="{{ name }}" id="{{ name }}" class="input {{ classes }}">
+        {% for option in options %}
+            <option value="{{ option.value }}" {% if option.value == selected %}selected{% endif %}>
+                {{ option.text }}
+            </option>
+        {% endfor %}
+    </select>
+{%- endmacro %}
+
+{% macro render_textarea(name, placeholder="", classes="", value="", required=False) -%}
+    <textarea name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder }}" class="input {{ classes }}" {% if required %}required{% endif %}>{{ value }}</textarea>
+{%- endmacro %}
+
+{% macro render_checkbox(name, text="", classes="", checked=False) -%}
+    <label class="flex items-center">
+        <input type="checkbox" name="{{ name }}" id="{{ name }}" class="checkbox {{ classes }}" {% if checked %}checked{% endif %}>
+        <span class="ml-2">{{ text }}</span>
+    </label>
+{%- endmacro %}

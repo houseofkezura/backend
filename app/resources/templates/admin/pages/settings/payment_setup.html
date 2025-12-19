@@ -1,0 +1,227 @@
+{% extends 'web_admin/base/base.html' %}
+{% block title %} Payment Setup - {{ super() }}{% endblock %}
+
+{% block styles_script %}
+
+{% endblock %}
+
+{% block content %}
+{% macro render_field(field) -%}
+    {% set non_provider_fields = ['enabled', 'title', 'description', 'instructions', 'provider', 'csrf_token', 'submit'] %}
+    <div class="form-group !mb-0 sm:col-span-2 {% if field.id not in non_provider_fields %}gateway-field{% endif %}" data-field="{{ field.name }}">
+        {% if field.type == "BooleanField" %}
+            <div class="theme-checkbox flex items-center gap-4">
+                {{ field(
+                    class="form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white size-8 checked:bg-theme-clr",
+                    autofocus=false,
+                    id=field.id,
+                    **kwargs
+                ) }}
+                <label for="{{ field.id }}" class="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                    {{ field.label.text }}
+                </label>
+            </div>
+        {% elif field.type == "FileField" %}
+            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ field.label.text }}
+            </label>
+            {{ field(
+                class="form-control block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400",
+                **kwargs
+            ) }}
+        {% else %}
+            <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ field.label.text }}
+            </label>
+            {{ field(
+                class="form-control text-sm rounded-lg shadow-sm-light border dark:border-2 dark:focus:border-2 border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white",
+                autofocus=true, id=field.id,
+                **kwargs
+            ) }}
+        {% endif %}
+
+        {% if field.description %}
+            <small class="text-gray-400 block mt-1">{{ field.description }}</small>
+        {% endif %}
+
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <div class="alert alert-error form-error text-red-600 text-sm mt-1" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+<section class="">
+    <div class="mx-auto max-w-screen-lg lg:py-16 lg:pt-1">
+        {% if method_overview %}
+        <h2 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">{{method_overview.title}} </h2>
+        <p class="mb-6 text-md text-gray-600 dark:text-white">
+            {{method_overview.description}}
+        </p>
+        {% endif %}
+
+        <form method="post"
+            action="{% block form_action %} {{ url_for('web_admin.payment_setup', method=method) }} {% endblock %}"
+            class="pt-2" 
+            id="payment-settings-form"
+            enctype="multipart/form-data">
+            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
+                <!-- CSRF protection -->
+                {{ form.hidden_tag() }}
+    
+                {# General Settings Section #}
+                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 dark:border-gray-700 min-h-64">
+                    <div class="card-header px-5 py-4 pb-2 mb-4 border-b border-outline-clr">
+                        <p class="font-medium"> General settings </p>
+                        <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                            Core configuration that controls how this payment method appears and behaves
+                        </small>
+                    </div>
+
+                    <div class="card-body px-5 py-5 pt-1">
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
+                            {% for field in form %}
+                                {% if field.id in ['enabled', 'title', 'description', 'instructions'] %}
+                                    {{ render_field(field) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# credentials Details Section - Conditionally Shown #}
+
+                {% set general_fields = ['enabled', 'title', 'description', 'instructions', 'csrf_token', 'submit'] %}
+                {% set credentials_fields = form | rejectattr('id', 'in', general_fields) | list %}
+                
+                {% if credentials_fields %}
+                <div class="settings-card sm:col-span-2 w-full rounded-lg shadow border border-gray-200 dark:border-gray-700 min-h-64">
+                    <div class="card-header px-5 py-4 pb-2 mb-4 border-b border-outline-clr">
+                        <p class="font-medium"> Credentials </p>
+                        <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                            Secure credentials required to setup this payment method.
+                        </small>
+                    </div>
+
+                    <div class="card-body px-5 py-5 pt-1">
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
+                            {% for field in form %}
+                                {% if field.id not in ['enabled', 'title', 'description', 'instructions', 'submit', 'hidden_tag', 'csrf_token'] %}
+                                    {{ render_field(field) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-theme-clr hover:bg-theme-hvr-clr">{{ form.submit.label.text }}</button>
+        </form>
+    </div>
+</section>
+
+{% if method == "gateway" %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const providerSelect = document.querySelector("select[name='provider']");
+            let currentTestModeCheckbox = null;
+            const testModeObserver = new MutationObserver(handleTestModeToggle);
+
+            const providerConfig = {
+                "bitpay": {
+                    testModeField: "bitpay_test_mode",
+                    testFields: ["bitpay_test_api_key", "bitpay_secret_key"],
+                    liveFields: ["bitpay_api_key"]
+                },
+                "flutterwave": {
+                    testModeField: "flutterwave_test_mode",
+                    testFields: ["flutterwave_test_secret_key", "flutterwave_test_public_key"],
+                    liveFields: ["flutterwave_secret_key", "flutterwave_public_key"]
+                },
+                "paystack": {
+                    testModeField: "paystack_test_mode",
+                    testFields: ["paystack_test_secret_key", "paystack_test_public_key"],
+                    liveFields: ["paystack_secret_key", "paystack_public_key"]
+                }
+            };
+
+            
+            function toggleGatewayFields() {
+                const selectedProvider = providerSelect.value;
+
+                // Define which fields belong to which provider
+                const providerFields = {
+                    "bitpay": [
+                        "bitpay_test_mode", "bitpay_api_key", "bitpay_test_api_key", "bitpay_secret_key"
+                    ],
+
+                    "flutterwave": [
+                        "flutterwave_test_mode", "flutterwave_api_key", "flutterwave_secret_key", "flutterwave_test_secret_key", "flutterwave_public_key", "flutterwave_test_public_key"
+                    ],
+
+                    "paystack": [
+                        "paystack_test_mode", "paystack_api_key"
+                    ]
+                };
+
+                // Hide all gateway fields first
+                document.querySelectorAll(".gateway-field").forEach(field => {
+                    field.style.display = "none";
+                });
+
+                // Show only fields relevant to the selected provider
+                if (providerConfig[selectedProvider]) {
+                    const { testModeField, testFields, liveFields } = providerConfig[selectedProvider];
+                    const testModeCheckbox = document.querySelector(`[name='${testModeField}']`);
+                    
+
+                    // Always show test mode toggle if exists
+                    const testModeContainer = document.querySelector(`[data-field='${testModeField}']`);
+
+                    if (testModeContainer) {
+                        testModeContainer.style.display = "block";
+                        setupTestModeListener(testModeCheckbox);
+                    }
+
+                    // Determine which fields to show based on test mode state
+                    const isTestMode = testModeCheckbox?.checked || false;
+                    const fieldsToShow = isTestMode ? testFields : liveFields;
+
+                    fieldsToShow.forEach(fieldName => {
+                        const field = document.querySelector(`[data-field='${fieldName}']`);
+                        if (field) field.style.display = "block";
+                    });
+                }
+            }
+
+            function setupTestModeListener(checkbox) {
+                // Remove previous listener if exists
+                if (currentTestModeCheckbox) {
+                    currentTestModeCheckbox.removeEventListener('change', handleTestModeToggle);
+                }
+                
+                // Add new listener
+                if (checkbox) {
+                    checkbox.addEventListener('change', handleTestModeToggle);
+                    currentTestModeCheckbox = checkbox;
+                }
+            }
+
+            function handleTestModeToggle() {
+                toggleGatewayFields();
+            }
+
+            // Event listeners
+            providerSelect.addEventListener("change", toggleGatewayFields);
+            
+            // Initial load
+            toggleGatewayFields();
+        });
+    </script>
+{% endif %}
+
+{% endblock %}

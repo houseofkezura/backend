@@ -1,0 +1,67 @@
+<div class="flex items-center min-h-48 mb-4">
+        <div class="card shadow rounded-lg text-gray-900 bg-white w-full pb-2 overflow-y-hidden">
+            <div class="card-header px-5 py-4 pb-2 mb-6 border-b border-outline-clr">
+                <p class="font-medium"> Recent Orders </p>
+                <small class="setting-description text-xs text-gray-600 dark:text-white"> 
+                    First glance at the most recent orders on your website.
+                </small>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="mb-8">
+                    <table class="w-full lg:rounded-lg text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">
+                                    ID Number
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    User
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Total Amount
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Status
+                                </th>
+                            </tr>
+                        </thead>
+        
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <td scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                        <div class="">
+                                            <div class="text-base font-semibold"> #{{ order.order_number }} </div>
+                                            <div class="font-normal text-gray-500 uppercase"> id: {{ order.id }}</div>
+                                        </div>
+                                    </td>
+        
+                                    <td class="px-6 py-4">
+                                        {{ order.app_user.email }}
+                                    </td>
+        
+                                    <td class="px-6 py-4">
+                                        {{ order.total_amount }}
+                                    </td>
+        
+                                    <td class="px-6 py-4">
+                                        <div class="text-base font-semibold capitalize"> {{order.status}} </div>
+                                        <div class="font-normal text-gray-500">{{ order.created_at.strftime('%b %d, %Y - %I:%M %p') }}</div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="actions px-6 pb-8">
+                    <a href="#" class="btn text-sm font-medium rounded-lg border border-outline-clr py-2 px-4 hover:bg-gray-100"> View all orders </a>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center gap-y-2 min-h-48">
+                    <h4>There are no orders on your store yet.</h4>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
