@@ -20,6 +20,7 @@ from .subscription import Subscription, SubscriptionPlan
 from .order import Order, OrderItem, Shipment
 from .product import Product, ProductVariant, Inventory
 from .cart import Cart, CartItem
+from .wishlist import WishlistItem
 from .crm import CrmStaff, CrmRating
 from .loyalty import LoyaltyAccount, LoyaltyLedger
 from .cms import CmsPage, B2BInquiry

@@ -523,6 +523,63 @@ class CartItemData(BaseModel):
     item: CartItemDataModel
 
 
+# Wishlist response data schemas
+class WishlistVariantData(BaseModel):
+    """Wishlist variant data (simplified variant info)."""
+    class Config:
+        extra = "forbid"
+    
+    id: str
+    sku: str
+    product_id: str
+    price_ngn: float
+    price_usd: Optional[float] = None
+    attributes: Dict[str, Any]
+    is_in_stock: bool
+    product: Optional[Dict[str, Any]] = None  # {id, name, slug}
+
+
+class WishlistItemDataModel(BaseModel):
+    """Wishlist item data model."""
+    class Config:
+        extra = "forbid"
+    
+    id: str
+    user_id: str
+    variant_id: str
+    variant: Optional[WishlistVariantData] = None
+    created_at: Optional[str] = None
+
+
+class WishlistItemData(BaseModel):
+    """Data returned for wishlist item operations."""
+    class Config:
+        extra = "forbid"
+    
+    item: WishlistItemDataModel
+
+
+class WishlistListData(BaseModel):
+    """Data returned for wishlist list."""
+    class Config:
+        extra = "forbid"
+    
+    items: List[WishlistItemDataModel]
+    total: int
+    current_page: int
+    total_pages: int
+
+
+class WishlistCheckData(BaseModel):
+    """Data returned for wishlist check."""
+    class Config:
+        extra = "forbid"
+    
+    variant_id: str
+    is_in_wishlist: bool
+    wishlist_item_id: Optional[str] = None
+
+
 # Order response data schemas
 class OrderListData(BaseModel):
     """Data returned for order list."""

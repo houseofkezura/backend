@@ -18,7 +18,7 @@ def app_context_Processor():
             "email": getattr(user, "email", None),
             "roles": [getattr(user_role.role.name, "value", None) for user_role in getattr(user, "roles", [])],
         }
-
+    
     return {
         'CURRENT_USER': current_user_payload,
         'SITE_INFO': {

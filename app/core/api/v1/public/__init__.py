@@ -7,6 +7,7 @@ from .stats import stats_routes
 from .profile import profile_routes
 from .products import bp as products_bp
 from .cart import bp as cart_bp
+from .wishlist import bp as wishlist_bp
 from .checkout import bp as checkout_bp
 from .loyalty import bp as loyalty_bp
 from .crm import bp as crm_bp
@@ -26,6 +27,7 @@ def create_api_v1_public_blueprint():
     bp.register_blueprint(profile_routes.bp)
     bp.register_blueprint(products_bp)
     bp.register_blueprint(cart_bp)
+    bp.register_blueprint(wishlist_bp)
     bp.register_blueprint(checkout_bp)
     bp.register_blueprint(loyalty_bp)
     bp.register_blueprint(crm_bp)
