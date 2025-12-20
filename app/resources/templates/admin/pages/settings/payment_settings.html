@@ -1,4 +1,4 @@
-{% extends 'web_admin/base/base.html' %}
+{% extends 'admin/base/index.html' %}
 {% block title %} Payment Settings - {{ super() }}{% endblock %}
 
 {% block styles_script %}
@@ -19,7 +19,7 @@
 {% block content %}
 
 <section class="">
-    <div class="mx-auto max-w-screen-lg lg:py-16 lg:pt-1">
+    <div class="mx-auto max-w-5xl lg:py-16 lg:pt-1">
         <h2 class="mb-2 text-2xl font-bold text-gray-900">Payment Settings</h2>
         <p class="mb-6 text-md text-gray-600">
             Configure how payments are handled on your website.
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <form method="post" action="{% block form_action %} {{ url_for('web_admin.general_settings') }} {% endblock %}" class="pt-2" id="general-settings-form" enctype="multipart/form-data">
+        <form method="post" action="{% block form_action %} {{ url_for('web.web_admin.web_admin_settings.general_settings') }} {% endblock %}" class="pt-2" id="general-settings-form" enctype="multipart/form-data">
         </form>
     </div>
 </section>

@@ -127,6 +127,41 @@ def public_auth_required(fn: Callable[P, R]) -> Callable[P, R]:
     return customer_required(fn)
 
 
+def optional_customer_auth(fn: Callable[P, R]) -> Callable[P, R]:
+    """
+    Decorator for endpoints that support both authenticated and guest access.
+    
+    If a Clerk token is present, validates it and sets g.current_user.
+    If no token is present, allows the request to proceed (for guest access).
+    
+    Use this for endpoints like orders that support both authenticated users
+    and guest users (via email query param).
+    
+    Args:
+        fn: The function to decorate.
+        
+    Returns:
+        Decorated function that optionally validates authentication.
+    """
+    @wraps(fn)
+    def _impl(*args: P.args, **kwargs: P.kwargs) -> R:
+        token = _get_auth_token_from_request()
+        
+        # If token is present, validate it and set g.current_user
+        if token:
+            clerk_user = get_clerk_user_from_token(token)
+            if clerk_user:
+                app_user = get_or_create_app_user_from_clerk(clerk_user)
+                if app_user:
+                    g.current_user = app_user
+            # If token is invalid, we don't fail - allow guest access
+            # The controller will handle authorization checks
+        
+        return fn(*args, **kwargs)
+    
+    return cast(Callable[P, R], _impl)
+
+
 def _user_has_any_role(user: AppUser, allowed_roles: Set[str]) -> bool:
     user_roles = cast(list[TUserRole], user.roles)
     return any(
@@ -144,6 +179,7 @@ def roles_required_web(
     Decorator for web routes that enforces Clerk auth + specific roles.
     - Uses cookies or Authorization header for Clerk token.
     - Does not auto-create AppUser; requires existing user with allowed roles.
+    - NEVER uses abort() - always returns redirects to prevent error handler interference.
     """
     normalized_required_roles = {normalize_role(role) for role in required_roles}
 
@@ -151,32 +187,37 @@ def roles_required_web(
         @wraps(fn)
         def _impl(*args: P.args, **kwargs: P.kwargs) -> R:
             def _redirect_with_cookie_clear() -> R:
+                """Helper to redirect to login and clear cookies."""
                 resp = redirect(url_for(login_endpoint, next=request.url, _external=False))
                 # Clear common Clerk cookies to avoid redirect loops on expired tokens
                 for cookie_name in ("__session", "clerk_session", "__clerk"):
-                    resp.delete_cookie(cookie_name)
+                    resp.delete_cookie(cookie_name, path="/")
                 return cast(R, resp)
 
             token = _get_auth_token_from_request()
             if not token:
                 if redirect_to_login:
                     return _redirect_with_cookie_clear()
-                abort(401)
+                # For web routes, always redirect instead of abort
+                return _redirect_with_cookie_clear()
 
             clerk_user = get_clerk_user_from_token(token)
             if not clerk_user:
                 if redirect_to_login:
                     return _redirect_with_cookie_clear()
-                abort(401)
+                # For web routes, always redirect instead of abort
+                return _redirect_with_cookie_clear()
 
             app_user = _load_existing_app_user(clerk_user)
             if not app_user:
-                abort(403)
+                # User doesn't exist in our DB - redirect to login
+                return _redirect_with_cookie_clear()
 
             if normalized_required_roles and not _user_has_any_role(
                 app_user, normalized_required_roles
             ):
-                abort(403)
+                # User doesn't have required role - redirect to login
+                return _redirect_with_cookie_clear()
 
             g.current_user = app_user
             return fn(*args, **kwargs)

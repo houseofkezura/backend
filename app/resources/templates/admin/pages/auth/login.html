@@ -18,7 +18,7 @@
         {% endif %}
 
         <div id="clerk-fallback" class="hidden">
-        <h3 class="form-heading mb-6 font-bold text-2xl">Admin Login</h3>
+            <h3 class="form-heading mb-6 font-bold text-2xl">Admin Login</h3>
             <p class="text-sm text-foreground mb-6">
                 Sign in with your Clerk account to continue.
             </p>
@@ -26,7 +26,7 @@
             <div class="mt-4">
                 <a href="{{ sign_in_url }}" class="btn inline-flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-center text-white rounded-lg bg-[#c3622d] hover:bg-[#a45224] border border-[#c3622d] cursor-pointer transition-colors">
                     Continue with Clerk (Hosted)
-        </a>
+                </a>
             </div>
             {% endif %}
         </div>
@@ -40,20 +40,54 @@
     <script async crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <script>
         window.addEventListener("load", async () => {
-            // Ensure stale cookies/local storage are cleared on entry to login page
-            try {
-                Object.keys(localStorage || {}).forEach(k => {
-                    if (k.toLowerCase().includes("clerk")) localStorage.removeItem(k);
-                });
-            } catch (e) {}
-            try {
-                ["__session", "clerk_session", "__clerk"].forEach(name => {
-                    document.cookie = `${name}=; Max-Age=0; path=/;`;
-                    document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname};`;
-                });
-            } catch (e) {}
+            const loadingEl = document.getElementById("clerk-loading");
+            const mountElBox = document.getElementById("clerk-wrapper");
+            const mountEl = document.getElementById("clerk-sign-in");
+            const fallbackEl = document.getElementById("clerk-fallback");
 
-            if (!window.Clerk) return;
+            // Helper to clear all Clerk-related storage
+            function clearClerkData() {
+                try {
+                    Object.keys(localStorage || {}).forEach(k => {
+                        if (k.toLowerCase().includes("clerk")) localStorage.removeItem(k);
+                    });
+                    Object.keys(sessionStorage || {}).forEach(k => {
+                        if (k.toLowerCase().includes("clerk")) sessionStorage.removeItem(k);
+                    });
+                } catch (e) {}
+                try {
+                    ["__session", "clerk_session", "__clerk", "__client"].forEach(name => {
+                        document.cookie = `${name}=; Max-Age=0; path=/;`;
+                        document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname};`;
+                    });
+                } catch (e) {}
+            }
+
+            // Helper to show fallback UI
+            function showFallback() {
+                if (loadingEl) loadingEl.classList.add("hidden");
+                if (mountElBox) mountElBox.classList.add("hidden");
+                if (fallbackEl) fallbackEl.classList.remove("hidden");
+            }
+
+            // Helper to show sign-in widget
+            function showWidget() {
+                if (loadingEl) loadingEl.classList.add("hidden");
+                if (mountElBox) mountElBox.classList.remove("hidden");
+                if (mountEl) mountEl.classList.remove("hidden");
+                if (fallbackEl) fallbackEl.classList.add("hidden");
+            }
+
+            // Clear stale data before anything else
+            clearClerkData();
+
+            // Wait for Clerk to be available
+            if (!window.Clerk) {
+                console.error("Clerk not loaded");
+                showFallback();
+                return;
+            }
+
             const localization = {
                 signIn: {
                     start: {
@@ -62,18 +96,24 @@
                     },
                 },
             };
-            try {
-                await window.Clerk.load({ localization });
-                const mountElBox = document.getElementById("clerk-wrapper");
-                const mountEl = document.getElementById("clerk-sign-in");
-                const loadingEl = document.getElementById("clerk-loading");
-                const fallbackEl = document.getElementById("clerk-fallback");
 
+            try {
+                // Load Clerk
+                await window.Clerk.load({ localization });
+
+                // IMPORTANT: Sign out any existing session to prevent auto-redirect loop
+                // This ensures the user must explicitly sign in again
+                if (window.Clerk.user) {
+                    await window.Clerk.signOut();
+                    // Clear data again after sign out
+                    clearClerkData();
+                }
+
+                // Mount the sign-in widget
                 window.Clerk.mountSignIn(mountEl, {
                     redirectUrl: "{{ redirect_target }}",
                     afterSignInUrl: "{{ redirect_target }}",
-                    // Do not offer sign-up or social for admin UI
-                    signUpUrl: undefined,
+                    signUpUrl: undefined, // No sign-up for admin UI
                     appearance: {
                         variables: {
                             colorPrimary: "#c3622d",
@@ -94,17 +134,11 @@
                     localization,
                 });
 
-                // Show widget, hide loading + fallback
-                if (loadingEl) loadingEl.classList.add("hidden"); mountElBox.classList.remove("hidden");
-                mountEl.classList.remove("hidden");
-                if (fallbackEl) fallbackEl.classList.add("hidden");
+                // Show the widget
+                showWidget();
             } catch (e) {
                 console.error("Failed to load Clerk SignIn", e);
-                // On failure, hide loading and show fallback
-                const loadingEl = document.getElementById("clerk-loading");
-                const fallbackEl = document.getElementById("clerk-fallback");
-                if (loadingEl) loadingEl.classList.add("hidden");
-                if (fallbackEl) fallbackEl.classList.remove("hidden");
+                showFallback();
             }
         });
     </script>

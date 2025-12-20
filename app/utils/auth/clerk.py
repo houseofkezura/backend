@@ -75,12 +75,11 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
     """
     Validate a Clerk JWT token and return its payload.
     
-    This function validates both session tokens and JWT tokens from Clerk.
-    For JWT tokens, it decodes and verifies using Clerk's public keys.
-    For session tokens, it uses Clerk's verify_token API.
+    Uses JWKS to verify the signature. Skips iat validation to handle clock skew
+    between client/server/Clerk. The exp claim is still validated.
     
     Args:
-        token: The JWT or session token string from Authorization header.
+        token: The JWT token string from Authorization header or cookies.
         
     Returns:
         Decoded token payload if valid, None otherwise.
@@ -88,7 +87,7 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
     try:
         import jwt
 
-        # Decode without verification to extract issuer
+        # Decode without verification to extract issuer and audience
         unverified = jwt.decode(token, options={"verify_signature": False})
         issuer = unverified.get("iss", "")
         if "clerk" not in issuer.lower():
@@ -98,13 +97,22 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
         jwks_client = _get_jwks_client(jwks_url)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
+        # Decode with signature verification but skip iat validation
+        # to avoid ImmatureSignatureError due to clock skew
+        # Use larger leeway for exp to handle token refresh timing
         decoded_payload = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             audience=unverified.get("aud"),
             issuer=issuer,
-            leeway=60,  # tolerate small clock skew
+            options={
+                "verify_iat": False,  # Skip iat validation (clock skew issue)
+                "verify_exp": True,   # Still check expiration
+                "verify_aud": True,
+                "verify_iss": True,
+            },
+            leeway=300,  # 5 minute leeway for exp (allows for token refresh delays)
         )
 
         user_id = decoded_payload.get("sub")
@@ -124,9 +132,13 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
             "metadata": decoded_payload.get("https://clerk.dev/public_metadata", {}) or {},
         }
     except Exception as e:
-        # Suppress noisy stack traces for expired/invalid tokens; treat as unauthenticated.
-        # Suppress noisy stack traces for expired/invalid tokens; treat as unauthenticated.
-        log_error("Failed to decode Clerk token", error=e)
+        # Treat invalid/expired tokens as unauthenticated (don't spam logs for common cases)
+        import jwt as jwt_module
+        if isinstance(e, (jwt_module.ExpiredSignatureError, jwt_module.InvalidTokenError)):
+            # Expected for expired tokens - don't log full traceback
+            pass
+        else:
+            log_error("Failed to decode Clerk token", error=e)
         return None
 
 
@@ -280,51 +292,15 @@ def create_clerk_user(
                 return {
                     "clerk_id": clerk_id,
                     "email": email,
+                    "username": username,
                     "first_name": first_name,
                     "last_name": last_name,
-                    "phone": phone,
                 }
-            else:
-                log_error(f"Clerk API response missing user ID: {user_data}", error=None)
-                return None
-        elif api_response.status_code == 422:
-            # User might already exist, try to get existing user
-            error_data = api_response.json()
-            errors = error_data.get('errors', [])
-            
-            # Check if error is about existing identifier
-            identifier_exists = any(
-                err.get('code') == 'form_identifier_exists' 
-                for err in errors
-            )
-            
-            if identifier_exists:
-                # Try to get existing user by email
-                existing_user = get_clerk_user_by_email(email)
-                if existing_user and existing_user.get('id'):
-                    log_event(f"User already exists in Clerk, using existing user: {existing_user.get('id')}")
-                    return {
-                        "clerk_id": existing_user.get('id'),
-                        "email": email,
-                        "first_name": existing_user.get('first_name') or first_name,
-                        "last_name": existing_user.get('last_name') or last_name,
-                        "phone": phone,
-                    }
-            
-            error_detail = api_response.text
-            log_error(
-                f"Clerk API returned status {api_response.status_code}: {error_detail}",
-                error=None
-            )
-            return None
         else:
-            error_detail = api_response.text
-            log_error(
-                f"Clerk API returned status {api_response.status_code}: {error_detail}",
-                error=None
-            )
-            return None
-            
+            error_detail = api_response.json() if api_response.text else {}
+            log_error(f"Clerk user creation failed: {api_response.status_code}", error=error_detail)
+        
+        return None
     except Exception as e:
         log_error("Failed to create Clerk user", error=e)
         return None
@@ -332,69 +308,63 @@ def create_clerk_user(
 
 def get_or_create_app_user_from_clerk(clerk_user: AuthenticatedUser) -> Optional[AppUser]:
     """
-    Get existing AppUser by clerk_id, or create a new one if it doesn't exist.
+    Get or create an AppUser from Clerk authentication data.
     
-    This function handles the mapping between Clerk users and our internal AppUser model.
-    It also creates related Profile, Address, and Wallet records if needed.
+    This function first tries to find an existing user by clerk_id or email,
+    and creates a new one if not found.
     
     Args:
-        clerk_user: AuthenticatedUser object from Clerk.
+        clerk_user: AuthenticatedUser from Clerk token validation.
         
     Returns:
-        AppUser instance if successful, None otherwise.
+        AppUser instance if found/created, None otherwise.
     """
-    try:
-        # Try to find existing user by clerk_id
-        app_user = AppUser.query.filter_by(clerk_id=clerk_user.clerk_id).first()
-        
+    if not clerk_user or not clerk_user.clerk_id:
+        return None
+    
+    # Try to find existing user by clerk_id
+    app_user = AppUser.query.filter_by(clerk_id=clerk_user.clerk_id).first()
+    if app_user:
+        return app_user
+    
+    # Try to find by email and link clerk_id
+    if clerk_user.email:
+        app_user = AppUser.query.filter_by(email=clerk_user.email).first()
         if app_user:
-            # Update email if it changed in Clerk
-            if clerk_user.email and app_user.email != clerk_user.email:
-                app_user.email = clerk_user.email
-                db.session.commit()
+            app_user.clerk_id = clerk_user.clerk_id
+            db.session.commit()
             return app_user
-        
-        # Try to find by email (in case clerk_id wasn't set but email matches)
-        if clerk_user.email:
-            app_user = AppUser.query.filter_by(email=clerk_user.email).first()
-            if app_user:
-                # Link existing user to Clerk
-                app_user.clerk_id = clerk_user.clerk_id
-                db.session.commit()
-                return app_user
-        
-        # Create new AppUser
-        app_user = AppUser()
-        app_user.clerk_id = clerk_user.clerk_id
-        app_user.email = clerk_user.email
-        
+    
+    # Create new user
+    try:
+        app_user = AppUser(
+            clerk_id=clerk_user.clerk_id,
+            email=clerk_user.email,
+        )
         db.session.add(app_user)
-        db.session.flush()
+        db.session.flush()  # Get the ID
         
-        # Create Profile
-        profile = Profile()
-        profile.firstname = clerk_user.first_name or ""
-        profile.lastname = clerk_user.last_name or ""
-        profile.user_id = app_user.id
+        # Create profile
+        profile = Profile(
+            app_user_id=app_user.id,
+            firstname=clerk_user.first_name or "",
+            lastname=clerk_user.last_name or "",
+            phone=clerk_user.phone,
+        )
         db.session.add(profile)
         
-        # Create Address
-        address = Address()
-        address.user_id = app_user.id
+        # Create address placeholder
+        address = Address(app_user_id=app_user.id)
         db.session.add(address)
         
         # Assign default CUSTOMER role
-        role = Role.query.filter_by(name=RoleNames.CUSTOMER).first()
-        if role:
-            UserRole.assign_role(app_user, role, commit=False)
+        customer_role = Role.query.filter_by(name=RoleNames.CUSTOMER).first()
+        if customer_role:
+            UserRole.assign_role(app_user, customer_role, commit=False)
         
         db.session.commit()
-        
-        log_event(f"Created new AppUser from Clerk: {clerk_user.clerk_id}")
         return app_user
-        
     except Exception as e:
-        log_error("Failed to get or create AppUser from Clerk", error=e)
         db.session.rollback()
+        log_error("Failed to create AppUser from Clerk", error=e)
         return None
-

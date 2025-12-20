@@ -12,51 +12,79 @@
 
 {% block scripts %}
     {{ super() }}
-    {% if clerk_publishable_key %}
-    <script async crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <script>
-        window.addEventListener("load", async () => {
-            // Aggressively clear local client storage and cookies
+        // Immediately clear all Clerk-related cookies and storage
+        (function() {
             try {
                 Object.keys(localStorage || {}).forEach(k => {
                     if (k.toLowerCase().includes("clerk")) localStorage.removeItem(k);
                 });
+                Object.keys(sessionStorage || {}).forEach(k => {
+                    if (k.toLowerCase().includes("clerk")) sessionStorage.removeItem(k);
+                });
             } catch (e) {}
             try {
-                ["__session", "clerk_session", "__clerk"].forEach(name => {
+                ["__session", "clerk_session", "__clerk", "__client"].forEach(name => {
                     document.cookie = `${name}=; Max-Age=0; path=/;`;
                     document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname};`;
                 });
             } catch (e) {}
+        })();
+    </script>
+    {% if clerk_publishable_key %}
+    <script async crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <script>
+        window.addEventListener("load", async () => {
+            const loginUrl = "{{ login_url }}";
+            
+            // Helper to clear all Clerk data
+            function clearClerkData() {
+                try {
+                    Object.keys(localStorage || {}).forEach(k => {
+                        if (k.toLowerCase().includes("clerk")) localStorage.removeItem(k);
+                    });
+                    Object.keys(sessionStorage || {}).forEach(k => {
+                        if (k.toLowerCase().includes("clerk")) sessionStorage.removeItem(k);
+                    });
+                } catch (e) {}
+                try {
+                    ["__session", "clerk_session", "__clerk", "__client"].forEach(name => {
+                        document.cookie = `${name}=; Max-Age=0; path=/;`;
+                        document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname};`;
+                    });
+                } catch (e) {}
+            }
+
+            // Clear data first
+            clearClerkData();
 
             try {
-                if (!window.Clerk) {
+                // Wait for Clerk to load
+                if (window.Clerk) {
                     await window.Clerk.load();
+                    
+                    // Sign out if there's an active session
+                    if (window.Clerk.user || window.Clerk.session) {
+                        await window.Clerk.signOut();
+                    }
+                    
+                    // Clear data again after sign out
+                    clearClerkData();
                 }
             } catch (e) {
-                // ignore
+                console.warn("Clerk signOut error (ignored):", e);
             }
 
-            try {
-                if (window.Clerk && typeof window.Clerk.signOut === "function") {
-                    await window.Clerk.signOut();
-                }
-            } catch (e) {
-                // ignore
-            } finally {
-                window.location.href = "{{ login_url }}";
-            }
+            // Redirect to login after a brief delay to ensure cleanup completes
+            setTimeout(() => {
+                window.location.href = loginUrl;
+            }, 500);
         });
     </script>
     {% else %}
     <script>
-        ["__session", "clerk_session", "__clerk"].forEach(name => {
-            document.cookie = `${name}=; Max-Age=0; path=/;`;
-            document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname};`;
-        });
+        // No Clerk key - just redirect immediately
         window.location.href = "{{ login_url }}";
     </script>
     {% endif %}
 {% endblock %}
-
-

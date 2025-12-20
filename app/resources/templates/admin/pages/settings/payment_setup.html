@@ -1,4 +1,4 @@
-{% extends 'web_admin/base/base.html' %}
+{% extends 'admin/base/index.html' %}
 {% block title %} Payment Setup - {{ super() }}{% endblock %}
 
 {% block styles_script %}
@@ -8,7 +8,7 @@
 {% block content %}
 {% macro render_field(field) -%}
     {% set non_provider_fields = ['enabled', 'title', 'description', 'instructions', 'provider', 'csrf_token', 'submit'] %}
-    <div class="form-group !mb-0 sm:col-span-2 {% if field.id not in non_provider_fields %}gateway-field{% endif %}" data-field="{{ field.name }}">
+    <div class="form-group mb-0! sm:col-span-2 {% if field.id not in non_provider_fields %}gateway-field{% endif %}" data-field="{{ field.name }}">
         {% if field.type == "BooleanField" %}
             <div class="theme-checkbox flex items-center gap-4">
                 {{ field(
@@ -55,7 +55,7 @@
 {%- endmacro %}
 
 <section class="">
-    <div class="mx-auto max-w-screen-lg lg:py-16 lg:pt-1">
+    <div class="mx-auto max-w-5xl lg:py-16 lg:pt-1">
         {% if method_overview %}
         <h2 class="mb-2 text-2xl font-bold text-gray-900">{{method_overview.title}} </h2>
         <p class="mb-6 text-md text-gray-600">
@@ -64,7 +64,7 @@
         {% endif %}
 
         <form method="post"
-            action="{% block form_action %} {{ url_for('web_admin.payment_setup', method=method) }} {% endblock %}"
+            action="{% block form_action %} # {% endblock %}"
             class="pt-2" 
             id="payment-settings-form"
             enctype="multipart/form-data">
