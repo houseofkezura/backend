@@ -105,7 +105,17 @@ class Product(db.Model):
         }
         
         if include_variants:
-            data["variants"] = [v.to_dict() for v in self.variants]
+            # Include variants with all details including prices
+            data["variants"] = [v.to_dict(include_inventory=True) for v in self.variants]
+            # Add price fields at product level (from first variant or min price)
+            if self.variants:
+                prices_ngn = [float(v.price_ngn) for v in self.variants if v.price_ngn]
+                prices_usd = [float(v.price_usd) for v in self.variants if v.price_usd and v.price_usd]
+                data["price_ngn"] = min(prices_ngn) if prices_ngn else None
+                data["price_usd"] = min(prices_usd) if prices_usd else None
+            else:
+                data["price_ngn"] = None
+                data["price_usd"] = None
         
         return data
 
@@ -167,6 +177,7 @@ class ProductVariant(db.Model):
             "weight_g": self.weight_g,
             "attributes": self.attributes or {},
             "is_in_stock": self.is_in_stock,
+            "stock_quantity": self.stock_quantity,
             "created_at": to_gmt1_or_none(self.created_at),
             "updated_at": to_gmt1_or_none(self.updated_at),
         }

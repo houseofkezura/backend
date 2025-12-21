@@ -8,6 +8,8 @@ from flask import Response, request
 from slugify import slugify
 import uuid
 import re
+import random
+import string
 
 from app.extensions import db
 from app.models.product import Product, ProductVariant, Inventory
@@ -19,6 +21,30 @@ from app.logging import log_error, log_event
 
 class AdminProductController:
     """Controller for admin product endpoints."""
+
+    @staticmethod
+    def _get_category_code(category: str) -> str:
+        """Map product category to 2-letter code for SKU generation."""
+        category_map = {
+            "Wigs": "WG",
+            "Bundles": "BD",
+            "Hair Care": "HC",
+        }
+        # Default to first 2 uppercase letters if not in map
+        return category_map.get(category, category[:2].upper() if category else "PR")
+
+    @staticmethod
+    def _generate_random_alphanumeric(length: int = 4) -> str:
+        """Generate random alphanumeric string (uppercase letters and digits)."""
+        chars = string.ascii_uppercase + string.digits
+        return ''.join(random.choice(chars) for _ in range(length))
+
+    @staticmethod
+    def _generate_sku(category: str) -> str:
+        """Generate SKU in format: KZ-[CATEGORY]-[4 random alphanumeric]."""
+        category_code = AdminProductController._get_category_code(category)
+        random_code = AdminProductController._generate_random_alphanumeric(4)
+        return f"KZ-{category_code}-{random_code}"
 
     @staticmethod
     def create_product() -> Response:
@@ -45,21 +71,17 @@ class AdminProductController:
             # Generate SKU if not provided
             product_sku = payload.sku
             if not product_sku:
-                # Generate SKU from product name: uppercase, remove special chars, max 50 chars
-                base_sku = re.sub(r'[^A-Z0-9]', '', payload.name.upper())[:50]
-                if not base_sku:
-                    base_sku = "PROD"
-                
-                # Ensure uniqueness by appending number if needed
-                product_sku = base_sku
-                counter = 1
-                while Product.query.filter_by(sku=product_sku).first():
-                    product_sku = f"{base_sku}{counter:03d}"
-                    counter += 1
-                    if counter > 999:
-                        # Fallback to UUID-based SKU if too many collisions
-                        product_sku = f"PROD{str(uuid.uuid4())[:8].upper()}"
+                # Generate SKU in format: KZ-[CATEGORY]-[4 random alphanumeric]
+                max_attempts = 100
+                for _ in range(max_attempts):
+                    product_sku = AdminProductController._generate_sku(payload.category)
+                    # Check if SKU already exists
+                    if not Product.query.filter_by(sku=product_sku).first():
                         break
+                else:
+                    # If all attempts failed, use UUID fallback
+                    category_code = AdminProductController._get_category_code(payload.category)
+                    product_sku = f"KZ-{category_code}-{str(uuid.uuid4())[:4].upper()}"
             else:
                 # Check if provided SKU exists
                 existing_sku = Product.query.filter_by(sku=product_sku).first()
