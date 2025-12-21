@@ -33,27 +33,37 @@ class CreateProductVariantRequest(BaseModel):
 class CreateProductRequest(BaseModel):
     """Schema for creating a product."""
     name: str = Field(..., min_length=1, max_length=255, description="Product name")
+    sku: str = Field(..., min_length=1, max_length=100, description="Product SKU (unique identifier)")
     slug: Optional[str] = Field(None, max_length=255, description="URL-friendly slug (auto-generated if not provided)")
-    description: Optional[str] = Field(None, description="Product description")
+    description: Optional[str] = Field("", description="Product description")
     category: str = Field(..., description="Product category")
+    care: Optional[str] = Field("", description="Product care instructions")
+    details: Optional[str] = Field("", description="Product details")
+    material: Optional[str] = Field("", description="Product material")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
     meta_title: Optional[str] = Field(None, max_length=255, description="SEO meta title")
     meta_description: Optional[str] = Field(None, description="SEO meta description")
     meta_keywords: Optional[str] = Field(None, max_length=500, description="SEO meta keywords")
-    launch_status: Optional[str] = Field(None, description="Launch status")
+    status: Optional[str] = Field("In-Stock", description="Product status (default: In-Stock)")
+    launch_status: Optional[str] = Field(None, description="Launch status (legacy field, use status instead)")
     variants: Optional[List[CreateProductVariantRequest]] = Field(None, description="Initial variants")
 
 
 class UpdateProductRequest(BaseModel):
     """Schema for updating a product."""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
+    sku: Optional[str] = Field(None, min_length=1, max_length=100, description="Product SKU (unique identifier)")
     slug: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
     category: Optional[str] = None
+    care: Optional[str] = None
+    details: Optional[str] = None
+    material: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     meta_title: Optional[str] = Field(None, max_length=255)
     meta_description: Optional[str] = None
     meta_keywords: Optional[str] = Field(None, max_length=500)
+    status: Optional[str] = Field(None, description="Product status")
     launch_status: Optional[str] = None
 
 

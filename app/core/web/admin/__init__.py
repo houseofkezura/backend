@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect, url_for
 
 from .home import bp as home_bp
 from .auth import bp as auth_bp
@@ -28,10 +28,16 @@ def create_web_admin_blueprint():
             return None
 
         # Enforce Clerk auth + RBAC
-        guard = roles_required_web(*ADMIN_ALLOWED_ROLES)
-        auth_result = guard(lambda: None)()  # type: ignore
-        if auth_result is not None:
-            return auth_result
+        # Wrap in try/except to prevent exceptions from bubbling to API error handlers
+        try:
+            guard = roles_required_web(*ADMIN_ALLOWED_ROLES)
+            auth_result = guard(lambda: None)()  # type: ignore
+            if auth_result is not None:
+                return auth_result
+        except Exception:
+            # If any exception occurs during auth, redirect to login
+            # This prevents API error handlers from catching web admin errors
+            return redirect(url_for("web.web_admin.web_admin_auth.login", next=request.url, _external=False))
 
         return None
 

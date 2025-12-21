@@ -194,33 +194,34 @@ def roles_required_web(
                     resp.delete_cookie(cookie_name, path="/")
                 return cast(R, resp)
 
-            token = _get_auth_token_from_request()
-            if not token:
-                if redirect_to_login:
+            # Wrap all auth logic in try/except to prevent exceptions from bubbling
+            # to API error handlers which might cause redirects to /api
+            try:
+                token = _get_auth_token_from_request()
+                if not token:
                     return _redirect_with_cookie_clear()
-                # For web routes, always redirect instead of abort
-                return _redirect_with_cookie_clear()
 
-            clerk_user = get_clerk_user_from_token(token)
-            if not clerk_user:
-                if redirect_to_login:
+                clerk_user = get_clerk_user_from_token(token)
+                if not clerk_user:
                     return _redirect_with_cookie_clear()
-                # For web routes, always redirect instead of abort
-                return _redirect_with_cookie_clear()
 
-            app_user = _load_existing_app_user(clerk_user)
-            if not app_user:
-                # User doesn't exist in our DB - redirect to login
-                return _redirect_with_cookie_clear()
+                app_user = _load_existing_app_user(clerk_user)
+                if not app_user:
+                    # User doesn't exist in our DB - redirect to login
+                    return _redirect_with_cookie_clear()
 
-            if normalized_required_roles and not _user_has_any_role(
-                app_user, normalized_required_roles
-            ):
-                # User doesn't have required role - redirect to login
-                return _redirect_with_cookie_clear()
+                if normalized_required_roles and not _user_has_any_role(
+                    app_user, normalized_required_roles
+                ):
+                    # User doesn't have required role - redirect to login
+                    return _redirect_with_cookie_clear()
 
-            g.current_user = app_user
-            return fn(*args, **kwargs)
+                g.current_user = app_user
+                return fn(*args, **kwargs)
+            except Exception:
+                # Catch ANY exception during auth and redirect to login
+                # This prevents API error handlers from interfering with web admin routes
+                return _redirect_with_cookie_clear()
 
         return cast(Callable[P, R], _impl)
 

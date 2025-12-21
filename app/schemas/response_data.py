@@ -121,17 +121,23 @@ class ProductVariantDataModel(BaseModel):
 
 class ProductDataModel(BaseModel):
     """Product data model."""
-    
+    class Config:
+        extra = "forbid"
     
     id: str
     name: str
+    sku: str
     slug: str
     description: Optional[str] = None
     category: str
+    care: Optional[str] = None
+    details: Optional[str] = None
+    material: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
     meta_keywords: Optional[str] = None
+    status: Optional[str] = None
     launch_status: str
     created_at: Optional[str] = None
     updated_at: Optional[str] = None

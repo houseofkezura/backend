@@ -38,18 +38,24 @@ class Product(db.Model):
     
     id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name: M[str] = db.Column(db.String(255), nullable=False)
+    sku: M[str] = db.Column(db.String(100), nullable=False, unique=True, index=True)  # Product SKU
     slug: M[str] = db.Column(db.String(255), nullable=False, unique=True, index=True)
     description: M[Optional[str]] = db.Column(db.Text)
     category: M[str] = db.Column(db.String(50), nullable=False)  # ProductCategory enum value
     product_metadata: M[Dict[str, Any]] = db.Column(JSON, default=dict, name="metadata")  # SEO, tags, etc. (stored as 'metadata' in DB)
+    
+    # Product details
+    care: M[Optional[str]] = db.Column(db.Text)  # Product care instructions
+    details: M[Optional[str]] = db.Column(db.Text)  # Product details
+    material: M[Optional[str]] = db.Column(db.String(255))  # Product material
     
     # SEO fields
     meta_title: M[Optional[str]] = db.Column(db.String(255))
     meta_description: M[Optional[str]] = db.Column(db.Text)
     meta_keywords: M[Optional[str]] = db.Column(db.String(500))
     
-    # Launch status
-    launch_status: M[str] = db.Column(db.String(50), default=LaunchStatus.IN_STOCK.value)
+    # Launch status (default: "In-Stock")
+    launch_status: M[str] = db.Column(db.String(50), default="In-Stock")
     
     # Timestamps
     created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
@@ -69,6 +75,7 @@ class Product(db.Model):
             query = query.filter(
                 or_(
                     Product.name.ilike(search_term),
+                    Product.sku.ilike(search_term),
                     Product.description.ilike(search_term),
                     Product.slug.ilike(search_term),
                 )
@@ -80,13 +87,18 @@ class Product(db.Model):
         data = {
             "id": str(self.id),
             "name": self.name,
+            "sku": self.sku,
             "slug": self.slug,
-            "description": self.description,
+            "description": self.description or "",
             "category": self.category,
+            "care": self.care or "",
+            "details": self.details or "",
+            "material": self.material or "",
             "metadata": self.product_metadata or {},
             "meta_title": self.meta_title,
             "meta_description": self.meta_description,
             "meta_keywords": self.meta_keywords,
+            "status": self.launch_status,  # Alias for launch_status
             "launch_status": self.launch_status,
             "created_at": to_gmt1_or_none(self.created_at),
             "updated_at": to_gmt1_or_none(self.updated_at),

@@ -41,17 +41,27 @@ class AdminProductController:
             if existing:
                 return error_response("Product with this slug already exists", 409)
             
+            # Check if SKU exists
+            existing_sku = Product.query.filter_by(sku=payload.sku).first()
+            if existing_sku:
+                return error_response("Product with this SKU already exists", 409)
+            
             # Create product
             product = Product()
             product.name = payload.name
+            product.sku = payload.sku
             product.slug = product_slug
-            product.description = payload.description
+            product.description = payload.description or ""
             product.category = payload.category
+            product.care = payload.care or ""
+            product.details = payload.details or ""
+            product.material = payload.material or ""
             product.product_metadata = payload.metadata or {}
             product.meta_title = payload.meta_title
             product.meta_description = payload.meta_description
             product.meta_keywords = payload.meta_keywords
-            product.launch_status = payload.launch_status or "In Stock"
+            # Use status if provided, otherwise launch_status, otherwise default to "In-Stock"
+            product.launch_status = payload.status or payload.launch_status or "In-Stock"
             
             db.session.add(product)
             db.session.flush()
@@ -124,6 +134,12 @@ class AdminProductController:
             # Update fields
             if payload.name is not None:
                 product.name = payload.name
+            if payload.sku is not None:
+                # Check SKU uniqueness
+                existing_sku = Product.query.filter_by(sku=payload.sku).filter(Product.id != product_uuid).first()
+                if existing_sku:
+                    return error_response("SKU already in use", 409)
+                product.sku = payload.sku
             if payload.slug is not None:
                 # Check slug uniqueness
                 existing = Product.query.filter_by(slug=payload.slug).filter(Product.id != product_uuid).first()
@@ -134,6 +150,12 @@ class AdminProductController:
                 product.description = payload.description
             if payload.category is not None:
                 product.category = payload.category
+            if payload.care is not None:
+                product.care = payload.care
+            if payload.details is not None:
+                product.details = payload.details
+            if payload.material is not None:
+                product.material = payload.material
             if payload.metadata is not None:
                 product.product_metadata = payload.metadata
             if payload.meta_title is not None:
@@ -142,7 +164,10 @@ class AdminProductController:
                 product.meta_description = payload.meta_description
             if payload.meta_keywords is not None:
                 product.meta_keywords = payload.meta_keywords
-            if payload.launch_status is not None:
+            # Update status (prefer status over launch_status for consistency)
+            if payload.status is not None:
+                product.launch_status = payload.status
+            elif payload.launch_status is not None:
                 product.launch_status = payload.launch_status
             
             db.session.commit()

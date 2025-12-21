@@ -57,7 +57,8 @@ All requests are JSON; send `Content-Type: application/json`.
 5) For password flows (change/reset), call the listed endpoints; tokens still required where marked “protected”.
 
 ## Customer-Facing (high level)
-- Products: `GET /products`, `GET /products/:slug`
+- Products: `GET /products`, `GET /products/:slug`  
+  Public endpoints return products with fields: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `variants` (with pricing, attributes, inventory).
 - Cart: `GET /cart`, `POST /cart/items`, `PUT /cart/items/:id`, `DELETE /cart/items/:id`
 - Checkout: `POST /checkout`
   - Guests allowed; must pass `email`, `phone`, `shipping_address`.
@@ -77,10 +78,25 @@ Headers: `Authorization: Bearer <clerk_token>`
 - `GET /products` – list (filters via query).
 - `GET /products/{id}` – get one.
 - `POST /products` – create product (+optional variants).  
-  Body: `CreateProductRequest` → `{ name, slug?, description?, category, metadata?, meta_title?, meta_description?, meta_keywords?, launch_status?, variants?: [ { sku, price_ngn, price_usd?, weight_g?, attributes, media_ids? } ] }`
-- `PATCH /products/{id}` – update; body: `UpdateProductRequest`.
+  Body: `CreateProductRequest` → `{ name, sku, slug?, description?, category, care?, details?, material?, metadata?, meta_title?, meta_description?, meta_keywords?, status? (default: "In-Stock"), launch_status? (legacy), variants?: [ { sku, price_ngn, price_usd?, weight_g?, attributes, media_ids? } ] }`  
+  **Note**: `sku` is required and must be unique. `status` is preferred over `launch_status`.
+- `PATCH /products/{id}` – update; body: `UpdateProductRequest` (all fields optional, `sku` must be unique if provided).
 - `DELETE /products/{id}` – delete.
 - Variant CRUD: `POST /products/{id}/variants`, `PATCH /products/{id}/variants/{variant_id}`, `DELETE /products/{id}/variants/{variant_id}`.
+
+**Product Fields:**
+- `sku` (string, required, unique): Product SKU identifier
+- `name` (string, required): Product name
+- `slug` (string, optional): URL-friendly slug (auto-generated from name if not provided)
+- `description` (string, optional): Product description
+- `category` (string, required): Product category
+- `care` (string, optional): Product care instructions
+- `details` (string, optional): Product details
+- `material` (string, optional): Product material
+- `status` (string, optional, default: "In-Stock"): Product status (preferred over `launch_status`)
+- `launch_status` (string, optional, legacy): Use `status` instead
+- `metadata` (object, optional): Additional metadata
+- `meta_title`, `meta_description`, `meta_keywords` (strings, optional): SEO fields
 
 ### Inventory (`/api/v1/admin/inventory`)
 - `GET /inventory` – list; query: `low_stock_only`, `sku`, `page`, `per_page`.
@@ -157,7 +173,8 @@ curl -X POST https://api.example.com/api/v1/checkout \
 
 ### End-to-end flow (frontend)
 1) Browse & cart  
-   - `GET /api/v1/products` (filters)  
+   - `GET /api/v1/products` (filters: `category`, `search`, `in_stock_only`, `page`, `per_page`)  
+     Returns products with: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `variants` (with `price_ngn`, `price_usd`, `attributes`, `is_in_stock`, `stock_quantity`).  
    - `POST /api/v1/cart/items` (include `guest_token` header/payload for guests)  
    - `GET /api/v1/cart`
 2) Shipping quote  

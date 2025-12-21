@@ -81,7 +81,7 @@ class LaunchStatus(Enum):
     NEW_DROP = "New Drop"
     LIMITED_EDITION = "Limited Edition"
     PRE_ORDER = "Pre-Order"
-    IN_STOCK = "In Stock"
+    IN_STOCK = "In-Stock"
     OUT_OF_STOCK = "Out of Stock"
     
     def __str__(self):

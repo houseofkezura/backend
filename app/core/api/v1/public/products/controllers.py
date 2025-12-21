@@ -44,7 +44,7 @@ class ProductController:
             # Apply launch status filter (default to in stock)
             if filters.in_stock_only:
                 query = query.filter(Product.launch_status.in_([
-                    "In Stock", "New Drop", "Limited Edition"
+                    "In-Stock", "New Drop", "Limited Edition"
                 ]))
             
             # Apply sorting

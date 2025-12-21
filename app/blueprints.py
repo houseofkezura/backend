@@ -17,6 +17,7 @@ def register_blueprints(app: Flask) -> None:
     from .core.web import create_web_blueprint
     from .core.web.public import create_web_public_blueprint
     from .core.web.admin import create_web_admin_blueprint
+    from .error_handlers.web import attach_web_err_handlers
     
     # Create the blueprints
     api_bp = create_api_blueprint()
@@ -32,6 +33,7 @@ def register_blueprints(app: Flask) -> None:
     attach_api_err_handlers(v1_api)
     attach_api_err_handlers(v1_admin_api)
     attach_api_err_handlers(v1_public_api)
+    attach_web_err_handlers(web_admin_bp)
     
     # Register sub-blueprints under /api/v1
     register_sub_blueprints(v1_api, [v1_admin_api, v1_public_api])
