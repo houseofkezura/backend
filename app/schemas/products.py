@@ -33,7 +33,7 @@ class CreateProductVariantRequest(BaseModel):
 class CreateProductRequest(BaseModel):
     """Schema for creating a product."""
     name: str = Field(..., min_length=1, max_length=255, description="Product name")
-    sku: str = Field(..., min_length=1, max_length=100, description="Product SKU (unique identifier)")
+    sku: Optional[str] = Field(None, min_length=1, max_length=100, description="Product SKU (auto-generated from name if not provided)")
     slug: Optional[str] = Field(None, max_length=255, description="URL-friendly slug (auto-generated if not provided)")
     description: Optional[str] = Field("", description="Product description")
     category: str = Field(..., description="Product category")

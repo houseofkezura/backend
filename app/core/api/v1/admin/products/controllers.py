@@ -7,6 +7,7 @@ from __future__ import annotations
 from flask import Response, request
 from slugify import slugify
 import uuid
+import re
 
 from app.extensions import db
 from app.models.product import Product, ProductVariant, Inventory
@@ -41,15 +42,34 @@ class AdminProductController:
             if existing:
                 return error_response("Product with this slug already exists", 409)
             
-            # Check if SKU exists
-            existing_sku = Product.query.filter_by(sku=payload.sku).first()
-            if existing_sku:
-                return error_response("Product with this SKU already exists", 409)
+            # Generate SKU if not provided
+            product_sku = payload.sku
+            if not product_sku:
+                # Generate SKU from product name: uppercase, remove special chars, max 50 chars
+                base_sku = re.sub(r'[^A-Z0-9]', '', payload.name.upper())[:50]
+                if not base_sku:
+                    base_sku = "PROD"
+                
+                # Ensure uniqueness by appending number if needed
+                product_sku = base_sku
+                counter = 1
+                while Product.query.filter_by(sku=product_sku).first():
+                    product_sku = f"{base_sku}{counter:03d}"
+                    counter += 1
+                    if counter > 999:
+                        # Fallback to UUID-based SKU if too many collisions
+                        product_sku = f"PROD{str(uuid.uuid4())[:8].upper()}"
+                        break
+            else:
+                # Check if provided SKU exists
+                existing_sku = Product.query.filter_by(sku=product_sku).first()
+                if existing_sku:
+                    return error_response("Product with this SKU already exists", 409)
             
             # Create product
             product = Product()
             product.name = payload.name
-            product.sku = payload.sku
+            product.sku = product_sku
             product.slug = product_slug
             product.description = payload.description or ""
             product.category = payload.category

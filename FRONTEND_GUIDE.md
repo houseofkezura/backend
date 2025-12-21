@@ -78,14 +78,14 @@ Headers: `Authorization: Bearer <clerk_token>`
 - `GET /products` – list (filters via query).
 - `GET /products/{id}` – get one.
 - `POST /products` – create product (+optional variants).  
-  Body: `CreateProductRequest` → `{ name, sku, slug?, description?, category, care?, details?, material?, metadata?, meta_title?, meta_description?, meta_keywords?, status? (default: "In-Stock"), launch_status? (legacy), variants?: [ { sku, price_ngn, price_usd?, weight_g?, attributes, media_ids? } ] }`  
-  **Note**: `sku` is required and must be unique. `status` is preferred over `launch_status`.
+  Body: `CreateProductRequest` → `{ name, sku?, slug?, description?, category, care?, details?, material?, metadata?, meta_title?, meta_description?, meta_keywords?, status? (default: "In-Stock"), launch_status? (legacy), variants?: [ { sku, price_ngn, price_usd?, weight_g?, attributes, media_ids? } ] }`  
+  **Note**: `sku` is optional and will be auto-generated from product name if not provided. If provided, must be unique. `status` is preferred over `launch_status`.
 - `PATCH /products/{id}` – update; body: `UpdateProductRequest` (all fields optional, `sku` must be unique if provided).
 - `DELETE /products/{id}` – delete.
 - Variant CRUD: `POST /products/{id}/variants`, `PATCH /products/{id}/variants/{variant_id}`, `DELETE /products/{id}/variants/{variant_id}`.
 
 **Product Fields:**
-- `sku` (string, required, unique): Product SKU identifier
+- `sku` (string, optional, unique): Product SKU identifier (auto-generated from name if not provided)
 - `name` (string, required): Product name
 - `slug` (string, optional): URL-friendly slug (auto-generated from name if not provided)
 - `description` (string, optional): Product description
