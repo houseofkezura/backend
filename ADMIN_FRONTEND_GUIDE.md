@@ -313,7 +313,7 @@ Authorization: Bearer <token>
 
 **Required Role:** Super Admin, Operations
 
-**Request Body:**
+**Request Body:** (Send the variant object directly, NOT wrapped in an array)
 ```json
 {
   "sku": "KZ-WG-0A12-32BLK",  // Required, must be unique
@@ -332,6 +332,11 @@ Authorization: Bearer <token>
   "media_ids": ["uuid1", "uuid2"]  // Optional
 }
 ```
+
+**Important:** 
+- Send the variant object **directly** in the request body
+- Do NOT wrap it in `{"variants": [...]}` - that format is only for product creation
+- The endpoint will automatically handle the wrapped format if sent, but the direct format is preferred
 
 **Important Notes:**
 - `attributes` is **optional** - you can create a variant without attributes

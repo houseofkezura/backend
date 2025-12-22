@@ -377,7 +377,19 @@ class AdminProductController:
             if not product:
                 return error_response("Product not found", 404)
             
-            payload = CreateProductVariantRequest.model_validate(request.get_json())
+            # Handle both single variant object and wrapped in 'variants' array
+            request_data = request.get_json()
+            if not request_data:
+                return error_response("Request body is required", 400)
+            
+            # If payload is wrapped in 'variants' array, extract first variant
+            if isinstance(request_data, dict) and 'variants' in request_data:
+                if isinstance(request_data['variants'], list) and len(request_data['variants']) > 0:
+                    request_data = request_data['variants'][0]
+                else:
+                    return error_response("Variants array is empty", 400)
+            
+            payload = CreateProductVariantRequest.model_validate(request_data)
             
             # Check SKU uniqueness
             existing = ProductVariant.query.filter_by(sku=payload.sku).first()
