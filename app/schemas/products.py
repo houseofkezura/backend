@@ -26,7 +26,7 @@ class CreateProductVariantRequest(BaseModel):
     price_ngn: Decimal = Field(..., gt=0, description="Price in NGN")
     price_usd: Optional[Decimal] = Field(None, gt=0, description="Price in USD")
     weight_g: Optional[int] = Field(None, gt=0, description="Weight in grams")
-    attributes: ProductVariantAttributes = Field(..., description="Variant attributes")
+    attributes: Optional[ProductVariantAttributes] = Field(None, description="Variant attributes (color, length, texture, etc.)")
     media_ids: Optional[List[str]] = Field(None, description="List of media IDs")
 
 

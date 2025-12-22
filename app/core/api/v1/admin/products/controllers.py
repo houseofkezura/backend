@@ -117,7 +117,14 @@ class AdminProductController:
                     variant.price_ngn = variant_data.price_ngn
                     variant.price_usd = variant_data.price_usd
                     variant.weight_g = variant_data.weight_g
-                    variant.attributes = variant_data.attributes.dict() if variant_data.attributes else {}
+                    # Convert attributes to dict, handling both Pydantic model and dict
+                    if variant_data.attributes:
+                        if isinstance(variant_data.attributes, dict):
+                            variant.attributes = variant_data.attributes
+                        else:
+                            variant.attributes = variant_data.attributes.dict(exclude_none=True)
+                    else:
+                        variant.attributes = {}
                     
                     db.session.add(variant)
                     db.session.flush()
@@ -383,7 +390,14 @@ class AdminProductController:
             variant.price_ngn = payload.price_ngn
             variant.price_usd = payload.price_usd
             variant.weight_g = payload.weight_g
-            variant.attributes = payload.attributes.dict() if payload.attributes else {}
+            # Convert attributes to dict, handling both Pydantic model and dict
+            if payload.attributes:
+                if isinstance(payload.attributes, dict):
+                    variant.attributes = payload.attributes
+                else:
+                    variant.attributes = payload.attributes.dict(exclude_none=True)
+            else:
+                variant.attributes = {}
             
             if payload.media_ids:
                 if not variant.attributes:
@@ -454,7 +468,11 @@ class AdminProductController:
             if payload.weight_g is not None:
                 variant.weight_g = payload.weight_g
             if payload.attributes is not None:
-                variant.attributes = payload.attributes.dict()
+                # Convert attributes to dict, handling both Pydantic model and dict
+                if isinstance(payload.attributes, dict):
+                    variant.attributes = payload.attributes
+                else:
+                    variant.attributes = payload.attributes.dict(exclude_none=True)
             if payload.media_ids is not None:
                 if not variant.attributes:
                     variant.attributes = {}

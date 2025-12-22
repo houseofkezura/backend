@@ -104,18 +104,36 @@ class Product(db.Model):
             "updated_at": to_gmt1_or_none(self.updated_at),
         }
         
+        # Calculate price, color, and stock from variants (always, even if not including full variant objects)
+        if self.variants:
+            prices_ngn = [float(v.price_ngn) for v in self.variants if v.price_ngn]
+            prices_usd = [float(v.price_usd) for v in self.variants if v.price_usd and v.price_usd]
+            data["price_ngn"] = min(prices_ngn) if prices_ngn else None
+            data["price_usd"] = min(prices_usd) if prices_usd else None
+            data["price"] = data["price_ngn"]  # Alias for price_ngn
+            
+            # Extract available colors from variants
+            colors = []
+            for variant in self.variants:
+                if variant.attributes and variant.attributes.get("color"):
+                    color = variant.attributes.get("color")
+                    if color and color not in colors:
+                        colors.append(color)
+            data["color"] = ", ".join(colors) if colors else ""
+            
+            # Calculate total stock (sum of all variant stocks)
+            total_stock = sum(v.stock_quantity for v in self.variants)
+            data["total_stock"] = total_stock
+        else:
+            data["price_ngn"] = None
+            data["price_usd"] = None
+            data["price"] = None
+            data["color"] = ""
+            data["stock"] = 0
+        
         if include_variants:
             # Include variants with all details including prices
             data["variants"] = [v.to_dict(include_inventory=True) for v in self.variants]
-            # Add price fields at product level (from first variant or min price)
-            if self.variants:
-                prices_ngn = [float(v.price_ngn) for v in self.variants if v.price_ngn]
-                prices_usd = [float(v.price_usd) for v in self.variants if v.price_usd and v.price_usd]
-                data["price_ngn"] = min(prices_ngn) if prices_ngn else None
-                data["price_usd"] = min(prices_usd) if prices_usd else None
-            else:
-                data["price_ngn"] = None
-                data["price_usd"] = None
         
         return data
 
@@ -168,16 +186,24 @@ class ProductVariant(db.Model):
     
     def to_dict(self, include_inventory: bool = False) -> Dict[str, Any]:
         """Convert variant to dictionary."""
+        # Extract color from attributes
+        color = ""
+        if self.attributes and isinstance(self.attributes, dict):
+            color = self.attributes.get("color", "") or ""
+        
         data = {
             "id": str(self.id),
             "product_id": str(self.product_id),
             "sku": self.sku,
             "price_ngn": float(self.price_ngn),
             "price_usd": float(self.price_usd) if self.price_usd else None,
+            "price": float(self.price_ngn),  # Alias for price_ngn
             "weight_g": self.weight_g,
             "attributes": self.attributes or {},
+            "color": color,
             "is_in_stock": self.is_in_stock,
             "stock_quantity": self.stock_quantity,
+            "stock": self.stock_quantity,  # Alias for stock_quantity
             "created_at": to_gmt1_or_none(self.created_at),
             "updated_at": to_gmt1_or_none(self.updated_at),
         }

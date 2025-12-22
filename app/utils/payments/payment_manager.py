@@ -348,8 +348,8 @@ class PaymentManager:
             if payment.status != str(PaymentStatus.COMPLETED):
                 if payment_type == str(PaymentType.WALLET_TOP_UP):
                     if payment.app_user:
-                        user: AppUser = payment.app_user
-                        credit_wallet(user.id, payment.amount, commit=False)
+                    user: AppUser = payment.app_user
+                    credit_wallet(user.id, payment.amount, commit=False)
                 
                 elif payment_type == str(PaymentType.ORDER_PAYMENT):
                     # Handle order payment - update order status and inventory
