@@ -139,6 +139,13 @@ class ProductDataModel(BaseModel):
     meta_keywords: Optional[str] = None
     status: Optional[str] = None
     launch_status: str
+    price_ngn: Optional[float] = None
+    price_usd: Optional[float] = None
+    price: Optional[float] = None
+    color: Optional[str] = None
+    stock: Optional[int] = None
+    images: Optional[List[Dict[str, Any]]] = None
+    image_urls: Optional[List[str]] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     variants: Optional[List[ProductVariantDataModel]] = None

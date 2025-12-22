@@ -150,6 +150,8 @@ Authorization: Bearer <clerk_token>
       "price": 50000.00,  // Alias for price_ngn
       "color": "Black",  // Comma-separated list from variants
       "stock": 10,  // Total stock from all variants
+      "images": [],  // Array of image objects (empty initially)
+      "image_urls": [],  // Array of image URLs for convenience
       "variants": [
         {
           "id": "uuid",
@@ -302,6 +304,77 @@ Authorization: Bearer <token>
 ```
 
 **Note:** Deleting a product also deletes all its variants and inventory records.
+
+### Add Product Images
+
+**Endpoint:** `POST /api/v1/admin/products/{product_id}/images`
+
+**Required Role:** Super Admin, Operations
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+- Use `FormData` with field name `images` (or `image` for single file)
+- Can upload multiple images at once
+- Only image files allowed: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`
+
+**Example (JavaScript):**
+```javascript
+const formData = new FormData();
+formData.append('images', file1);  // First image
+formData.append('images', file2);  // Second image
+
+const response = await fetch(`/api/v1/admin/products/${productId}/images`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`
+    // Don't set Content-Type - browser will set it with boundary
+  },
+  body: formData
+});
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Successfully uploaded 2 image(s)",
+  "data": {
+    "product_id": "uuid",
+    "images": [
+      {
+        "id": "uuid",
+        "filename": "product-image.jpg",
+        "file_url": "https://cloudinary.com/...",
+        "thumbnail_url": "https://cloudinary.com/...",
+        "file_type": "image",
+        "width": 1920,
+        "height": 1080
+      }
+    ],
+    "total_images": 2,
+    "errors": null
+  }
+}
+```
+
+**Note:** Images are automatically uploaded to Cloudinary and associated with the product. Product responses will include `images` array and `image_urls` array.
+
+### Remove Product Image
+
+**Endpoint:** `DELETE /api/v1/admin/products/{product_id}/images/{image_id}`
+
+**Required Role:** Super Admin, Operations
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Image removed successfully"
+}
+```
+
+**Note:** This only removes the association between product and image. The media file itself is not deleted.
 
 ---
 

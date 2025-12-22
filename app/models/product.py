@@ -26,7 +26,6 @@ from ..enums.products import (
 
 if TYPE_CHECKING:
     from .media import Media
-    from .inventory import Inventory
 
 
 class Product(db.Model):
@@ -63,6 +62,7 @@ class Product(db.Model):
     
     # Relationships
     variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
+    images = relationship("Media", secondary="product_media", lazy="dynamic", backref="products")
     
     def __repr__(self) -> str:
         return f"<Product {self.id}, {self.name}>"
@@ -123,13 +123,19 @@ class Product(db.Model):
             
             # Calculate total stock (sum of all variant stocks)
             total_stock = sum(v.stock_quantity for v in self.variants)
-            data["total_stock"] = total_stock
+            data["stock"] = total_stock
         else:
             data["price_ngn"] = None
             data["price_usd"] = None
             data["price"] = None
             data["color"] = ""
             data["stock"] = 0
+        
+        # Include product images
+        images = [img.to_dict() for img in self.images.all()]
+        data["images"] = images
+        # Also include image URLs as a simple array for convenience
+        data["image_urls"] = [img.file_url for img in self.images.all()]
         
         if include_variants:
             # Include variants with all details including prices
@@ -213,6 +219,13 @@ class ProductVariant(db.Model):
         
         return data
 
+
+# Association table for product-media many-to-many relationship
+product_media = db.Table(
+    "product_media",
+    db.Column("product_id", UUID(as_uuid=True), db.ForeignKey("product.id", ondelete="CASCADE"), primary_key=True),
+    db.Column("media_id", UUID(as_uuid=True), db.ForeignKey("media.id", ondelete="CASCADE"), primary_key=True),
+)
 
 # Association table for variant-media many-to-many relationship
 variant_media = db.Table(

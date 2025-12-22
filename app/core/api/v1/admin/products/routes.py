@@ -190,3 +190,45 @@ def delete_variant(product_id: str, variant_id: str):
     """Delete a variant."""
     return AdminProductController.delete_variant(product_id, variant_id)
 
+
+@bp.post("/<product_id>/images")
+@roles_required("Super Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Products"],
+    summary="Add Product Images",
+    description="Upload one or multiple images for a product. Accepts multipart/form-data with 'images' or 'image' field(s). Only image files (jpg, jpeg, png, webp, gif) are allowed.",
+    responses={
+        "201": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
+    },
+)
+def add_product_images(product_id: str):
+    """Add images to a product."""
+    return AdminProductController.add_product_images(product_id)
+
+
+@bp.delete("/<product_id>/images/<image_id>")
+@roles_required("Super Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Products"],
+    summary="Remove Product Image",
+    description="Remove an image from a product. Does not delete the media file, only removes the association.",
+    responses={
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
+    },
+)
+def remove_product_image(product_id: str, image_id: str):
+    """Remove an image from a product."""
+    return AdminProductController.remove_product_image(product_id, image_id)
+

@@ -60,12 +60,50 @@ def upload_to_cloudinary(media_file: FileStorage, new_media_name, folder_path, r
         raise e
     
 
-def save_media_to_db(media_name: str, original_media_path: str) -> Media:
+def save_media_to_db(media_name: str, original_media_path: str, upload_result: dict = None) -> Media:
     """Save the media record to the database."""
     try:
         new_media: Media = Media()
         new_media.filename = media_name
         new_media.file_url = original_media_path
+        
+        # Populate additional fields from Cloudinary upload result if provided
+        if upload_result:
+            # Extract format and create mime_type
+            format_type = upload_result.get('format', 'jpg').lower()
+            mime_map = {
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'png': 'image/png',
+                'webp': 'image/webp',
+                'gif': 'image/gif',
+                'mp4': 'video/mp4',
+                'avi': 'video/x-msvideo',
+                'mov': 'video/quicktime'
+            }
+            
+            new_media.original_filename = upload_result.get('original_filename', media_name)
+            new_media.file_path = upload_result.get('secure_url', original_media_path)
+            new_media.file_size = upload_result.get('bytes', 0)
+            new_media.file_type = upload_result.get('resource_type', 'image')
+            new_media.mime_type = mime_map.get(format_type, 'image/jpeg')
+            new_media.file_extension = f".{format_type}"
+            new_media.width = upload_result.get('width')
+            new_media.height = upload_result.get('height')
+            new_media.cloudinary_public_id = upload_result.get('public_id', '')
+            new_media.cloudinary_folder = upload_result.get('folder', '')
+            new_media.thumbnail_url = upload_result.get('secure_url', original_media_path)
+        else:
+            # Fallback values if upload_result not provided
+            new_media.original_filename = media_name
+            new_media.file_path = original_media_path
+            new_media.file_size = 0
+            new_media.file_type = 'image'
+            new_media.mime_type = 'image/jpeg'
+            new_media.file_extension = '.jpg'
+            new_media.cloudinary_public_id = ''
+            new_media.cloudinary_folder = ''
+        
         db.session.add(new_media)
         db.session.commit()
         return new_media
@@ -109,7 +147,7 @@ def save_media(media_file, filename=None) -> Media:
     original_media_path: str = upload_result['secure_url'] # Get the URL of the uploaded media
     
     # Add the media properties to database
-    new_media = save_media_to_db(media_name, original_media_path)
+    new_media = save_media_to_db(media_name, original_media_path, upload_result)
     
     return new_media
 
