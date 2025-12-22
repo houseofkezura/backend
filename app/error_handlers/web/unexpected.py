@@ -18,9 +18,12 @@ def _rollback():
 
 def _handle_unexpected(err: Exception):
     """Handle unexpected exceptions - show error page."""
-    # Only handle web routes - let API handlers deal with /api routes
+    # For API routes, delegate to API handlers
     if request.path.startswith("/api"):
-        raise err
+        from quas_utils.api import error_response
+        _rollback()
+        log_error("Unhandled exception", err, path=request.path)
+        return error_response("internal server error", 500)
     
     _rollback()
     log_error("Unhandled exception", err, path=request.path)
@@ -42,7 +45,7 @@ def _handle_unexpected(err: Exception):
 def add_web_unexpected_err_handler(bp: Blueprint):
     """
     Register catch-all exception handler for web blueprints.
-    This handler checks the path and only handles non-API routes.
+    This handler checks the path and delegates to API handlers for /api routes.
     Uses bp.register_error_handler like API handlers.
     """
     bp.register_error_handler(Exception, _handle_unexpected)

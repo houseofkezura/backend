@@ -25,9 +25,12 @@ def _rollback():
 
 def _handle_integrity(err: IntegrityError):
     """Handle database integrity errors."""
-    # Only handle web routes - let API handlers deal with /api routes
+    # For API routes, delegate to API handlers
     if request.path.startswith("/api"):
-        raise err
+        from quas_utils.api import error_response
+        _rollback()
+        log_error("Integrity error", err, path=request.path)
+        return error_response("conflict with existing data", 409)
     
     _rollback()
     log_error("Database integrity error", err, path=request.path)
@@ -48,9 +51,12 @@ def _handle_integrity(err: IntegrityError):
 
 def _handle_data(err: DataError):
     """Handle data errors."""
-    # Only handle web routes - let API handlers deal with /api routes
+    # For API routes, delegate to API handlers
     if request.path.startswith("/api"):
-        raise err
+        from quas_utils.api import error_response
+        _rollback()
+        log_error("Invalid data", err, path=request.path)
+        return error_response("invalid data", 400)
     
     _rollback()
     log_error("Database data error", err, path=request.path)
@@ -71,9 +77,12 @@ def _handle_data(err: DataError):
 
 def _handle_invalid_request(err: InvalidRequestError):
     """Handle invalid request errors."""
-    # Only handle web routes - let API handlers deal with /api routes
+    # For API routes, delegate to API handlers
     if request.path.startswith("/api"):
-        raise err
+        from quas_utils.api import error_response
+        _rollback()
+        log_error("Invalid request", err, path=request.path)
+        return error_response("invalid request", 400)
     
     _rollback()
     log_error("Database invalid request", err, path=request.path)
@@ -94,9 +103,12 @@ def _handle_invalid_request(err: InvalidRequestError):
 
 def _handle_db_operational(err: OperationalError):
     """Handle database operational errors."""
-    # Only handle web routes - let API handlers deal with /api routes
+    # For API routes, delegate to API handlers
     if request.path.startswith("/api"):
-        raise err
+        from quas_utils.api import error_response
+        _rollback()
+        log_error("Database operational error", err, path=request.path)
+        return error_response("database error", 500)
     
     _rollback()
     log_error("Database operational error", err, path=request.path)
@@ -117,9 +129,12 @@ def _handle_db_operational(err: OperationalError):
 
 def _handle_db_generic(err: DatabaseError):
     """Handle generic database errors."""
-    # Only handle web routes - let API handlers deal with /api routes
+    # For API routes, delegate to API handlers
     if request.path.startswith("/api"):
-        raise err
+        from quas_utils.api import error_response
+        _rollback()
+        log_error("Database error", err, path=request.path)
+        return error_response("database error", 500)
     
     _rollback()
     log_error("Database error", err, path=request.path)
@@ -141,7 +156,7 @@ def _handle_db_generic(err: DatabaseError):
 def add_web_db_err_handlers(bp: Blueprint):
     """
     Register database error handlers for web blueprints.
-    These handlers check the path and only handle non-API routes.
+    These handlers check the path and delegate to API handlers for /api routes.
     Uses bp.register_error_handler like API handlers.
     """
     bp.register_error_handler(IntegrityError, _handle_integrity)

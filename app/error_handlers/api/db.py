@@ -23,29 +23,49 @@ def _rollback():
         pass
 
 def _handle_integrity(err: IntegrityError):
-        _rollback()
-        log_error("Integrity error", err, path=request.path)
-        return error_response("conflict with existing data", 409)
+    # Only handle API routes - let web handlers deal with non-API routes
+    if not request.path.startswith("/api"):
+        raise err
+    
+    _rollback()
+    log_error("Integrity error", err, path=request.path)
+    return error_response("conflict with existing data", 409)
 
 def _handle_data(err: DataError):
-        _rollback()
-        log_error("Invalid data", err, path=request.path)
-        return error_response("invalid data", 400)
+    # Only handle API routes - let web handlers deal with non-API routes
+    if not request.path.startswith("/api"):
+        raise err
+    
+    _rollback()
+    log_error("Invalid data", err, path=request.path)
+    return error_response("invalid data", 400)
 
 def _handle_invalid_request(err: InvalidRequestError):
-        _rollback()
-        log_error("Invalid request", err, path=request.path)
-        return error_response("invalid request", 400)
+    # Only handle API routes - let web handlers deal with non-API routes
+    if not request.path.startswith("/api"):
+        raise err
+    
+    _rollback()
+    log_error("Invalid request", err, path=request.path)
+    return error_response("invalid request", 400)
 
 def _handle_db_operational(err: OperationalError):
-        _rollback()
-        log_error("Database operational error", err, path=request.path)
-        return error_response("database error", 500)
+    # Only handle API routes - let web handlers deal with non-API routes
+    if not request.path.startswith("/api"):
+        raise err
+    
+    _rollback()
+    log_error("Database operational error", err, path=request.path)
+    return error_response("database error", 500)
 
 def _handle_db_generic(err: DatabaseError):
-        _rollback()
-        log_error("Database error", err, path=request.path)
-        return error_response("database error", 500)
+    # Only handle API routes - let web handlers deal with non-API routes
+    if not request.path.startswith("/api"):
+        raise err
+    
+    _rollback()
+    log_error("Database error", err, path=request.path)
+    return error_response("database error", 500)
 
 
 def add_db_err_handlers(bp: Blueprint):
