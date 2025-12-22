@@ -8,6 +8,7 @@ from flask import Response, request
 from sqlalchemy import or_, and_, desc, asc
 from sqlalchemy.orm import Query
 from typing import Optional
+import uuid
 
 from app.extensions import db
 from app.models.product import Product, ProductVariant, Inventory
@@ -237,6 +238,36 @@ class ProductController:
         except Exception as e:
             log_error("Failed to get variants", error=e)
             return error_response("Failed to retrieve variants", 500)
+
+    @staticmethod
+    def get_variant(variant_id: str) -> Response:
+        """
+        Get a single variant by ID with inherited product information.
+        
+        Public endpoint - no authentication required.
+        """
+        try:
+            try:
+                variant_uuid = uuid.UUID(variant_id)
+            except ValueError:
+                return error_response("Invalid variant ID format", 400)
+            
+            variant = ProductVariant.query.get(variant_uuid)
+            
+            if not variant:
+                return error_response("Variant not found", 404)
+            
+            # Include product info (description, care, materials, etc.)
+            variant_data = variant.to_dict(include_inventory=True, include_product_info=True)
+            
+            return success_response(
+                "Variant retrieved successfully",
+                200,
+                {"variant": variant_data}
+            )
+        except Exception as e:
+            log_error("Failed to get variant", error=e)
+            return error_response("Failed to retrieve variant", 500)
 
 
 

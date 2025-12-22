@@ -376,6 +376,77 @@ const response = await fetch(`/api/v1/admin/products/${productId}/images`, {
 
 **Note:** This only removes the association between product and image. The media file itself is not deleted.
 
+### Add Variant Images
+
+**Endpoint:** `POST /api/v1/admin/products/{product_id}/variants/{variant_id}/images`
+
+**Required Role:** Super Admin, Operations
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+- Use `FormData` with field name `images` (or `image` for single file)
+- Can upload multiple images at once
+- Only image files allowed: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`
+
+**Example (JavaScript):**
+```javascript
+const formData = new FormData();
+formData.append('images', file1);
+formData.append('images', file2);
+
+const response = await fetch(`/api/v1/admin/products/${productId}/variants/${variantId}/images`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`
+  },
+  body: formData
+});
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Successfully uploaded 2 image(s)",
+  "data": {
+    "product_id": "uuid",
+    "variant_id": "uuid",
+    "images": [
+      {
+        "id": "uuid",
+        "filename": "variant-image.jpg",
+        "file_url": "https://cloudinary.com/...",
+        "thumbnail_url": "https://cloudinary.com/...",
+        "file_type": "image",
+        "width": 1920,
+        "height": 1080
+      }
+    ],
+    "total_images": 2,
+    "errors": null
+  }
+}
+```
+
+**Note:** Variant images are separate from product images. Variants can have their own images while also inheriting product images.
+
+### Remove Variant Image
+
+**Endpoint:** `DELETE /api/v1/admin/products/{product_id}/variants/{variant_id}/images/{image_id}`
+
+**Required Role:** Super Admin, Operations
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Image removed successfully"
+}
+```
+
+**Note:** This only removes the association between variant and image. The media file itself is not deleted.
+
 ---
 
 ## Variant Management

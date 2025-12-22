@@ -168,6 +168,7 @@ class ProductVariant(db.Model):
     # Relationships
     product = relationship("Product", back_populates="variants")
     inventory = relationship("Inventory", back_populates="variant", uselist=False, cascade="all, delete-orphan")
+    images = relationship("Media", secondary="variant_media", lazy="dynamic", backref="variants")
     
     # Timestamps
     created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
@@ -190,7 +191,7 @@ class ProductVariant(db.Model):
             return self.inventory.quantity
         return 0
     
-    def to_dict(self, include_inventory: bool = False) -> Dict[str, Any]:
+    def to_dict(self, include_inventory: bool = False, include_product_info: bool = False) -> Dict[str, Any]:
         """Convert variant to dictionary."""
         # Extract color from attributes
         color = ""
@@ -213,6 +214,25 @@ class ProductVariant(db.Model):
             "created_at": to_gmt1_or_none(self.created_at),
             "updated_at": to_gmt1_or_none(self.updated_at),
         }
+        
+        # Include variant images
+        images = [img.to_dict() for img in self.images.all()]
+        data["images"] = images
+        data["image_urls"] = [img.file_url for img in self.images.all()]
+        
+        # Inherit fields from parent product
+        if include_product_info and self.product:
+            data["product_name"] = self.product.name
+            data["product_slug"] = self.product.slug
+            data["product_category"] = self.product.category
+            data["description"] = self.product.description or ""
+            data["care"] = self.product.care or ""
+            data["details"] = self.product.details or ""
+            data["material"] = self.product.material or ""
+            # Include product images as well
+            product_images = [img.to_dict() for img in self.product.images.all()]
+            data["product_images"] = product_images
+            data["product_image_urls"] = [img.file_url for img in self.product.images.all()]
         
         if include_inventory and self.inventory:
             data["inventory"] = self.inventory.to_dict()

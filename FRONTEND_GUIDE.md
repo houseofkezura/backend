@@ -58,7 +58,9 @@ All requests are JSON; send `Content-Type: application/json`.
 
 ## Customer-Facing (high level)
 - Products: `GET /products`, `GET /products/:slug`  
-  Public endpoints return products with fields: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `variants` (with pricing, attributes, inventory).
+  Public endpoints return products with fields: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with pricing, attributes, inventory, images).
+- Variants: `GET /products/variants/:variant_id`  
+  Get a single variant by ID with inherited product information (description, care, materials, product images). Returns variant-specific images and product images separately.
 - Cart: `GET /cart`, `POST /cart/items`, `PUT /cart/items/:id`, `DELETE /cart/items/:id`
 - Checkout: `POST /checkout`
   - Guests allowed; must pass `email`, `phone`, `shipping_address`.
@@ -174,7 +176,72 @@ curl -X POST https://api.example.com/api/v1/checkout \
 ### End-to-end flow (frontend)
 1) Browse & cart  
    - `GET /api/v1/products` (filters: `category`, `search`, `in_stock_only`, `page`, `per_page`)  
-     Returns products with: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `variants` (with `price_ngn`, `price_usd`, `attributes`, `is_in_stock`, `stock_quantity`).  
+     Returns products with: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with `price_ngn`, `price_usd`, `attributes`, `is_in_stock`, `stock_quantity`, `images`, `image_urls`).
+
+### Get Variant by ID
+
+**Endpoint:** `GET /api/v1/public/products/variants/{variant_id}`
+
+**Description:** Get a single variant by ID with inherited product information. Variants inherit fields from their parent product (description, care, materials) and include both variant-specific images and product images.
+
+**Request:**
+- No authentication required (public endpoint)
+- Path parameter: `variant_id` (UUID)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Variant retrieved successfully",
+  "data": {
+    "variant": {
+      "id": "uuid",
+      "product_id": "uuid",
+      "sku": "KZ-WG-0A12-32BLK",
+      "price_ngn": 50000.00,
+      "price_usd": 50.00,
+      "price": 50000.00,
+      "color": "Black",
+      "stock": 10,
+      "is_in_stock": true,
+      "attributes": {
+        "color": "Black",
+        "length": "32",
+        "texture": "Straight"
+      },
+      "images": [
+        {
+          "id": "uuid",
+          "file_url": "https://cloudinary.com/...",
+          "thumbnail_url": "https://cloudinary.com/..."
+        }
+      ],
+      "image_urls": ["https://cloudinary.com/..."],
+      // Inherited from product
+      "product_name": "Kezura Mav Bone Straight Hair",
+      "product_slug": "kezura-mav-bone-straight-hair",
+      "product_category": "Wigs",
+      "description": "Premium bone straight hair extension",
+      "care": "Detangle gently with wide-tooth comb",
+      "details": "100% human hair, virgin quality",
+      "material": "Human Hair",
+      "product_images": [
+        {
+          "id": "uuid",
+          "file_url": "https://cloudinary.com/..."
+        }
+      ],
+      "product_image_urls": ["https://cloudinary.com/..."]
+    }
+  }
+}
+```
+
+**Note:** 
+- Variants inherit `description`, `care`, `details`, and `material` from their parent product
+- Variants have their own `images` array (variant-specific images)
+- Variants also include `product_images` array (inherited from product)
+- Use `image_urls` and `product_image_urls` for simple URL arrays  
    - `POST /api/v1/cart/items` (include `guest_token` header/payload for guests)  
    - `GET /api/v1/cart`
 2) Shipping quote  

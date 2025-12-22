@@ -104,16 +104,32 @@ class InventoryInfo(BaseModel):
 class ProductVariantDataModel(BaseModel):
     """Product variant data."""
     class Config:
-        extra = "forbid"
+        extra = "allow"  # Allow inherited fields from product
     
     id: str
+    product_id: Optional[str] = None
     sku: str
     price_ngn: float
     price_usd: Optional[float] = None
+    price: Optional[float] = None  # Alias for price_ngn
     weight_g: Optional[int] = None
     attributes: ProductVariantAttributes
+    color: Optional[str] = None
     is_in_stock: bool
-    stock_quantity: int
+    stock_quantity: Optional[int] = None
+    stock: Optional[int] = None  # Alias for stock_quantity
+    images: Optional[List[Dict[str, Any]]] = None
+    image_urls: Optional[List[str]] = None
+    # Inherited from product (when include_product_info=True)
+    product_name: Optional[str] = None
+    product_slug: Optional[str] = None
+    product_category: Optional[str] = None
+    description: Optional[str] = None
+    care: Optional[str] = None
+    details: Optional[str] = None
+    material: Optional[str] = None
+    product_images: Optional[List[Dict[str, Any]]] = None
+    product_image_urls: Optional[List[str]] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     inventory: Optional[InventoryInfo] = None

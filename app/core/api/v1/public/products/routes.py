@@ -76,5 +76,22 @@ def get_product_variants(product_id: str):
     return ProductController.get_product_variants(product_id)
 
 
+@bp.get("/variants/<variant_id>")
+@endpoint(
+    tags=["Products"],
+    summary="Get Variant by ID",
+    description="Get a single variant by ID with inherited product information (description, care, materials, images). Public.",
+    responses={
+        "200": None,
+        "400": None,
+        "404": None,
+        "500": None,
+    },
+)
+def get_variant(variant_id: str):
+    """Get variant by ID with product information."""
+    return ProductController.get_variant(variant_id)
+
+
 
 

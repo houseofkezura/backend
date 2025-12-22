@@ -681,3 +681,155 @@ class AdminProductController:
             db.session.rollback()
             return error_response("Failed to remove image", 500)
 
+    @staticmethod
+    def add_variant_images(product_id: str, variant_id: str) -> Response:
+        """
+        Add images to a product variant.
+        
+        Accepts multiple image files and associates them with the variant.
+        
+        Args:
+            product_id: Product ID
+            variant_id: Variant ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+                variant_uuid = uuid.UUID(variant_id)
+            except ValueError:
+                return error_response("Invalid ID format", 400)
+            
+            product = Product.query.get(product_uuid)
+            if not product:
+                return error_response("Product not found", 404)
+            
+            variant = ProductVariant.query.filter_by(id=variant_uuid, product_id=product_uuid).first()
+            if not variant:
+                return error_response("Variant not found", 404)
+            
+            # Get files from request (can be single file or multiple)
+            files = request.files.getlist('images') or request.files.getlist('image')
+            
+            if not files or len(files) == 0:
+                return error_response("No image files provided", 400)
+            
+            uploaded_images = []
+            errors = []
+            
+            for file in files:
+                if not file or file.filename == '':
+                    continue
+                
+                try:
+                    # Validate file type (only images)
+                    filename = file.filename.lower()
+                    if not any(filename.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']):
+                        errors.append(f"{file.filename}: Invalid file type. Only images are allowed.")
+                        continue
+                    
+                    # Save media using helper
+                    media = save_media(file)
+                    
+                    # Associate with variant using relationship
+                    variant.images.append(media)
+                    db.session.flush()  # Flush to get media ID
+                    
+                    uploaded_images.append(media.to_dict())
+                    
+                except Exception as e:
+                    log_error(f"Failed to upload image {file.filename}", error=e)
+                    errors.append(f"{file.filename}: {str(e)}")
+                    # Don't rollback here - continue with other files
+                    continue
+            
+            if not uploaded_images:
+                db.session.rollback()
+                return error_response(
+                    f"Failed to upload images. Errors: {'; '.join(errors)}" if errors else "No valid images provided",
+                    400
+                )
+            
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                log_error("Failed to commit variant images", error=e)
+                return error_response("Failed to save images", 500)
+            
+            log_event(f"Added {len(uploaded_images)} images to variant {variant_id} by admin {current_user.id}")
+            
+            response_message = f"Successfully uploaded {len(uploaded_images)} image(s)"
+            if errors:
+                response_message += f". {len(errors)} file(s) failed: {'; '.join(errors)}"
+            
+            return success_response(
+                response_message,
+                201,
+                {
+                    "product_id": str(product.id),
+                    "variant_id": str(variant.id),
+                    "images": uploaded_images,
+                    "total_images": len(uploaded_images),
+                    "errors": errors if errors else None
+                }
+            )
+        except Exception as e:
+            log_error(f"Failed to add images to variant {variant_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to upload images", 500)
+
+    @staticmethod
+    def remove_variant_image(product_id: str, variant_id: str, image_id: str) -> Response:
+        """
+        Remove an image from a product variant.
+        
+        Args:
+            product_id: Product ID
+            variant_id: Variant ID
+            image_id: Media ID to remove
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                product_uuid = uuid.UUID(product_id)
+                variant_uuid = uuid.UUID(variant_id)
+                image_uuid = uuid.UUID(image_id)
+            except ValueError:
+                return error_response("Invalid ID format", 400)
+            
+            product = Product.query.get(product_uuid)
+            if not product:
+                return error_response("Product not found", 404)
+            
+            variant = ProductVariant.query.filter_by(id=variant_uuid, product_id=product_uuid).first()
+            if not variant:
+                return error_response("Variant not found", 404)
+            
+            # Check if image is associated with variant
+            media = Media.query.get(image_uuid)
+            if not media:
+                return error_response("Image not found", 404)
+            
+            if media not in variant.images.all():
+                return error_response("Image not associated with this variant", 404)
+            
+            # Remove association using relationship
+            variant.images.remove(media)
+            
+            db.session.commit()
+            
+            log_event(f"Removed image {image_id} from variant {variant_id} by admin {current_user.id}")
+            
+            return success_response("Image removed successfully", 200)
+        except Exception as e:
+            log_error(f"Failed to remove image from variant {variant_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to remove image", 500)
+
