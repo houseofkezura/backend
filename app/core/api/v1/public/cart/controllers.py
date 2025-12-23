@@ -29,6 +29,10 @@ def get_or_create_cart(user_id: Optional[uuid.UUID] = None, guest_token: Optiona
     """
     Get existing cart or create a new one.
     
+    IMPORTANT: This function preserves guest_token. If a guest_token is provided,
+    it will use that token. If no token is provided and user is guest, it generates a new one.
+    The token should be persisted by the frontend and reused across requests.
+    
     Args:
         user_id: Authenticated user ID (None for guests)
         guest_token: Guest cart token (None for authenticated users)
@@ -45,6 +49,7 @@ def get_or_create_cart(user_id: Optional[uuid.UUID] = None, guest_token: Optiona
             db.session.commit()
         return cart
     elif guest_token:
+        # Always use the provided guest_token - don't generate a new one
         cart = Cart.query.filter_by(guest_token=guest_token).first()
         if not cart:
             cart = Cart()
@@ -53,7 +58,8 @@ def get_or_create_cart(user_id: Optional[uuid.UUID] = None, guest_token: Optiona
             db.session.commit()
         return cart
     else:
-        # Create new guest cart
+        # Only generate new token if no token was provided
+        # This should rarely happen if frontend properly manages tokens
         cart = Cart()
         cart.guest_token = generate_guest_token()
         db.session.add(cart)
@@ -70,19 +76,38 @@ class CartController:
         Get the current user's cart or guest cart.
         
         Supports both authenticated users and guests.
+        Can also get cart by ID or guest_token as query parameters.
         """
         try:
             current_user = get_current_user()
+            
+            # Check for cart_id or guest_token in query params (for direct cart lookup)
+            cart_id = request.args.get("cart_id")
             guest_token = request.headers.get("X-Guest-Token") or request.args.get("guest_token")
             
             cart = None
-            if current_user:
+            
+            # Priority: cart_id > user_id > guest_token
+            if cart_id:
+                try:
+                    cart_uuid = uuid.UUID(cart_id)
+                    cart = Cart.query.get(cart_uuid)
+                    if cart:
+                        # Verify ownership
+                        if current_user and cart.user_id != current_user.id:
+                            return error_response("Unauthorized access to cart", 403)
+                        if not current_user and cart.guest_token != guest_token:
+                            return error_response("Unauthorized access to cart", 403)
+                except ValueError:
+                    return error_response("Invalid cart ID format", 400)
+            elif current_user:
                 cart = Cart.query.filter_by(user_id=current_user.id).first()
             elif guest_token:
                 cart = Cart.query.filter_by(guest_token=guest_token).first()
             
             if not cart:
-                # Return empty cart structure
+                # Return empty cart structure with the provided guest_token (don't generate new one)
+                # Only generate new token if none was provided
                 return success_response(
                     "Cart retrieved successfully",
                     200,
@@ -93,7 +118,7 @@ class CartController:
                             "total_items": 0,
                             "subtotal": 0.0,
                         },
-                        "guest_token": guest_token or generate_guest_token(),
+                        "guest_token": guest_token if guest_token else generate_guest_token(),
                     }
                 )
             

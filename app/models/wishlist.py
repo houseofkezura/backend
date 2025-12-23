@@ -50,20 +50,9 @@ class WishlistItem(db.Model):
         """Convert wishlist item to dictionary."""
         variant_data = None
         if self.variant:
-            variant_data = {
-                "id": str(self.variant.id),
-                "sku": self.variant.sku,
-                "product_id": str(self.variant.product_id),
-                "price_ngn": float(self.variant.price_ngn),
-                "price_usd": float(self.variant.price_usd) if self.variant.price_usd else None,
-                "attributes": self.variant.attributes or {},
-                "is_in_stock": self.variant.is_in_stock,
-                "product": {
-                    "id": str(self.variant.product.id),
-                    "name": self.variant.product.name,
-                    "slug": self.variant.product.slug,
-                } if self.variant.product else None,
-            }
+            # Get variant data with images
+            variant_dict = self.variant.to_dict(include_inventory=True, include_product_info=True)
+            variant_data = variant_dict
         
         return {
             "id": str(self.id),

@@ -61,7 +61,10 @@ All requests are JSON; send `Content-Type: application/json`.
   Public endpoints return products with fields: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with pricing, attributes, inventory, images).
 - Variants: `GET /products/variants/:variant_id`  
   Get a single variant by ID with inherited product information (description, care, materials, product images). Returns variant-specific images and product images separately.
-- Cart: `GET /cart`, `POST /cart/items`, `PUT /cart/items/:id`, `DELETE /cart/items/:id`
+- Cart: `GET /cart`, `POST /cart/items`, `PUT /cart/items/:id`, `DELETE /cart/items/:id`  
+  Supports authenticated users and guests. Guest tokens are preserved across requests - store the token from the first response and reuse it. Cart items include variant images and product information.
+- Wishlist: `GET /wishlist`, `POST /wishlist/items`, `DELETE /wishlist/items/:id`, `GET /wishlist/check/:variant_id`  
+  Authenticated-only. Returns variant images, product images, and inherited product fields (description, care, materials).
 - Checkout: `POST /checkout`
   - Guests allowed; must pass `email`, `phone`, `shipping_address`.
   - Optional `idempotency_key` to safely retry.
@@ -173,11 +176,6 @@ curl -X POST https://api.example.com/api/v1/checkout \
   }'
 ```
 
-### End-to-end flow (frontend)
-1) Browse & cart  
-   - `GET /api/v1/products` (filters: `category`, `search`, `in_stock_only`, `page`, `per_page`)  
-     Returns products with: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with `price_ngn`, `price_usd`, `attributes`, `is_in_stock`, `stock_quantity`, `images`, `image_urls`).
-
 ### Get Variant by ID
 
 **Endpoint:** `GET /api/v1/public/products/variants/{variant_id}`
@@ -241,9 +239,193 @@ curl -X POST https://api.example.com/api/v1/checkout \
 - Variants inherit `description`, `care`, `details`, and `material` from their parent product
 - Variants have their own `images` array (variant-specific images)
 - Variants also include `product_images` array (inherited from product)
-- Use `image_urls` and `product_image_urls` for simple URL arrays  
-   - `POST /api/v1/cart/items` (include `guest_token` header/payload for guests)  
-   - `GET /api/v1/cart`
+- Use `image_urls` and `product_image_urls` for simple URL arrays
+
+### Cart Management
+
+**Endpoint:** `GET /api/v1/cart`
+
+**Description:** Get the current user's cart or guest cart. Supports multiple lookup methods:
+- By authenticated user (automatic)
+- By guest token (header `X-Guest-Token` or query param `guest_token`)
+- By cart ID (query param `cart_id`)
+
+**Guest Token Management:**
+- **CRITICAL**: Guest tokens are preserved across requests. Store the token from the first cart response and reuse it.
+- First request: Store `guest_token` from response (localStorage/sessionStorage)
+- Subsequent requests: Send token via `X-Guest-Token` header or `guest_token` query param
+- Token only changes if not provided (new guest session)
+
+**Request Headers (for guests):**
+- `X-Guest-Token: <token>` (recommended)
+
+**Query Parameters:**
+- `cart_id` (optional): Cart UUID to fetch specific cart
+- `guest_token` (optional): Alternative to header (for guests)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Cart retrieved successfully",
+  "data": {
+    "cart": {
+      "id": "uuid",
+      "user_id": null,
+      "guest_token": "abc123...",
+      "items": [
+        {
+          "id": "uuid",
+          "variant_id": "uuid",
+          "quantity": 2,
+          "unit_price": 50000.00,
+          "line_total": 100000.00,
+          "variant": {
+            "id": "uuid",
+            "sku": "KZ-WG-0A12-32BLK",
+            "price_ngn": 50000.00,
+            "price": 50000.00,
+            "color": "Black",
+            "stock": 10,
+            "images": [
+              {
+                "id": "uuid",
+                "file_url": "https://cloudinary.com/...",
+                "thumbnail_url": "https://cloudinary.com/..."
+              }
+            ],
+            "image_urls": ["https://cloudinary.com/..."],
+            "product_name": "Kezura Mav Bone Straight Hair",
+            "product_slug": "kezura-mav-bone-straight-hair",
+            "description": "Premium bone straight hair extension",
+            "care": "Detangle gently",
+            "material": "Human Hair",
+            "product_images": [...],
+            "product_image_urls": [...]
+          }
+        }
+      ],
+      "total_items": 2,
+      "subtotal": 100000.00
+    },
+    "guest_token": "abc123..."
+  }
+}
+```
+
+**Example (JavaScript):**
+```javascript
+// First request - store token
+const response = await fetch('/api/v1/cart');
+const { guest_token } = await response.json();
+localStorage.setItem('guest_token', guest_token);
+
+// Subsequent requests - reuse token
+const token = localStorage.getItem('guest_token');
+const cartResponse = await fetch('/api/v1/cart', {
+  headers: { 'X-Guest-Token': token }
+});
+
+// Or use query param
+const cartResponse2 = await fetch(`/api/v1/cart?guest_token=${token}`);
+
+// Or get by cart ID (if you have it)
+const cartResponse3 = await fetch(`/api/v1/cart?cart_id=${cartId}`);
+```
+
+**Add Item to Cart:** `POST /api/v1/cart/items`
+- Body: `{ variant_id, quantity, guest_token? }`
+- Headers: `X-Guest-Token` (for guests)
+- Returns updated cart with `guest_token` (preserve this token!)
+
+**Update Cart Item:** `PUT /api/v1/cart/items/{item_id}`
+- Body: `{ quantity }`
+- Headers: `X-Guest-Token` (for guests)
+
+**Remove Cart Item:** `DELETE /api/v1/cart/items/{item_id}`
+- Headers: `X-Guest-Token` (for guests)
+
+### Wishlist Management
+
+**Endpoint:** `GET /api/v1/wishlist`
+
+**Description:** Get authenticated user's wishlist. Returns paginated results with full variant data including images and product information.
+
+**Request:**
+- Requires authentication (`Authorization: Bearer <token>`)
+- Query params: `page` (default: 1), `per_page` (default: 20, max: 100)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Wishlist retrieved successfully",
+  "data": {
+    "items": [
+      {
+        "id": "uuid",
+        "variant_id": "uuid",
+        "variant": {
+          "id": "uuid",
+          "sku": "KZ-WG-0A12-32BLK",
+          "price_ngn": 50000.00,
+          "price": 50000.00,
+          "color": "Black",
+          "stock": 10,
+          "is_in_stock": true,
+          "attributes": {
+            "color": "Black",
+            "length": "32"
+          },
+          "images": [
+            {
+              "id": "uuid",
+              "file_url": "https://cloudinary.com/...",
+              "thumbnail_url": "https://cloudinary.com/..."
+            }
+          ],
+          "image_urls": ["https://cloudinary.com/..."],
+          "product": {
+            "id": "uuid",
+            "name": "Kezura Mav Bone Straight Hair",
+            "slug": "kezura-mav-bone-straight-hair"
+          },
+          "product_name": "Kezura Mav Bone Straight Hair",
+          "product_slug": "kezura-mav-bone-straight-hair",
+          "product_category": "Wigs",
+          "description": "Premium bone straight hair extension",
+          "care": "Detangle gently",
+          "details": "100% human hair",
+          "material": "Human Hair",
+          "product_images": [...],
+          "product_image_urls": [...]
+        },
+        "created_at": "2025-12-22T10:00:00Z"
+      }
+    ],
+    "total": 5,
+    "current_page": 1,
+    "total_pages": 1
+  }
+}
+```
+
+**Add to Wishlist:** `POST /api/v1/wishlist/items`
+- Body: `{ variant_id }`
+- Returns wishlist item with full variant data including images
+
+**Remove from Wishlist:** `DELETE /api/v1/wishlist/items/{item_id}`
+
+**Check if in Wishlist:** `GET /api/v1/wishlist/check/{variant_id}`
+- Returns: `{ variant_id, is_in_wishlist, wishlist_item_id? }`
+
+### End-to-end flow (frontend)
+1) Browse & cart  
+   - `GET /api/v1/products` (filters: `category`, `search`, `in_stock_only`, `page`, `per_page`)  
+     Returns products with: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with `price_ngn`, `price_usd`, `attributes`, `is_in_stock`, `stock_quantity`, `images`, `image_urls`).
+   - `POST /api/v1/cart/items` (include `guest_token` in body or `X-Guest-Token` header for guests)  
+     **IMPORTANT**: Store the `guest_token` from the response for subsequent requests.
+   - `GET /api/v1/cart` (include `X-Guest-Token` header for guests)
 2) Shipping quote  
    - `GET /api/v1/shipping/zones?country=NG` to show costs/ETA.
 3) Checkout (creates order + payment session)  

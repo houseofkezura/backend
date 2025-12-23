@@ -1,0 +1,177 @@
+{% extends 'admin/base/index.html' %}
+{% block title %}Products - {{ super() }}{% endblock %}
+
+{% set search_term = request.args.get('search', '') %}
+
+{% block content %}
+    {% if pagination.items %}
+
+        <div class="relative overflow-x-auto">
+            <div id="main-header" class="flex items-center justify-between flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white dark:bg-gray-900">
+                <h1 class="text-2xl font-bold">Products</h1>
+                {% if 'Super Admin' in CURRENT_USER.roles or 'Admin' in CURRENT_USER.roles or 'Operations' in CURRENT_USER.roles %}
+                    <a href="{{ url_for('web.web_admin.web_admin_products.add_new_product') }}" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Product </span></a>
+                {% endif %}
+            </div>
+
+            <div
+                class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4 bg-white dark:bg-gray-900">
+                <div>
+                    <button id="dropdownActionButton" data-dropdown-toggle="dropdownAction"
+                        class="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                        type="button">
+                        <span class="sr-only">Action button</span>
+                        Action
+                        <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 10 6">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 4 4 4-4" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown menu -->
+                    <div id="dropdownAction"
+                        class="z-10 hidden divide-y divide-gray-100 rounded-lg shadow w-44 dark:divide-gray-600 text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 border border-outline-clr">
+                        <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">Delete</a>
+                            </li>
+                        </ul>
+                        <div class="py-1">
+                            <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete
+                                User</a>
+                        </div>
+                    </div>
+                </div>
+                <label for="table-search" class="sr-only">Search</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <form method="GET" action="{{ url_for('web.web_admin.web_admin_products.products') }}">
+                        <input type="text" id="table-search-products" name="search"
+                            class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary"
+                            placeholder="Search products..." value="{{ search_term }}">
+                    </form>
+                </div>
+            </div>
+            
+            <div class="rounded-lg shadow-md border border-outline-clr overflow-y-hidden">
+            <table class="w-full shadow-md lg:rounded-lg text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="p-4">
+                            <div class="flex items-center">
+                                <input id="checkbox-all-search" type="checkbox"
+                                    class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="checkbox-all-search" class="sr-only">checkbox</label>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1 py-3">
+                            Image
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Name
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Price
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Category
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            SKU
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Status
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for product in pagination.items %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td class="w-4 p-4">
+                            <div class="flex items-center">
+                                <input id="checkbox-table-search-1" type="checkbox"
+                                    class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
+                            </div>
+                        </td>
+                        <th scope="row" class="px-2 py-2">
+                            {% if product.image_urls and product.image_urls|length > 0 %}
+                                <img class="size-12 rounded-md object-cover" src="{{ product.image_urls[0] }}" alt="{{ product.name }} image">
+                            {% else %}
+                                <img class="size-12 rounded-md object-cover" src="{{ url_for('static', filename='admin/img/placeholder-360x360.jpg') }}" alt="No image">
+                            {% endif %}
+                        </th>
+                        <td scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                            <div class="">
+                                <div class="text-base font-semibold">{{ product.name }}</div>
+                                <div class="font-normal text-gray-500 text-xs">ID: {{ product.id }}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if product.price %}
+                                ₦{{ "{:,.2f}".format(product.price) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                {{ product.category }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-mono text-xs text-gray-500">{{ product.sku }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full {% if product.launch_status == 'In-Stock' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% elif product.launch_status == 'Out of Stock' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% else %}bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200{% endif %}">
+                                {{ product.launch_status }}
+                            </span>
+                            <div class="font-normal text-gray-500 text-xs mt-1">{{ product.created_at.strftime('%b %d, %Y') if product.created_at else '—' }}</div>
+                        </td>
+                        <td class="px-6 py-4 flex items-center gap-2">
+                            <a href="{{ url_for('web.web_admin.web_admin_products.view_product', product_id=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">View</a>
+                            <a href="{{ url_for('web.web_admin.web_admin_products.edit_product', product_id=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-primary text-primary dark:text-primary hover:bg-alert-info">Edit</a>
+                            <form method="POST" action="{{ url_for('web.web_admin.web_admin_products.delete_product', product_id=product.id) }}" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline">
+                                <button type="submit" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-alert-danger-solid text-alert-danger-solid dark:text-alert-danger-solid hover:bg-alert-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            {% set prev_url = url_for('web.web_admin.web_admin_products.products', page=pagination.prev_num, search=search_term) if pagination.prev_num else None %}
+            {% set next_url = url_for('web.web_admin.web_admin_products.products', page=pagination.next_num, search=search_term) if pagination.next_num else None %}
+            {% set page_num_url = url_for('web.web_admin.web_admin_products.products', search=search_term) %}
+
+            {% with prev_url=prev_url, next_url=next_url, page_num_url=page_num_url, pagination=pagination, total_pages=total_pages %}
+                {% include 'admin/components/pagination.html' %}
+            {% endwith %}
+        </div>
+    
+    {% elif search_term %}
+        {% with search_term=search_term, data_in_db='Product', data_in_db_url=url_for('web.web_admin.web_admin_products.products') %}
+            {% include 'admin/components/no_result.html' %}
+        {% endwith %}
+    {% else %}
+        
+        {% with data_in_db='Product', data_in_db_url=url_for('web.web_admin.web_admin_products.add_new_product') %}
+            {% include 'admin/components/no_data.html' %}
+        {% endwith %}
+    
+    {% endif %}
+{% endblock %}

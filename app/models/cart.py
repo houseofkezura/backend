@@ -99,12 +99,9 @@ class CartItem(db.Model):
         """Convert cart item to dictionary."""
         variant_data = None
         if self.variant:
-            variant_data = {
-                "id": str(self.variant.id),
-                "sku": self.variant.sku,
-                "product_id": str(self.variant.product_id),
-                "attributes": self.variant.attributes or {},
-            }
+            # Get variant data with images and product info
+            variant_dict = self.variant.to_dict(include_inventory=True, include_product_info=True)
+            variant_data = variant_dict
         
         return {
             "id": str(self.id),

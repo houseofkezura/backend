@@ -4,7 +4,7 @@ Public cart routes.
 
 from __future__ import annotations
 
-from app.extensions.docs import endpoint
+from app.extensions.docs import endpoint, QueryParameter
 from app.schemas.response_data import (
     CartData,
     CartItemData,
@@ -19,9 +19,15 @@ from . import bp
 @endpoint(
     tags=["Cart"],
     summary="Get Cart",
-    description="Fetch the active cart for the signed-in user or for a guest (using X-Guest-Token). Returns an empty cart plus a guest_token when none exists.",
+    description="Fetch the active cart for the signed-in user or for a guest (using X-Guest-Token header or guest_token query param). Can also get cart by cart_id query parameter. Returns an empty cart plus a guest_token when none exists. Guest tokens are preserved across requests - store the token from the response and reuse it in subsequent requests.",
+    query_params=[
+        QueryParameter("cart_id", "string", required=False, description="Cart ID (UUID) to fetch specific cart"),
+        QueryParameter("guest_token", "string", required=False, description="Guest cart token (alternative to X-Guest-Token header)"),
+    ],
     responses={
         "200": CartData,
+        "400": ValidationErrorData,
+        "403": None,
         "500": None,
     },
 )

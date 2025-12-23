@@ -5,6 +5,7 @@ from flask import Blueprint, request, redirect, url_for
 from .home import bp as home_bp
 from .auth import bp as auth_bp
 from .settings import bp as settings_bp
+from .products import bp as products_bp
 from app.utils.decorators.auth import roles_required_web, ADMIN_ALLOWED_ROLES
 
 
@@ -16,6 +17,7 @@ def create_web_admin_blueprint():
     web_admin_bp.register_blueprint(auth_bp)
     web_admin_bp.register_blueprint(home_bp)
     web_admin_bp.register_blueprint(settings_bp)
+    web_admin_bp.register_blueprint(products_bp)
 
     @web_admin_bp.before_request
     def _require_admin_access():
