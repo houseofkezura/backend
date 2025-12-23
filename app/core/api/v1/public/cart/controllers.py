@@ -45,7 +45,8 @@ def get_or_create_cart(user_id: Optional[uuid.UUID] = None, guest_token: Optiona
         Cart instance
     """
     if user_id:
-        # For authenticated users, prioritize user cart
+        # For authenticated users, ALWAYS prioritize user cart
+        # First, try to find existing user cart
         user_cart = Cart.query.filter_by(user_id=user_id).first()
         
         # If guest_token provided, check for guest cart to migrate
@@ -88,12 +89,28 @@ def get_or_create_cart(user_id: Optional[uuid.UUID] = None, guest_token: Optiona
                 # Refresh to get updated items
                 db.session.refresh(user_cart)
         
+        # If no user cart exists, create one
+        # IMPORTANT: For authenticated users, we ALWAYS create a cart with user_id
+        # We NEVER create a guest cart for authenticated users, even if guest_token is provided
         if not user_cart:
-            # Create new cart for user
             user_cart = Cart()
             user_cart.user_id = user_id
+            # Explicitly set guest_token to None for authenticated users
+            # This ensures the cart is always associated with the user, not a guest token
+            user_cart.guest_token = None
             db.session.add(user_cart)
+            db.session.flush()  # Flush to get the ID
             db.session.commit()
+            log_event(f"Created new cart {user_cart.id} for authenticated user {user_id}")
+        
+        # CRITICAL: Double-check that the cart is properly associated with the user
+        # This prevents any edge cases where a cart might not have the correct user_id
+        if user_cart.user_id != user_id:
+            log_error(f"Cart {user_cart.id} has wrong user_id {user_cart.user_id}, expected {user_id}. Fixing...", error=None)
+            user_cart.user_id = user_id
+            user_cart.guest_token = None  # Ensure guest_token is cleared
+            db.session.commit()
+            log_event(f"Fixed cart {user_cart.id} to be associated with user {user_id}")
         
         return user_cart
     elif guest_token:
@@ -144,20 +161,44 @@ class CartController:
                     cart_uuid = uuid.UUID(cart_id)
                     cart = Cart.query.get(cart_uuid)
                     if cart:
-                        # Verify ownership
-                        if current_user and cart.user_id != current_user.id:
-                            return error_response("Unauthorized access to cart", 403)
-                        if not current_user and cart.guest_token != guest_token:
-                            return error_response("Unauthorized access to cart", 403)
+                        # Verify ownership - CRITICAL: For authenticated users, cart MUST have matching user_id
+                        if current_user:
+                            if cart.user_id != current_user.id:
+                                log_error(f"Cart ownership mismatch: Cart {cart.id} has user_id {cart.user_id}, but current user is {current_user.id}", error=None)
+                                return error_response("Unauthorized access to cart", 403)
+                            # Also verify it's not a guest cart (shouldn't have guest_token for authenticated users)
+                            if cart.guest_token and not cart.user_id:
+                                log_error(f"Cart {cart.id} is a guest cart but user is authenticated", error=None)
+                                return error_response("Unauthorized access to cart", 403)
+                        elif not current_user:
+                            # For guests, verify guest_token matches
+                            if cart.guest_token != guest_token:
+                                return error_response("Unauthorized access to cart", 403)
+                            # Guest shouldn't access user carts
+                            if cart.user_id:
+                                return error_response("Unauthorized access to cart", 403)
                 except ValueError:
                     return error_response("Invalid cart ID format", 400)
             elif current_user:
                 # Use get_or_create_cart() for consistency with add_item()
                 # This ensures authenticated users always get their cart properly
+                # For authenticated users, guest_token is only used for migration
                 cart = get_or_create_cart(
                     user_id=current_user.id,
                     guest_token=guest_token  # Allow migration if guest_token provided
                 )
+                # Verify cart is properly associated with user
+                if cart and cart.user_id != current_user.id:
+                    log_error(f"Cart {cart.id} is not associated with user {current_user.id}. Cart user_id: {cart.user_id}", error=None)
+                    # Force create a new cart for the user
+                    cart = Cart()
+                    cart.user_id = current_user.id
+                    cart.guest_token = None
+                    db.session.add(cart)
+                    db.session.commit()
+                    log_event(f"Created new cart {cart.id} for user {current_user.id} due to mismatch")
+                # Log for debugging
+                log_event(f"Get cart: User {current_user.id}, Cart {cart.id if cart else None}, Cart user_id: {cart.user_id if cart else None}, Cart guest_token: {cart.guest_token if cart else None}")
             elif guest_token:
                 cart = get_or_create_cart(guest_token=guest_token)
             else:
@@ -208,11 +249,26 @@ class CartController:
             payload = AddCartItemRequest.model_validate(request.get_json())
             current_user = get_current_user()
             
+            # For authenticated users, we should NOT use guest_token from payload/header
+            # Guest token is only used for migration if provided
+            # For authenticated users, cart is always associated with user_id
+            guest_token = None
+            if not current_user:
+                # Only use guest_token for guests
+                guest_token = payload.guest_token or request.headers.get("X-Guest-Token")
+            elif payload.guest_token or request.headers.get("X-Guest-Token"):
+                # For authenticated users, guest_token is only for migration
+                guest_token = payload.guest_token or request.headers.get("X-Guest-Token")
+            
             # Get or create cart
             cart = get_or_create_cart(
                 user_id=current_user.id if current_user else None,
-                guest_token=payload.guest_token or request.headers.get("X-Guest-Token")
+                guest_token=guest_token
             )
+            
+            # Log for debugging
+            if current_user:
+                log_event(f"Add item: User {current_user.id}, Cart {cart.id}, Cart user_id: {cart.user_id}, Cart guest_token: {cart.guest_token}")
             
             # Validate variant
             try:
