@@ -1,52 +1,156 @@
 """
-Author: Emmanuel Olowu
-Link: https://github.com/zeddyemy
-Copyright: © 2024 Emmanuel Olowu <zeddyemy@gmail.com>
-License: GNU, see LICENSE for more details.
-Package: StoreZed
+Product forms for admin web interface.
 """
-from wsgiref.validate import validator
+
+from __future__ import annotations
+
 from flask_wtf import FlaskForm
-from wtforms import (StringField, IntegerField, TextAreaField, SelectField, HiddenField, SelectMultipleField, ValidationError, widgets)
-from wtforms.validators import DataRequired, Optional
+from wtforms import (
+    StringField, TextAreaField, SelectField, HiddenField, 
+    SelectMultipleField, DecimalField, ValidationError, widgets
+)
+from wtforms.validators import DataRequired, Optional, Length, NumberRange
 from flask_wtf.file import FileField, FileAllowed
 
 from app.utils.helpers.category import get_category_choices
 from app.models.category import ProductCategory
+from app.enums.products import LaunchStatus
 
-# class to change the way SelectMultipleField
-# is rendered by jinja
+
 class MultiCheckboxField(SelectMultipleField):
     """
-    A multiple-select, except displays a list of checkboxes.
-
-    Iterating the field will produce subfields, allowing custom rendering of
-    the enclosed checkbox fields.
+    A multiple-select field that displays as a list of checkboxes.
     """
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
 
 
-size_choices = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', '4XL',]
-
-class AddProductForm(FlaskForm):
-    """ form to add new product """
-    name = StringField('Name', validators=[DataRequired()])
-    description = TextAreaField('Description', validators=[Optional()])
-    selling_price = IntegerField('Selling Price', validators=[DataRequired()])
-    actual_price = IntegerField('Actual Price', validators=[Optional()])
+class ProductForm(FlaskForm):
+    """
+    Form for creating/editing products.
+    Matches the Product model structure.
+    """
+    # Basic Information
+    name = StringField(
+        'Product Name',
+        validators=[DataRequired(), Length(min=1, max=255)],
+        description="Enter the product name"
+    )
     
-    global size_choices
-    select_available_sizes = MultiCheckboxField('Sizes', choices=size_choices, validators=[Optional()])
+    sku = StringField(
+        'SKU',
+        validators=[Optional(), Length(max=100)],
+        description="Leave blank to auto-generate"
+    )
     
-    colors = StringField('Colors', validators=[Optional()])
-    product_category = SelectField('Product Category', choices=[], validate_choice=False)
-    product_img = FileField('Product Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'webp'], 'Images only!')])
-    product_tags = HiddenField('product Tags')
+    slug = StringField(
+        'Slug',
+        validators=[Optional(), Length(max=255)],
+        description="URL-friendly identifier (auto-generated if blank)"
+    )
+    
+    description = TextAreaField(
+        'Description',
+        validators=[Optional()],
+        description="Product description"
+    )
+    
+    # Category
+    category_id = SelectField(
+        'Category',
+        choices=[],
+        validators=[DataRequired()],
+        validate_choice=False,
+        coerce=str,  # Coerce to string to handle UUIDs
+        description="Select a product category"
+    )
+    
+    # Product Details
+    care = TextAreaField(
+        'Care Instructions',
+        validators=[Optional()],
+        description="Product care instructions"
+    )
+    
+    details = TextAreaField(
+        'Product Details',
+        validators=[Optional()],
+        description="Additional product details"
+    )
+    
+    material = StringField(
+        'Material',
+        validators=[Optional(), Length(max=255)],
+        description="Product material"
+    )
+    
+    # SEO Fields
+    meta_title = StringField(
+        'Meta Title',
+        validators=[Optional(), Length(max=255)],
+        description="SEO meta title"
+    )
+    
+    meta_description = TextAreaField(
+        'Meta Description',
+        validators=[Optional()],
+        description="SEO meta description"
+    )
+    
+    meta_keywords = StringField(
+        'Meta Keywords',
+        validators=[Optional(), Length(max=500)],
+        description="SEO keywords (comma-separated)"
+    )
+    
+    # Status
+    launch_status = SelectField(
+        'Status',
+        choices=[
+            (status.value, status.value) for status in LaunchStatus
+        ],
+        validators=[Optional()],
+        default=LaunchStatus.IN_STOCK.value,
+        description="Product availability status"
+    )
+    
+    # Categories (for many-to-many relationship)
+    categories = MultiCheckboxField(
+        'Additional Categories',
+        choices=[],
+        validators=[Optional()],
+        validate_choice=False,
+        description="Select additional categories (optional)"
+    )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.product_category.choices = get_category_choices()
+        # Populate category choices
+        self.category_id.choices = get_category_choices()
+        # For multi-select categories
+        all_categories = get_category_choices()
+        # Remove the empty option for multi-select
+        self.categories.choices = [c for c in all_categories if c[0]]  # Remove empty option
+    
+    def validate_sku(self, field):
+        """Validate SKU uniqueness."""
+        if field.data:
+            from app.models.product import Product
+            existing = Product.query.filter_by(sku=field.data).first()
+            if existing and (not hasattr(self, 'product_id') or existing.id != self.product_id):
+                raise ValidationError('SKU already exists')
+    
+    def validate_slug(self, field):
+        """Validate slug uniqueness."""
+        if field.data:
+            from app.models.product import Product
+            existing = Product.query.filter_by(slug=field.data).first()
+            if existing and (not hasattr(self, 'product_id') or existing.id != self.product_id):
+                raise ValidationError('Slug already exists')
+
+
+# Legacy alias for backward compatibility
+AddProductForm = ProductForm
 
 
 def generate_category_field(format='checkbox', sel_cats=None, indent_level=0):

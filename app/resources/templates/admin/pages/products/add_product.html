@@ -1,21 +1,20 @@
-{% extends 'admin/pages/products/add_product.html' %}
+{% extends 'admin/base/index.html' %}
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_form_field, render_field_error %}
 
-{% block title %}Edit Product - {{ super() }}{% endblock %}
+{% block title %}Add New Product - {{ super() }}{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Edit Product</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ product.name }}</p>
-        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Add New Product</h1>
         <a href="{{ url_for('web.web_admin.products.products') }}" class="btn-secondary">
             <i class="bx bx-arrow-back mr-2"></i>
             Back to Products
         </a>
     </div>
 
-    <form method="POST" action="{{ url_for('web.web_admin.products.edit_product', product_id=product.id) }}" enctype="multipart/form-data" id="product-form" class="space-y-6">
+    <form method="POST" action="{{ url_for('web.web_admin.products.add_new_product') }}" enctype="multipart/form-data" id="product-form" class="space-y-6">
         {{ form.csrf_token }}
 
         {% call form_section("Basic Information", "bx bxs-info-circle") %}
@@ -28,6 +27,9 @@
                             <p class="form-error">{{ error }}</p>
                         {% endfor %}
                     {% endif %}
+                    {% if form.name.description %}
+                        <p class="form-help">{{ form.name.description }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="form-group">
@@ -37,6 +39,9 @@
                         {% for error in form.sku.errors %}
                             <p class="form-error">{{ error }}</p>
                         {% endfor %}
+                    {% endif %}
+                    {% if form.sku.description %}
+                        <p class="form-help">{{ form.sku.description }}</p>
                     {% endif %}
                 </div>
 
@@ -48,11 +53,14 @@
                             <p class="form-error">{{ error }}</p>
                         {% endfor %}
                     {% endif %}
+                    {% if form.slug.description %}
+                        <p class="form-help">{{ form.slug.description }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="form-group md:col-span-2">
                     {{ form.description.label(class="form-label") }}
-                    <textarea name="{{ form.description.name }}" id="{{ form.description.id }}" class="form-textarea" rows="4" placeholder="Product description">{{ form.description.data or product.description or '' }}</textarea>
+                    {{ form.description(class="form-textarea", rows="4", placeholder="Product description") }}
                     {% if form.description.errors %}
                         {% for error in form.description.errors %}
                             <p class="form-error">{{ error }}</p>
@@ -93,30 +101,6 @@
             </div>
         {% endcall %}
 
-        {% call form_section("Category & Status", "bx bxs-category") %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-group">
-                    {{ form.category_id.label(class="form-label form-label-required") }}
-                    {{ form.category_id(class="form-select") }}
-                    {% if form.category_id.errors %}
-                        {% for error in form.category_id.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.launch_status.label(class="form-label") }}
-                    {{ form.launch_status(class="form-select") }}
-                    {% if form.launch_status.errors %}
-                        {% for error in form.launch_status.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endcall %}
-
         {% call form_section("Product Details", "bx bxs-detail", collapsed=True) %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-group">
@@ -131,7 +115,7 @@
 
                 <div class="form-group md:col-span-2">
                     {{ form.details.label(class="form-label") }}
-                    <textarea name="{{ form.details.name }}" id="{{ form.details.id }}" class="form-textarea" rows="4" placeholder="Additional product details">{{ form.details.data or product.details or '' }}</textarea>
+                    {{ form.details(class="form-textarea", rows="4", placeholder="Additional product details") }}
                     {% if form.details.errors %}
                         {% for error in form.details.errors %}
                             <p class="form-error">{{ error }}</p>
@@ -141,7 +125,7 @@
 
                 <div class="form-group md:col-span-2">
                     {{ form.care.label(class="form-label") }}
-                    <textarea name="{{ form.care.name }}" id="{{ form.care.id }}" class="form-textarea" rows="4" placeholder="Product care instructions">{{ form.care.data or product.care or '' }}</textarea>
+                    {{ form.care(class="form-textarea", rows="4", placeholder="Product care instructions") }}
                     {% if form.care.errors %}
                         {% for error in form.care.errors %}
                             <p class="form-error">{{ error }}</p>
@@ -165,7 +149,7 @@
 
                 <div class="form-group">
                     {{ form.meta_description.label(class="form-label") }}
-                    <textarea name="{{ form.meta_description.name }}" id="{{ form.meta_description.id }}" class="form-textarea" rows="3" placeholder="SEO meta description">{{ form.meta_description.data or product.meta_description or '' }}</textarea>
+                    {{ form.meta_description(class="form-textarea", rows="3", placeholder="SEO meta description") }}
                     {% if form.meta_description.errors %}
                         {% for error in form.meta_description.errors %}
                             <p class="form-error">{{ error }}</p>
@@ -191,9 +175,39 @@
             </a>
             <button type="submit" class="btn-primary">
                 <i class="bx bx-save mr-2"></i>
-                Update Product
+                Create Product
             </button>
         </div>
     </form>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    // Collapsible sections
+    document.querySelectorAll('[data-collapse-toggle]').forEach(header => {
+        header.addEventListener('click', () => {
+            const section = header.closest('.collapsible');
+            const body = section.querySelector('.collapsible-body');
+            const icon = header.querySelector('[data-collapse-icon]');
+            
+            section.classList.toggle('collapsed');
+            
+            if (section.classList.contains('collapsed')) {
+                body.style.maxHeight = '0';
+                body.style.paddingTop = '0';
+                body.style.paddingBottom = '0';
+            } else {
+                body.style.maxHeight = body.scrollHeight + 'px';
+                body.style.paddingTop = '';
+                body.style.paddingBottom = '';
+            }
+            
+            if (icon) {
+                icon.classList.toggle('rotate-180');
+            }
+        });
+    });
+</script>
+{% endblock %}
+

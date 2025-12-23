@@ -29,4 +29,5 @@ dependencies = [
     "rich>=13.0.0",
     "typing-extensions>=4.15.0",
     "quas-utils>=0.0.6",
+    "flask-wtf>=1.2.2",
 ]

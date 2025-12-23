@@ -246,22 +246,22 @@ curl -X POST https://api.example.com/api/v1/checkout \
 **Endpoint:** `GET /api/v1/cart`
 
 **Description:** Get the current user's cart or guest cart. Supports multiple lookup methods:
-- By authenticated user (automatic)
+- By authenticated user (automatic - uses `Authorization` header)
 - By guest token (header `X-Guest-Token` or query param `guest_token`)
 - By cart ID (query param `cart_id`)
 
-**Guest Token Management:**
-- **CRITICAL**: Guest tokens are preserved across requests. Store the token from the first cart response and reuse it.
-- First request: Store `guest_token` from response (localStorage/sessionStorage)
-- Subsequent requests: Send token via `X-Guest-Token` header or `guest_token` query param
-- Token only changes if not provided (new guest session)
+**Important Notes:**
+- **Authenticated Users**: The cart is automatically associated with the authenticated user. If you were previously a guest and have a `guest_token`, you can include it in the request to migrate your guest cart items to your user cart.
+- **Guest Token Management**: Guest tokens are preserved across requests. Store the token from the first cart response and reuse it.
+- **Cart Migration**: When an authenticated user provides a `guest_token`, any items in the guest cart are automatically merged into the user's cart (duplicate variants have quantities combined).
 
-**Request Headers (for guests):**
-- `X-Guest-Token: <token>` (recommended)
+**Request Headers:**
+- `Authorization: Bearer <token>` (for authenticated users)
+- `X-Guest-Token: <token>` (for guests, recommended)
 
 **Query Parameters:**
 - `cart_id` (optional): Cart UUID to fetch specific cart
-- `guest_token` (optional): Alternative to header (for guests)
+- `guest_token` (optional): Alternative to header (for guests, or for authenticated users to migrate guest cart)
 
 **Response (200 OK):**
 ```json
@@ -334,9 +334,12 @@ const cartResponse3 = await fetch(`/api/v1/cart?cart_id=${cartId}`);
 ```
 
 **Add Item to Cart:** `POST /api/v1/cart/items`
-- Body: `{ variant_id, quantity, guest_token? }`
-- Headers: `X-Guest-Token` (for guests)
-- Returns updated cart with `guest_token` (preserve this token!)
+- Body: `{ variant_id, quantity, guest_token? }` (guest_token optional, can use header instead)
+- Headers: 
+  - `Authorization: Bearer <token>` (for authenticated users)
+  - `X-Guest-Token: <token>` (for guests, or for authenticated users migrating guest cart)
+- Returns updated cart with `guest_token` (preserve this token for guests!)
+- **Note**: For authenticated users, the cart is automatically associated with your account. If you provide a `guest_token`, any items in the guest cart will be merged into your user cart.
 
 **Update Cart Item:** `PUT /api/v1/cart/items/{item_id}`
 - Body: `{ quantity }`
@@ -420,12 +423,22 @@ const cartResponse3 = await fetch(`/api/v1/cart?cart_id=${cartId}`);
 - Returns: `{ variant_id, is_in_wishlist, wishlist_item_id? }`
 
 ### End-to-end flow (frontend)
+
+**For Authenticated Users:**
 1) Browse & cart  
    - `GET /api/v1/products` (filters: `category`, `search`, `in_stock_only`, `page`, `per_page`)  
      Returns products with: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with `price_ngn`, `price_usd`, `attributes`, `is_in_stock`, `stock_quantity`, `images`, `image_urls`).
-   - `POST /api/v1/cart/items` (include `guest_token` in body or `X-Guest-Token` header for guests)  
+   - `POST /api/v1/cart/items` (include `Authorization: Bearer <token>` header)  
+     **Note**: If you have a `guest_token` from before login, include it in the request body or `X-Guest-Token` header to merge guest cart items into your user cart.
+   - `GET /api/v1/cart` (include `Authorization: Bearer <token>` header)  
+     Cart is automatically associated with your account - no token needed.
+
+**For Guests:**
+1) Browse & cart  
+   - `GET /api/v1/products` (same as above)
+   - `POST /api/v1/cart/items` (include `guest_token` in body or `X-Guest-Token` header)  
      **IMPORTANT**: Store the `guest_token` from the response for subsequent requests.
-   - `GET /api/v1/cart` (include `X-Guest-Token` header for guests)
+   - `GET /api/v1/cart` (include `X-Guest-Token` header)
 2) Shipping quote  
    - `GET /api/v1/shipping/zones?country=NG` to show costs/ETA.
 3) Checkout (creates order + payment session)  

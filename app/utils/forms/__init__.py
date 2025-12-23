@@ -6,10 +6,10 @@ License: GNU, see LICENSE for more details.
 """
 from flask import flash
 from flask_wtf import FlaskForm
-from .auth import SignUpForm, LoginForm
-from .admin.users import AdminAddUserForm
+from .auth import LoginForm
+# from .admin.users import AdminAddUserForm
 from .admin.products import AddProductForm
-from .admin.categories import CategoryForm
+# from .admin.categories import CategoryForm
 
 
 def handle_form_errors(form: FlaskForm):

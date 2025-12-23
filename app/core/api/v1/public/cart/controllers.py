@@ -33,21 +33,69 @@ def get_or_create_cart(user_id: Optional[uuid.UUID] = None, guest_token: Optiona
     it will use that token. If no token is provided and user is guest, it generates a new one.
     The token should be persisted by the frontend and reused across requests.
     
+    For authenticated users: If a guest_token is provided and a guest cart exists,
+    the guest cart items will be migrated to the user's cart (if user cart exists)
+    or the guest cart will be converted to the user's cart.
+    
     Args:
         user_id: Authenticated user ID (None for guests)
-        guest_token: Guest cart token (None for authenticated users)
+        guest_token: Guest cart token (None for authenticated users, but can be provided for migration)
         
     Returns:
         Cart instance
     """
     if user_id:
-        cart = Cart.query.filter_by(user_id=user_id).first()
-        if not cart:
-            cart = Cart()
-            cart.user_id = user_id
-            db.session.add(cart)
+        # For authenticated users, prioritize user cart
+        user_cart = Cart.query.filter_by(user_id=user_id).first()
+        
+        # If guest_token provided, check for guest cart to migrate
+        if guest_token and not user_cart:
+            guest_cart = Cart.query.filter_by(guest_token=guest_token).first()
+            if guest_cart:
+                # Migrate guest cart to user cart
+                guest_cart.user_id = user_id
+                guest_cart.guest_token = None  # Clear guest token after migration
+                db.session.commit()
+                log_event(f"Migrated guest cart {guest_cart.id} to user {user_id}")
+                return guest_cart
+        
+        # If user cart exists and guest cart exists, merge items
+        if user_cart and guest_token:
+            guest_cart = Cart.query.filter_by(guest_token=guest_token).first()
+            if guest_cart and guest_cart.id != user_cart.id:
+                # Merge guest cart items into user cart
+                guest_items = list(guest_cart.items)  # Get copy of items before modifying
+                for guest_item in guest_items:
+                    # Check if variant already exists in user cart
+                    existing_item = CartItem.query.filter_by(
+                        cart_id=user_cart.id,
+                        variant_id=guest_item.variant_id
+                    ).first()
+                    
+                    if existing_item:
+                        # Update quantity
+                        existing_item.quantity += guest_item.quantity
+                        # Delete the guest item since we've merged it
+                        db.session.delete(guest_item)
+                    else:
+                        # Move item to user cart
+                        guest_item.cart_id = user_cart.id
+                
+                # Delete guest cart after migration (items already moved or deleted)
+                db.session.delete(guest_cart)
+                db.session.commit()
+                log_event(f"Merged guest cart {guest_cart.id} into user cart {user_cart.id} for user {user_id}")
+                # Refresh to get updated items
+                db.session.refresh(user_cart)
+        
+        if not user_cart:
+            # Create new cart for user
+            user_cart = Cart()
+            user_cart.user_id = user_id
+            db.session.add(user_cart)
             db.session.commit()
-        return cart
+        
+        return user_cart
     elif guest_token:
         # Always use the provided guest_token - don't generate a new one
         cart = Cart.query.filter_by(guest_token=guest_token).first()
@@ -77,6 +125,9 @@ class CartController:
         
         Supports both authenticated users and guests.
         Can also get cart by ID or guest_token as query parameters.
+        
+        Uses get_or_create_cart() for consistency with add_item() to ensure
+        authenticated users always get their cart properly.
         """
         try:
             current_user = get_current_user()
@@ -101,13 +152,22 @@ class CartController:
                 except ValueError:
                     return error_response("Invalid cart ID format", 400)
             elif current_user:
-                cart = Cart.query.filter_by(user_id=current_user.id).first()
+                # Use get_or_create_cart() for consistency with add_item()
+                # This ensures authenticated users always get their cart properly
+                cart = get_or_create_cart(
+                    user_id=current_user.id,
+                    guest_token=guest_token  # Allow migration if guest_token provided
+                )
             elif guest_token:
-                cart = Cart.query.filter_by(guest_token=guest_token).first()
+                cart = get_or_create_cart(guest_token=guest_token)
+            else:
+                # No user, no token - create new guest cart
+                cart = get_or_create_cart()
+                guest_token = cart.guest_token
             
             if not cart:
-                # Return empty cart structure with the provided guest_token (don't generate new one)
-                # Only generate new token if none was provided
+                # This should rarely happen, but handle gracefully
+                log_error("Failed to get or create cart", error=None)
                 return success_response(
                     "Cart retrieved successfully",
                     200,
@@ -121,6 +181,9 @@ class CartController:
                         "guest_token": guest_token if guest_token else generate_guest_token(),
                     }
                 )
+            
+            # Refresh cart to ensure items are loaded
+            db.session.refresh(cart)
             
             return success_response(
                 "Cart retrieved successfully",
@@ -188,7 +251,7 @@ class CartController:
                 db.session.add(cart_item)
                 db.session.commit()
             
-            # Reload cart
+            # Reload cart to ensure items are properly loaded
             db.session.refresh(cart)
             
             return success_response(
