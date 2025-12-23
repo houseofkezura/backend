@@ -1,0 +1,30 @@
+<div class="collapsible w-full rounded-lg shadow border bg-white border-gray-200 text-gray-900">
+    <div class="collapsible-header px-5 py-4 border-b border-outline-clr cursor-pointer">
+        <div class="collapsible-title flex items-center gap-2">
+            <i class="bx bxs-dollar-circle icon"></i> <span>Price</span>
+        </div>
+    </div>
+    <div class="collapsible-body px-5 py-4" aria-hidden="true">
+        <div class="form-group">
+            <label for="selling_price" class="block mb-2 text-sm font-medium">Selling Price</label>
+            {{ form.selling_price(class_ = 'form-control text-sm rounded-lg shadow-sm-light border border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900', autofocus = true) }}
+        
+            {% for error in form.selling_price.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+            {% endfor%}
+        </div>
+        
+        <div class="form-group">
+            <label for="actual_price" class="block mb-2 text-sm font-medium">Actual Price</label>
+            {{ form.actual_price(class_ = 'form-control text-sm rounded-lg shadow-sm-light border border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900', autofocus = true) }}
+        
+            {% for error in form.actual_price.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+            {% endfor%}
+        </div>
+    </div>
+</div>

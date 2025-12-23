@@ -134,6 +134,24 @@ class ProductVariantDataModel(BaseModel):
     updated_at: Optional[str] = None
     inventory: Optional[InventoryInfo] = None
 
+class CategoryData(BaseModel):
+    """Category data."""
+    class Config:
+        extra = "forbid"
+    id: int
+    name: str
+    alias: Optional[str] = None
+    description: Optional[str] = None
+    slug: str
+    parent_id: Optional[int] = None
+
+class CategoryListData(BaseModel):
+    """Category list data."""
+    class Config:
+        extra = "forbid"
+    categories: List[CategoryData]
+    pagination: Optional[Dict[str, Any]] = None
+
 
 class ProductDataModel(BaseModel):
     """Product data model."""

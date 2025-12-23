@@ -6,6 +6,7 @@ from .extensions import db
 from .models.user import AppUser, Profile, Address
 from .models.wallet import Wallet
 from .models.role import Role, UserRole
+from .models.category import ProductCategory
 from .logging import log_event, log_error
 
 from .enums.auth import RoleNames
@@ -153,7 +154,50 @@ def seed_roles(clear: bool = False) -> None:
                 db.session.add(new_role)
         db.session.commit()
 
+
+def seed_product_categories(clear: bool = False) -> None:
+    prod_cat = [
+        {
+        "name" : "Wigs / Hair",
+        "alias" : "HW"
+        },
+        {
+        "name" : "Jewelry",
+        "alias" : "JW"
+        },
+        {
+        "name" : "Perfume",
+        "alias" : "PF"
+        },
+        {
+        "name": "Skincare",
+        "alias" : "SC"
+        },
+        {
+        "name" : "Supplements",
+        "alias" : "SP"
+        },
+        {
+        "name" : "Misc",
+        "alias" : "MC"
+        }
+    ]
+    if inspect(db.engine).has_table("product_category"):
+        if clear:
+            ProductCategory.query.delete()
+            db.session.commit()
+        
+        for cat in prod_cat:
+            if not ProductCategory.query.filter_by(name=cat["name"]).first():
+                new_category = ProductCategory()
+                new_category.name = cat["name"]
+                new_category.alias = cat["alias"]
+                new_category.slug = slugify(cat["name"])
+                db.session.add(new_category)
+        db.session.commit()
+
 def seed_database(app: Flask) -> None:
     with app.app_context():
         seed_roles()
         seed_admin_user()
+        seed_product_categories()

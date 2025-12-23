@@ -17,6 +17,7 @@ from .cms import bp as cms_bp
 from .addresses import bp as addresses_bp
 from .shipping import bp as shipping_bp
 from .inventory import bp as inventory_bp
+from .categories import bp as categories_bp
 
 def create_api_v1_public_blueprint():
     bp: Blueprint = Blueprint("api_v1_public", __name__, url_prefix="/") 
@@ -37,4 +38,5 @@ def create_api_v1_public_blueprint():
     bp.register_blueprint(addresses_bp)
     bp.register_blueprint(shipping_bp)
     bp.register_blueprint(inventory_bp)
+    bp.register_blueprint(categories_bp)
     return bp

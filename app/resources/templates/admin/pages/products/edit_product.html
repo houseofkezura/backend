@@ -1,0 +1,9 @@
+{% extends 'web_admin/pages/products/new_products.html' %}
+{% block title %}Edit Product{% endblock %}
+
+{% block form_title %}Edit Product{% endblock %}
+{% block form_action %} {{ url_for('web_admin.edit_product', slug = product.slug) }} {% endblock %}
+
+{% block form_content %}
+    {{ super() }}
+{% endblock %}

@@ -12,9 +12,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects.postgresql import JSON
 import uuid
 
-from ..extensions import db
+from app.extensions import db
 from quas_utils.date_time import QuasDateTime, to_gmt1_or_none
-from ..enums.products import (
+from app.enums.products import (
     ProductCategory,
     HairType,
     Texture,
@@ -27,6 +27,12 @@ from ..enums.products import (
 if TYPE_CHECKING:
     from .media import Media
 
+
+# association table for the many-to-many relationship between products and categories
+product_categories = db.Table("product_categories",
+    db.Column("product_id", UUID(as_uuid=True), db.ForeignKey("product.id"), primary_key=True),
+    db.Column("product_category_id", UUID(as_uuid=True), db.ForeignKey("product_category.id"), primary_key=True)
+)
 
 class Product(db.Model):
     """
@@ -63,6 +69,7 @@ class Product(db.Model):
     # Relationships
     variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
     images = relationship("Media", secondary="product_media", lazy="dynamic", backref="products")
+    categories = db.relationship("ProductCategory", secondary=product_categories, backref=db.backref("products", lazy="dynamic"))
     
     def __repr__(self) -> str:
         return f"<Product {self.id}, {self.name}>"

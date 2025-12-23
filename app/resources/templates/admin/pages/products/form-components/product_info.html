@@ -1,0 +1,32 @@
+<div class="collapsible w-full rounded-lg shadow border bg-white border-gray-200 text-gray-900">
+    <div class="collapsible-header px-5 py-4 border-b border-outline-clr cursor-pointer">
+        <div class="collapsible-title flex items-center gap-2">
+            <i class="bx bxs-info-circle icon"></i>
+            <span> Product info </span>
+        </div>
+    </div>
+
+    <div class="collapsible-body px-5 py-4" aria-hidden="true">
+        <div class="form-group">
+            <label for="name" class="block mb-2 text-sm font-medium">Name</label>
+            
+            {{ form.name(class_ = 'form-control text-sm rounded-lg shadow-sm-light border border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900', placeholder='example@mail.com', autofocus = true) }}
+        
+            {% for error in form.name.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+            {% endfor%}
+        </div>
+        
+        <div class="form-group">
+            <label for="description" class="block mb-2 text-sm font-medium">Description</label>
+            {{ form.description(class_ = 'form-control text-sm rounded-lg shadow-sm-light border border-outline-clr focus:ring-theme-clr focus:border-theme-clr block w-full p-2.5 placeholder-gray-400 outline-none bg-gray-50 text-gray-900', autofocus = true) }}
+            {% for error in form.description.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+            {% endfor%}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+<div class="collapsible collapsed w-full rounded-lg shadow border bg-white border-gray-200 text-gray-900">
+    <div class="collapsible-header px-5 py-4 border-b border-outline-clr cursor-pointer">
+        <div class="collapsible-title flex items-center gap-2">
+            <i class="bx bxs-info-circle icon"></i>
+            <span> Media </span>
+        </div>
+    </div>
+
+    <div class="collapsible-body px-5 py-4" aria-hidden="true">
+        <div class="media-input flex items-center justify-center">
+            <div class="form-group avatar inline-block w-[150px] h-[150px] rounded-[50%] shadow-sm-light border border-outline-clr cursor-pointer !relative bg-cover bg-center">
+                {% if product.product_img %}
+                <img src="{{ url_for('static', filename=product.getMediumImage()) }}" alt="product image" class="rounded-[50%] !w-full !h-full overflow-hidden object-cover transition-all">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="product image" class="rounded-[50%] !w-full !h-full overflow-hidden object-cover transition-all">
+                {% endif %}
+
+                {{ form.product_img(class_ = 'form-control cursor-pointer !p-[0] !w-full !h-full !absolute top-[0] left-[0] opacity-0 z-[99]', placeholder='product_img') }}
+                <button class="upload-btn btn inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-theme-clr rounded-lg hover:bg-theme-hvr-clr focus:ring-2 focus:outline-none focus:ring-outline-clr !absolute right-[0] bottom-[0] z-[0]" disabled>Upload</button>
+            </div>
+        </div>
+    </div>
+</div>

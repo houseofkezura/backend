@@ -1,0 +1,55 @@
+{% extends 'web_admin/base/base.html' %}
+{% block title %}Add New Product - {{ super() }}{% endblock %}
+
+{% block CSSandJS_Links %}
+<link rel="stylesheet" href="{{url_for('static', filename='web_admin/css/add-prod.css')}}">
+{% endblock %}
+
+{% block content %}
+<section class="lg:pt-1">
+        <div id="main-header"
+            class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white">
+            <h2 class="text-2xl font-bold text-gray-900">{% block form_title %}Add a new product{% endblock %}</h2>
+        </div>
+
+        <form method="post" action="{% block form_action %} {{ url_for('web_admin.add_new_product') }} {% endblock %}" class="pt-2" id="add-user-form" enctype="multipart/form-data">
+            {% block form_content %}
+                {% if 'csrf_token' in form %}
+                {{form.csrf_token}}
+                {% endif %}
+                
+                <input id="uuid" name="uuid" type="hidden" value="{{ pid }}">
+                <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
+                    {% include 'web_admin/pages/products/form-components/product_info.html' %}
+                    {% include 'web_admin/pages/products/form-components/price.html' %}
+                </div>
+                
+                <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
+
+                    {% include 'web_admin/pages/products/form-components/product_cats.html' %}
+                    {% include 'web_admin/pages/products/form-components/product_tags.html' %}
+                    
+                </div>
+
+                <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
+                    {% include 'web_admin/pages/products/form-components/variations.html' %}
+                </div>
+
+                <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
+                    {% include 'web_admin/pages/products/form-components/media.html' %}
+                </div>
+
+                <button type="submit" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-theme-clr hover:bg-theme-hvr-clr">
+                    Publish
+                </button>
+            {% endblock %}
+        </form>
+</section>
+
+<!-- <script src="{{ url_for('static', filename='web_admin/js/publish.js') }}"></script> -->
+<script src="{{ url_for('static', filename='web_admin/js/new_cat.js') }}"></script>
+<script src="{{ url_for('static', filename='web_admin/js/add_tags.js') }}"></script>
+<script src="{{ url_for('static', filename='web_admin/js/upload_prod_img.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='web_admin/js/add_variations.js') }}"></script> -->
+<script src="{{ url_for('static', filename='web_admin/library/sortable/sortable.min.js') }}"></script>
+{% endblock %}

@@ -13,6 +13,7 @@ import string
 
 from app.extensions import db
 from app.models.product import Product, ProductVariant, Inventory
+from app.models.category import ProductCategory
 from app.models.media import Media
 from app.schemas.products import CreateProductRequest, UpdateProductRequest, CreateProductVariantRequest, UpdateProductVariantRequest
 from quas_utils.api import success_response, error_response
@@ -96,7 +97,14 @@ class AdminProductController:
             product.sku = product_sku
             product.slug = product_slug
             product.description = payload.description or ""
-            product.category = payload.category
+            # Resolve category: prefer category_id if provided; keep string field unchanged if not found
+            category_name = payload.category
+            category_model = None
+            if payload.category_id:
+                category_model = ProductCategory.query.get(payload.category_id)
+                if category_model:
+                    category_name = category_model.name
+            product.category = category_name
             product.care = payload.care or ""
             product.details = payload.details or ""
             product.material = payload.material or ""
@@ -109,6 +117,10 @@ class AdminProductController:
             
             db.session.add(product)
             db.session.flush()
+
+            # Link categories relationship if category_id provided
+            if category_model:
+                product.categories.append(category_model)
             
             # Create variants if provided
             if payload.variants:
@@ -201,6 +213,11 @@ class AdminProductController:
                 product.description = payload.description
             if payload.category is not None:
                 product.category = payload.category
+            if payload.category_id is not None:
+                cat_model = ProductCategory.query.get(payload.category_id)
+                if cat_model:
+                    product.category = cat_model.name
+                    product.categories = [cat_model]
             if payload.care is not None:
                 product.care = payload.care
             if payload.details is not None:

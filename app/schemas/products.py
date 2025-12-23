@@ -36,7 +36,8 @@ class CreateProductRequest(BaseModel):
     sku: Optional[str] = Field(None, min_length=1, max_length=100, description="Product SKU (auto-generated from name if not provided)")
     slug: Optional[str] = Field(None, max_length=255, description="URL-friendly slug (auto-generated if not provided)")
     description: Optional[str] = Field("", description="Product description")
-    category: str = Field(..., description="Product category")
+    category: str = Field(..., description="Product category (string)")
+    category_id: Optional[int] = Field(None, description="Optional category ID to link")
     care: Optional[str] = Field("", description="Product care instructions")
     details: Optional[str] = Field("", description="Product details")
     material: Optional[str] = Field("", description="Product material")
@@ -56,6 +57,7 @@ class UpdateProductRequest(BaseModel):
     slug: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
     category: Optional[str] = None
+    category_id: Optional[int] = None
     care: Optional[str] = None
     details: Optional[str] = None
     material: Optional[str] = None

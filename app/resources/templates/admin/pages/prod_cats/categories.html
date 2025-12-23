@@ -1,21 +1,20 @@
 {% extends 'admin/base/index.html' %}
-{% block title %}Products - {{ super() }}{% endblock %}
+{% block title %}Categories - {{ super() }}{% endblock %}
 
 {% set search_term = request.args.get('search', '') %}
 
 {% block content %}
     {% if pagination.items %}
-
+        
         <div class="relative overflow-x-auto">
-            <div id="main-header" class="flex items-center justify-between flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white">
-                <h1 class="text-2xl font-bold">Products</h1>
+            <div id="main-header" class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white">
+                <h1 class="text-2xl font-bold">Categories</h1>
                 {% if 'Super Admin' in CURRENT_USER.roles or 'Admin' in CURRENT_USER.roles or 'Operations' in CURRENT_USER.roles %}
-                    <a href="{{ url_for('web.web_admin.products.add_new_product') }}" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Product </span></a>
+                    <a href="{{ url_for('web.web_admin.categories.add_new_category') }}" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Category </span></a>
                 {% endif %}
             </div>
 
-            <div
-                class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4 bg-white">
+            <div class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4 bg-white">
                 <div>
                     <button id="dropdownActionButton" data-dropdown-toggle="dropdownAction"
                         class="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5"
@@ -38,9 +37,9 @@
                             </li>
                         </ul>
                         <div class="py-1">
-                            <a href="#"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">Delete
-                                User</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
+                                Delete Category
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -53,14 +52,14 @@
                                 d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                         </svg>
                     </div>
-                    <form method="GET" action="{{ url_for('web.web_admin.products.products') }}">
-                        <input type="text" id="table-search-products" name="search"
+                    <form method="GET" action="{{ url_for('web.web_admin.categories.categories') }}">
+                        <input type="text" id="table-search-categories" name="search"
                             class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-primary focus:border-primary"
-                            placeholder="Search products..." value="{{ search_term }}">
+                            placeholder="Search categories..." value="{{ search_term }}">
                     </form>
                 </div>
             </div>
-            
+
             <div class="rounded-lg shadow-md border border-outline-clr overflow-y-hidden">
             <table class="w-full shadow-md lg:rounded-lg text-sm text-left rtl:text-right text-gray-500">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -72,24 +71,27 @@
                                 <label for="checkbox-all-search" class="sr-only">checkbox</label>
                             </div>
                         </th>
+
                         <th scope="col" class="px-1 py-3">
                             Image
                         </th>
+
                         <th scope="col" class="px-6 py-3">
                             Name
                         </th>
+
                         <th scope="col" class="px-6 py-3">
-                            Price
+                            Description
                         </th>
+
                         <th scope="col" class="px-6 py-3">
-                            Category
+                            Slug
                         </th>
+
                         <th scope="col" class="px-6 py-3">
-                            SKU
+                            Parent
                         </th>
-                        <th scope="col" class="px-6 py-3">
-                            Status
-                        </th>
+
                         <th scope="col" class="px-6 py-3">
                             Action
                         </th>
@@ -97,53 +99,57 @@
                 </thead>
 
                 <tbody>
-                    {% for product in pagination.items %}
+                    {% for category in pagination.items %}
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="w-4 p-4">
                             <div class="flex items-center">
-                                <input id="checkbox-table-search-1" type="checkbox"
+                                <input id="checkbox-table-search-{{ category.id }}" type="checkbox"
                                     class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
-                                <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
+                                <label for="checkbox-table-search-{{ category.id }}" class="sr-only">checkbox</label>
                             </div>
                         </td>
-                        <th scope="row" class="px-2 py-2">
-                            {% if product.image_urls and product.image_urls|length > 0 %}
-                                <img class="size-12 rounded-md object-cover" src="{{ product.image_urls[0] }}" alt="{{ product.name }} image">
+
+                        <td scope="row" class="px-2 py-2">
+                            {% if category.media_id %}
+                                <img class="size-12 rounded-md object-cover" src="{{ category.get_thumbnail() }}" alt="{{ category.name }} image">
                             {% else %}
-                                <img class="size-12 rounded-md object-cover" src="{{ url_for('static', filename='admin/img/placeholder-360x360.jpg') }}" alt="No image">
+                                <img class="size-12 rounded-md object-cover" src="{{ url_for('static', filename='admin/img/placeholder-300x300.jpg') }}" alt="No image">
                             {% endif %}
-                        </th>
+                        </td>
+
                         <td scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap">
                             <div class="">
-                                <div class="text-base font-semibold">{{ product.name }}</div>
-                                <div class="font-normal text-gray-500 text-xs">ID: {{ product.id }}</div>
+                                <div class="text-base font-semibold">{{ category.name }}</div>
+                                <div class="font-normal text-gray-500 text-xs">ID: {{ category.id }}</div>
                             </div>
                         </td>
+
                         <td class="px-6 py-4">
-                            {% if product.price %}
-                                ₦{{ "{:,.2f}".format(product.price) }}
+                            {% if category.description %}
+                                <span class="text-sm">{{ category.description[:50] }}{% if category.description|length > 50 %}...{% endif %}</span>
                             {% else %}
                                 —
                             {% endif %}
                         </td>
                         <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                                {{ product.category }}
-                            </span>
+                            <div class="font-mono text-xs text-gray-500">{{ category.slug }}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="font-mono text-xs text-gray-500">{{ product.sku }}</div>
+                            {% if category.parent %}
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                    {{ category.parent.name }}
+                                </span>
+                            {% else %}
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                    Root
+                                </span>
+                            {% endif %}
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full {% if product.launch_status == 'In-Stock' %}bg-green-100 text-green-800{% elif product.launch_status == 'Out of Stock' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ product.launch_status }}
-                            </span>
-                            <div class="font-normal text-gray-500 text-xs mt-1">{{ product.created_at.strftime('%b %d, %Y') if product.created_at else '—' }}</div>
-                        </td>
+
                         <td class="px-6 py-4 flex items-center gap-2">
-                            <a href="{{ url_for('web.web_admin.products.view_product', product_id=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">View</a>
-                            <a href="{{ url_for('web.web_admin.products.edit_product', product_id=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-primary text-primary hover:bg-alert-info">Edit</a>
-                            <form method="POST" action="{{ url_for('web.web_admin.products.delete_product', product_id=product.id) }}" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline">
+                            <a href="{{ url_for('web.web_admin.categories.view_category', category_id=category.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">View</a>
+                            <a href="{{ url_for('web.web_admin.categories.edit_category', category_id=category.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-primary text-primary hover:bg-alert-info">Edit</a>
+                            <form method="POST" action="{{ url_for('web.web_admin.categories.delete_category', category_id=category.id) }}" onsubmit="return confirm('Are you sure you want to delete this category?');" class="inline">
                                 <button type="submit" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-alert-danger-solid text-alert-danger-solid hover:bg-alert-danger">Delete</button>
                             </form>
                         </td>
@@ -154,22 +160,22 @@
             </div>
 
             <!-- Pagination Controls -->
-            {% set prev_url = url_for('web.web_admin.products.products', page=pagination.prev_num, search=search_term) if pagination.prev_num else None %}
-            {% set next_url = url_for('web.web_admin.products.products', page=pagination.next_num, search=search_term) if pagination.next_num else None %}
-            {% set page_num_url = url_for('web.web_admin.products.products', search=search_term) %}
+            {% set prev_url = url_for('web.web_admin.categories.categories', page=pagination.prev_num, search=search_term) if pagination.prev_num else None %}
+            {% set next_url = url_for('web.web_admin.categories.categories', page=pagination.next_num, search=search_term) if pagination.next_num else None %}
+            {% set page_num_url = url_for('web.web_admin.categories.categories', search=search_term) %}
 
             {% with prev_url=prev_url, next_url=next_url, page_num_url=page_num_url, pagination=pagination, total_pages=total_pages %}
                 {% include 'admin/components/pagination.html' %}
             {% endwith %}
         </div>
-    
+
     {% elif search_term %}
-        {% with search_term=search_term, data_in_db='Product', data_in_db_url=url_for('web.web_admin.products.products') %}
+        {% with search_term=search_term, data_in_db='Category', data_in_db_url=url_for('web.web_admin.categories.categories') %}
             {% include 'admin/components/no_result.html' %}
         {% endwith %}
     {% else %}
         
-        {% with data_in_db='Product', data_in_db_url=url_for('web.web_admin.products.add_new_product') %}
+        {% with data_in_db='Category', data_in_db_url=url_for('web.web_admin.categories.add_new_category') %}
             {% include 'admin/components/no_data.html' %}
         {% endwith %}
     

@@ -8,6 +8,7 @@ from .users import bp as users_bp
 from .loyalty import bp as loyalty_bp
 from .staff import bp as staff_bp
 from .cms import bp as cms_bp
+from .categories import bp as categories_bp
 from .b2b import bp as b2b_bp
 from .crm import bp as crm_bp
 from .revamps import bp as revamps_bp
@@ -25,4 +26,5 @@ def create_api_v1_admin_blueprint():
     bp.register_blueprint(b2b_bp)
     bp.register_blueprint(crm_bp)
     bp.register_blueprint(revamps_bp)
+    bp.register_blueprint(categories_bp)
     return bp
