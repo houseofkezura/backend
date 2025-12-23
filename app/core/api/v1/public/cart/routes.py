@@ -11,11 +11,13 @@ from app.schemas.response_data import (
     ValidationErrorData,
 )
 from app.schemas.cart import AddCartItemRequest, UpdateCartItemRequest, ApplyPointsRequest
+from app.utils.decorators.auth import optional_customer_auth
 from .controllers import CartController
 from . import bp
 
 
 @bp.get("")
+@optional_customer_auth
 @endpoint(
     tags=["Cart"],
     summary="Get Cart",
@@ -37,6 +39,7 @@ def get_cart():
 
 
 @bp.post("/items")
+@optional_customer_auth
 @endpoint(
     request_body=AddCartItemRequest,
     tags=["Cart"],
@@ -55,6 +58,7 @@ def add_item():
 
 
 @bp.put("/items/<item_id>")
+@optional_customer_auth
 @endpoint(
     request_body=UpdateCartItemRequest,
     tags=["Cart"],
@@ -74,6 +78,7 @@ def update_item(item_id: str):
 
 
 @bp.delete("/items/<item_id>")
+@optional_customer_auth
 @endpoint(
     tags=["Cart"],
     summary="Remove Cart Item",

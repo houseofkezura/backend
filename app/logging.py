@@ -1,5 +1,6 @@
 import json
 import logging
+import sys
 from flask import current_app, has_app_context, Flask
 
 def configure_logging(app: Flask) -> None:
@@ -15,7 +16,7 @@ def configure_logging(app: Flask) -> None:
     if app.logger.hasHandlers():
         app.logger.handlers.clear()
 
-    handler = logging.StreamHandler()
+    handler = logging.StreamHandler(stream=sys.stdout)
 
     if app.config.get("ENV") == "production":
         handler.setFormatter(JsonFormatter())

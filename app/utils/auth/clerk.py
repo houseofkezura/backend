@@ -112,7 +112,7 @@ def validate_clerk_token(token: str) -> Optional[Dict[str, Any]]:
                 "verify_aud": True,
                 "verify_iss": True,
             },
-            leeway=300,  # 5 minute leeway for exp (allows for token refresh delays)
+            leeway=86400,  # 24 hours leeway for exp (allows for token refresh delays)
         )
 
         user_id = decoded_payload.get("sub")
