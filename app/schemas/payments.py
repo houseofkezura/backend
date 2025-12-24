@@ -19,7 +19,7 @@ class VerifyPaymentRequest(BaseModel):
 
     reference: str = Field(description="Payment reference")
 
-class CheckoutRequest(BaseModel):
+class PayCheckoutRequest(BaseModel):
     """Schema for payment checkout request."""
 
     order_id: Optional[str] = Field(None, description="Order ID (if order already exists)")

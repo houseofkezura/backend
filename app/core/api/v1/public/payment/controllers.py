@@ -10,7 +10,7 @@ from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.models.order import Order
 from app.models.payment import Payment
-from app.schemas.payments import CheckoutRequest, InitPaymentRequest, VerifyPaymentRequest
+from app.schemas.payments import PayCheckoutRequest, InitPaymentRequest, VerifyPaymentRequest
 from app.enums.orders import OrderStatus
 from app.enums.payments import PaymentType, PaymentStatus
 from app.utils.payments.payment_manager import PaymentManager
@@ -117,7 +117,7 @@ class PaymentController:
         If offer_id is provided, creates new order and eSIM purchase.
         """
         try:
-            payload = CheckoutRequest.model_validate(request.get_json())
+            payload = PayCheckoutRequest.model_validate(request.get_json())
             current_user = get_current_user()
             
             if not current_user:

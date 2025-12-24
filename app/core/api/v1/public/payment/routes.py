@@ -9,7 +9,7 @@ from app.schemas.response_data import (
     PaymentHistoryData,
     ValidationErrorData,
 )
-from app.schemas.payments import CheckoutRequest, VerifyPaymentRequest, InitPaymentRequest
+from app.schemas.payments import PayCheckoutRequest, VerifyPaymentRequest, InitPaymentRequest
 from .controllers import PaymentController
 from . import bp
 from app.utils.decorators.auth import customer_required
@@ -54,7 +54,7 @@ def verify_payment():
 @customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
-    request_body=CheckoutRequest,
+    request_body=PayCheckoutRequest,
     tags=["Payments"],
     summary="Create Payment Session",
     description="Create a payment session for an existing order_id. Returns authorization_url and reference for redirect flows.",
