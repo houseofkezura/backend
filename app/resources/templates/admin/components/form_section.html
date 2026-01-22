@@ -1,13 +1,13 @@
 {% macro form_section(title, icon="bx bxs-info-circle", collapsed=False, id="") %}
 <div class="form-section collapsible {% if collapsed %}collapsed{% endif %}" {% if id %}id="{{ id }}"{% endif %}>
     <div class="collapsible-header form-section-header" {% if collapsed %}data-collapse-toggle{% endif %}>
-        <i class="{{ icon }} form-section-icon text-xl"></i>
-        <h3 class="form-section-title">{{ title }}</h3>
-        {% if collapsed %}
-        <i class="bx bx-chevron-down ml-auto transition-transform duration-300" data-collapse-icon></i>
-        {% endif %}
+        <div class="collapsible-title">
+            <i class="{{ icon }} form-section-icon text-xl"></i>
+            <span class="form-section-title">{{ title }} </span>
+        </div>
     </div>
-    <div class="collapsible-body {% if collapsed %}max-h-0 overflow-hidden{% else %}max-h-none{% endif %}">
+
+    <div class="collapsible-body" aria-hidden="true">
         {{ caller() }}
     </div>
 </div>

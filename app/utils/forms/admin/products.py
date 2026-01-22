@@ -28,19 +28,12 @@ class MultiCheckboxField(SelectMultipleField):
 class ProductForm(FlaskForm):
     """
     Form for creating/editing products.
-    Matches the Product model structure.
     """
     # Basic Information
     name = StringField(
         'Product Name',
         validators=[DataRequired(), Length(min=1, max=255)],
         description="Enter the product name"
-    )
-    
-    sku = StringField(
-        'SKU',
-        validators=[Optional(), Length(max=100)],
-        description="Leave blank to auto-generate"
     )
     
     slug = StringField(
@@ -56,14 +49,15 @@ class ProductForm(FlaskForm):
     )
     
     # Category
-    category_id = SelectField(
-        'Category',
+    product_category = SelectField(
+        'Product Category',
         choices=[],
         validators=[DataRequired()],
         validate_choice=False,
         coerce=str,  # Coerce to string to handle UUIDs
         description="Select a product category"
     )
+    colors = StringField('Colors', validators=[Optional()])
     
     # Product Details
     care = TextAreaField(
@@ -84,69 +78,10 @@ class ProductForm(FlaskForm):
         description="Product material"
     )
     
-    # SEO Fields
-    meta_title = StringField(
-        'Meta Title',
-        validators=[Optional(), Length(max=255)],
-        description="SEO meta title"
-    )
-    
-    meta_description = TextAreaField(
-        'Meta Description',
-        validators=[Optional()],
-        description="SEO meta description"
-    )
-    
-    meta_keywords = StringField(
-        'Meta Keywords',
-        validators=[Optional(), Length(max=500)],
-        description="SEO keywords (comma-separated)"
-    )
-    
-    # Status
-    launch_status = SelectField(
-        'Status',
-        choices=[
-            (status.value, status.value) for status in LaunchStatus
-        ],
-        validators=[Optional()],
-        default=LaunchStatus.IN_STOCK.value,
-        description="Product availability status"
-    )
-    
-    # Categories (for many-to-many relationship)
-    categories = MultiCheckboxField(
-        'Additional Categories',
-        choices=[],
-        validators=[Optional()],
-        validate_choice=False,
-        description="Select additional categories (optional)"
-    )
-    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Populate category choices
-        self.category_id.choices = get_category_choices()
-        # For multi-select categories
-        all_categories = get_category_choices()
-        # Remove the empty option for multi-select
-        self.categories.choices = [c for c in all_categories if c[0]]  # Remove empty option
-    
-    def validate_sku(self, field):
-        """Validate SKU uniqueness."""
-        if field.data:
-            from app.models.product import Product
-            existing = Product.query.filter_by(sku=field.data).first()
-            if existing and (not hasattr(self, 'product_id') or existing.id != self.product_id):
-                raise ValidationError('SKU already exists')
-    
-    def validate_slug(self, field):
-        """Validate slug uniqueness."""
-        if field.data:
-            from app.models.product import Product
-            existing = Product.query.filter_by(slug=field.data).first()
-            if existing and (not hasattr(self, 'product_id') or existing.id != self.product_id):
-                raise ValidationError('Slug already exists')
+        self.product_category.choices = get_category_choices()
 
 
 # Legacy alias for backward compatibility

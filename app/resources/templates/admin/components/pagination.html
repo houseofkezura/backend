@@ -7,7 +7,7 @@
         <!-- Prev Link -->
 		<li>
 			<a href="{{ prev_url }}"
-				class="flex items-center justify-center px-4 h-8 ms-0 leading-tight text-gray-500 border border-e-0 border-outline-clr rounded-s-lg hover:bg-theme-clr hover:text-white {% if not pagination.has_prev %} cursor-not-allowed text-gray-300 pointer-events-none bg-outline-clr {% endif %}"
+				class="flex items-center justify-center px-4 h-8 ms-0 leading-tight text-gray-500 border border-e-0 border-border rounded-s-lg hover:bg-primary hover:text-white {% if not pagination.has_prev %} cursor-not-allowed text-gray-300 pointer-events-none bg-border {% endif %}"
 				aria-disabled="{% if pagination.has_prev %}false{% else %}true{% endif %}">
 				Prev
 			</a>
@@ -20,7 +20,7 @@
 
         {% if start_page > 1 %}
             <li>
-                <a href="{{ page_num_url }}&page=1" class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-outline-clr hover:bg-theme-clr hover:text-white">
+                <a href="{{ page_num_url }}&page=1" class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-border hover:bg-primary hover:text-white">
                 1
                 </a>
             </li>
@@ -31,14 +31,14 @@
 
         {% for page_num in range(start_page, end_page + 1) %}
             {% if page_num == pagination.page %}
-                <span class="bg-theme-clr flex items-center justify-center p-4 leading-tight text-white">
+                <span class="bg-primary flex items-center justify-center p-4 leading-tight text-white">
                     {{ page_num }}
                 </span>
             {% else %}
                 <li>
                     <a
                         href="{{ page_num_url }}&page={{page_num}}"
-                        class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-outline-clr hover:bg-theme-clr hover:text-white"
+                        class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-border hover:bg-primary hover:text-white"
                     >
                         {{ page_num }}
                     </a>
@@ -51,7 +51,7 @@
                 <span class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500">...</span>
             {% endif %}
             <li>
-                <a href="{{ page_num_url }}&page={{ total_pages }}" class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-outline-clr hover:bg-theme-clr hover:text-white">
+                <a href="{{ page_num_url }}&page={{ total_pages }}" class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-border hover:bg-primary hover:text-white">
                 {{ total_pages }}
                 </a>
             </li>
@@ -60,7 +60,7 @@
         <!-- Next Link -->
 		<li>
 			<a href="{{ next_url }}"
-				class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-outline-clr rounded-e-lg hover:bg-theme-clr hover:text-white {% if not pagination.has_next %} cursor-not-allowed text-gray-300 pointer-events-none bg-outline-clr {% endif %}"
+				class="flex items-center justify-center px-4 h-8 leading-tight text-gray-500 border border-border rounded-e-lg hover:bg-primary hover:text-white {% if not pagination.has_next %} cursor-not-allowed text-gray-300 pointer-events-none bg-border {% endif %}"
 				aria-disabled="{% if pagination.has_next %}false{% else %}true{% endif %}">
 				Next
 			</a>

@@ -18,15 +18,16 @@
         {% block css_js_scripts %}{% endblock %}
 	</head>
 
-	<body class="" style="background: #edf2f7;">
+	<body class="">
         {% include 'admin/components/header.html' %}
 
         <section id="wrapper" class="min-h-svh pt-16">
             {% include 'admin/components/sidebar.html' %}
 
             <!-- Main content -->
-            <section id="main" class="dash-main p-5 min-h-svh flex flex-col gap-y-4 bg-gray-50 lg:min-h-[calc(100svh-theme(width.16))]">
+            <section id="main" class="dash-main p-5 min-h-svh flex flex-col gap-y-4 lg:min-h-[calc(100svh-theme(width.16))]">
                 {% include 'admin/components/alert_modal.html' %}
+                {% include 'admin/components/modal.html' %}
 
                 <div class="overflow-auto h-full">
                     {% block content %}{% endblock %}

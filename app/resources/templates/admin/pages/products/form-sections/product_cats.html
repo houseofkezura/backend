@@ -1,0 +1,39 @@
+{% call form_section("Product Categories", "bx bxs-category") %}
+    {% call render_form_group() %}
+        {{ render_label("product_category", "Primary Category", required=True, classes="block mb-2 text-sm font-medium") }}
+        {{ form.product_category(class_='form-control form-select block w-full') }}
+        {% for error in form.product_category.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+        <p class="form-help">Select the primary category for this product</p>
+    {% endcall %}
+
+    {% call render_form_group() %}
+        {{ render_label("categories", "Additional Categories", classes="block mb-2 text-sm font-medium") }}
+        {{ category_field | safe }}
+        <p class="form-help">Select additional categories (optional)</p>
+    {% endcall %}
+
+    {% call render_form_group() %}
+        <label for="new_category_input" class="cat-input-label block mb-2 text-sm font-medium cursor-pointer" data-category-toggle>
+            Add new category
+        </label>
+
+        <div class="cat-input-block hidden" data-category-input-block>
+            <input type="text" class="form-control mb-4 form-input block w-full" id="new-category-input" name="new_category_input" data-category-input placeholder="Category name">
+
+            {{ parent_cat_field | safe }}
+
+            <button type="button" class="btn add-new-cat loadable mt-4 inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-primary rounded-lg hover:bg-primary/85 focus:ring-2 focus:outline-none focus:ring-outline-clr" data-category-submit>
+                <span class="btn-txt">Add</span>
+                <span class="load-ico hidden">
+                    <i class="bx bx-loader-alt animate-spin"></i>
+                </span>
+            </button>
+        </div>
+    {% endcall %}
+{% endcall %}
+
+

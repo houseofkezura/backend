@@ -74,12 +74,11 @@
 
                     <div class="card-body px-5 py-5 pt-1">
                         <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
-                            {# {% for field in form %}
+                            {% for field in form %}
                                 {% if field.id in ['site_title', 'tagline', 'platform_url', 'site_url', 'admin_email', 'timezone', 'week_starts_on'] %}
                                     {{ render_field(field) }}
                                 {% endif %}
                             {% endfor %}
-                            #}
                         </div>
                     </div>
                 </div>
@@ -95,20 +94,18 @@
 
                     <div class="card-body px-5 py-5 pt-1">
                         <div class="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-4">
-                            {#
                             {% for field in form %}
                                 {% if field.id in ['currency', 'currency_position', 'thousand_separator', 'decimal_separator', 'number_of_decimals'] %}
                                     {{ render_field(field) }}
                                 {% endif %}
                             {% endfor %}
-                            #}
                         </div>
                     </div>
                 </div>
 
             </div>
-            <button type="submit" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-theme-clr hover:bg-theme-hvr-clr">
-                {# {{ form.submit.label.text }} #}
+            <button type="submit" class="site-btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/90">
+                {{ form.submit.label.text }}
             </button>
         </form>
     </div>

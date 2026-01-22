@@ -1,0 +1,32 @@
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_field, render_field_error, render_form_group %}
+{% from 'admin/macros/buttons.html' import render_button %}
+
+
+{% call form_section("Variations", "bx bxs-box") %}
+    <div class="info mb-4">
+        <p class="text-sm text-gray-600">Create product variations by defining types (e.g., Color, Size, Length) and their values. Each combination will generate a unique variant that you can price and stock individually.</p>
+    </div>
+    
+    <div id="prod-vars" class="mb-4"></div>
+
+    <div class="form-group">
+        <label class="var-options-label block mb-2 text-sm font-medium" for="var-options">Add Variation Types</label>
+        <div class="var-options">
+            {{ render_button("Color", "outline", "md", "rounded", classes="var-type", btn_type="button", id="var-color") }}
+            {{ render_button("Add Custom Type", "primary", "md", "rounded", classes="var-type", icon="bx bx-plus", btn_type="button", id="add-var-btn") }}
+        </div>
+        <p class="form-help mt-2">Click "Color" for a color picker, or "Add Custom Type" for other variations (Size, Length, etc.)</p>
+    </div>
+
+    <div class="form-group">
+        <label class="all-variants-label block mb-2 text-sm font-medium">Generated Variants</label>
+        <p class="text-sm text-gray-500 mb-3">Click on each variant below to set its price, inventory, and other details.</p>
+        <div id="all-variants" class="form-group all-variants-list min-h-[100px] border border-dashed border-gray-300 rounded-lg p-4">
+            <p class="text-sm text-gray-400 text-center">No variants yet. Add variation types above to generate variants.</p>
+        </div>
+    </div>
+    
+    <!-- Hidden input to store variants data -->
+    <input type="hidden" id="variants-data-input" name="variants_data" value="">
+{% endcall %}

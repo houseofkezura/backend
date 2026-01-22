@@ -83,3 +83,14 @@ class PaymentMethodSettings(db.Model):
             'value': self.value,
             'updated_at': self.updated_at
         }
+
+class PaymentGateway(db.Model):
+    __tablename__ = 'payment_gateway'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)  # e.g., 'BitPay', 'Stripe'
+    is_active = db.Column(db.Boolean, default=False)
+    credentials = db.Column(db.JSON)  # Store credentials like API keys, secrets as JSON
+
+    def __repr__(self):
+        return f"<PaymentGateway {self.name}>"

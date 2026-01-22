@@ -39,11 +39,11 @@
                     <div class="payment-method px-5 py-4 border-b border-outline-clr min-h-20 flex items-start flex-col md:flex-row md:items-center md:justify-between gap-y-[15px]">
                         <div class="payment-method-info relative w-full">
                             <h4 class="text-md font-bold text-gray-900 mb-1 flex items-center gap-4 justify-between md:justify-normal w-full md:w-[unset]">
-                                <a href="{{ method.setup_url }}" class="hover:text-theme-clr">
+                                <a href="{{ method.setup_url }}" class="hover:text-primary">
                                     {{ method.title }}
                                 </a>
                                 <!-- Enabled/Disabled Badge -->
-                                <span class="status-badge {% if method.enabled %}enabled{% else %}disabled{% endif %} text-xs font-medium me-2 px-2.5 py-0.5 rounded-lg">
+                                <span class="status-badge {% if method.enabled %}text-green-800 bg-green-100{% else %}text-gray-800 bg-gray-100{% endif %} text-xs font-semibold me-2 px-2.5 py-0.5 rounded-full">
                                     {% if method.enabled %}Enabled{% else %}Disabled{% endif %}
                                 </span>
                             </h4>
@@ -52,7 +52,7 @@
                         </div>
 
                         <!-- Setup Button -->
-                        <a href="{{ method.setup_url }}" class="setup-button px-4 py-1.5 rounded-lg font-medium text-sm text-theme-clr border border-theme-clr">Setup</a>
+                        <a href="{{ method.setup_url }}" class="setup-button px-4 py-1.5 rounded-lg font-medium text-sm text-primary border border-primary">Setup</a>
                     </div>
                     {% endfor %}
                 </div>

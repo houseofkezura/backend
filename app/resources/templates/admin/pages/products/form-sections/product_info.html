@@ -1,0 +1,25 @@
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_field, render_field_error, render_form_group %}
+
+
+{% call form_section("Product info", "bx bxs-info-circle") %}
+    {% call render_form_group() %}
+        {{ render_label("name", "Name", required=True, classes="block mb-2 text-sm font-medium") }}
+        {{ form.name(class_='form-control form-input block w-full', placeholder='Enter product name') }}
+        {% for error in form.name.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endcall %}
+
+    {% call render_form_group() %}
+        {{ render_label("description", "Description", classes="block mb-2 text-sm font-medium") }}
+        {{ form.description(class_='form-control form-textarea rounded-lg block w-full', rows="4", placeholder='Product description') }}
+        {% for error in form.description.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endcall %}
+{% endcall %}

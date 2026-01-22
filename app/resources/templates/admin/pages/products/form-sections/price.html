@@ -1,0 +1,20 @@
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_field, render_field_error, render_form_group %}
+
+
+{% call form_section("Price & Inventory", "bx bxs-dollar-circle", collapsed=True) %}
+    {% call render_form_group() %}
+        <p class="text-sm text-gray-600 mb-4">
+            Product pricing and inventory are managed through variants. Create variants in the "Variations" section below to set prices, stock quantities, and attributes for each variant.
+        </p>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
+            <h4 class="text-sm font-semibold text-blue-900 mb-2">💡 How it works:</h4>
+            <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                <li>Add variation types (e.g., Color, Size, Length)</li>
+                <li>Define values for each type</li>
+                <li>Click on generated variants to set price & inventory</li>
+                <li>Each variant can have unique pricing and stock levels</li>
+            </ul>
+        </div>
+    {% endcall %}
+{% endcall %}

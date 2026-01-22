@@ -1,0 +1,46 @@
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_field, render_field_error, render_form_group %}
+
+
+{% call form_section("More", "bx bxs-detail", collapsed=True) %}
+    {% call render_form_group() %}
+        {{ render_label("material", "Material", classes="block mb-2 text-sm font-medium") }}
+        {{ form.material(class_='form-control form-input block w-full', placeholder='Product material') }}
+        {% for error in form.material.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endcall %}
+
+    {% call render_form_group() %}
+        {{ render_label("details", "Product Details", classes="block mb-2 text-sm font-medium") }}
+        {{ form.details(class_='form-control form-textarea rounded-lg block w-full', rows="4", placeholder='Additional product details') }}
+        {% for error in form.details.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endcall %}
+
+    {% call render_form_group() %}
+        {{ render_label("care", "Care Instructions", classes="block mb-2 text-sm font-medium") }}
+        {{ form.care(class_='form-control form-textarea rounded-lg block w-full', rows="4", placeholder='Product care instructions') }}
+        {% for error in form.care.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endcall %}
+
+    {% call render_form_group() %}
+        {{ render_label("colors", "Colors", classes="block mb-2 text-sm font-medium") }}
+        {{ form.colors(class_='form-control form-input block w-full', placeholder='Product colors (comma-separated)') }}
+        {% for error in form.colors.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+        <p class="form-help">Enter colors separated by commas (e.g., Black, Brown, Blonde)</p>
+    {% endcall %}
+{% endcall %}

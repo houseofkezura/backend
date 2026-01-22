@@ -35,13 +35,15 @@ def get_default_setting(key: GeneralSettingsKeys) -> str:
     log_event("current_domain", current_domain)
     
     defaults = {
-        GeneralSettingsKeys.SITE_TITLE: "eSim App",
+        GeneralSettingsKeys.SITE_TITLE: "Swift Check",
+        GeneralSettingsKeys.TAGLINE: "Your Unified Telecom Utility Platform",
+        GeneralSettingsKeys.ADMIN_EMAIL: "admin@swifttcheck.com",
         GeneralSettingsKeys.TIMEZONE: "UTC",
         
         GeneralSettingsKeys.PLATFORM_URL: current_domain,  # Where your application files live
         GeneralSettingsKeys.SITE_URL: current_domain,      # Where your site is accessed by users
         
-        GeneralSettingsKeys.CURRENCY: "USD",
+        GeneralSettingsKeys.CURRENCY: "NGN",
         GeneralSettingsKeys.NUMBER_OF_DECIMALS: "2",
         GeneralSettingsKeys.CURRENCY_POSITION: "left",
         GeneralSettingsKeys.THOUSAND_SEPARATOR: ",",
@@ -217,6 +219,20 @@ def get_active_payment_gateway() -> dict:
 
     Returns:
         dict: Contains 'provider' and relevant credentials.
+    
+    Expected structure:
+    {
+        "provider": "flutterwave" | "paystack" | "bitpay",
+        "credentials": {
+            "api_key": "...",
+            "secret_key": "...",
+            "public_key": "...",
+            "test_mode": "true" | "false",
+            "test_api_key": "...",
+            "test_secret_key": "...",
+            "test_public_key": "..."
+        }
+    }
     """
     
     fallback = {

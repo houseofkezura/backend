@@ -1,18 +1,31 @@
-{% extends 'web_admin/base/base.html' %}
+{% extends 'admin/base/index.html' %}
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_field, render_field_error, render_form_group %}
+{% from 'admin/macros/buttons.html' import render_button %}
+
 {% block title %}Add New Product - {{ super() }}{% endblock %}
 
 {% block CSSandJS_Links %}
-<link rel="stylesheet" href="{{url_for('static', filename='web_admin/css/add-prod.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='admin/css/add-prod.css')}}">
 {% endblock %}
 
 {% block content %}
+<!--
+    Product Creation Flow:
+    1. Fill in basic product information (name, description, category, etc.)
+    2. Add variation types (Color, Size, Length, etc.) and their values
+    3. System generates all possible variant combinations
+    4. Click each variant to set its price, inventory, and SKU
+    5. Submit form - variants data is sent as JSON in hidden input
+    6. Backend creates product + all variants with pricing/inventory
+-->
 <section class="lg:pt-1">
         <div id="main-header"
-            class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white">
+            class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6">
             <h2 class="text-2xl font-bold text-gray-900">{% block form_title %}Add a new product{% endblock %}</h2>
         </div>
 
-        <form method="post" action="{% block form_action %} {{ url_for('web_admin.add_new_product') }} {% endblock %}" class="pt-2" id="add-user-form" enctype="multipart/form-data">
+        <form method="post" action="{% block form_action %}{{ url_for('web.web_admin.products.add_new_product') }}{% endblock %}" class="pt-2" id="add-user-form" enctype="multipart/form-data">
             {% block form_content %}
                 {% if 'csrf_token' in form %}
                 {{form.csrf_token}}
@@ -20,36 +33,73 @@
                 
                 <input id="uuid" name="uuid" type="hidden" value="{{ pid }}">
                 <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
-                    {% include 'web_admin/pages/products/form-components/product_info.html' %}
-                    {% include 'web_admin/pages/products/form-components/price.html' %}
+                    {% include 'admin/pages/products/form-sections/product_info.html' %}
+                    {% include 'admin/pages/products/form-sections/product_cats.html' %}
                 </div>
                 
                 <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
-
-                    {% include 'web_admin/pages/products/form-components/product_cats.html' %}
-                    {% include 'web_admin/pages/products/form-components/product_tags.html' %}
-                    
+                    {% include 'admin/pages/products/form-sections/price.html' %}
+                    {% include 'admin/pages/products/form-sections/more.html' %}
                 </div>
 
                 <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
-                    {% include 'web_admin/pages/products/form-components/variations.html' %}
+                    {% include 'admin/pages/products/form-sections/variations.html' %}
                 </div>
 
                 <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
-                    {% include 'web_admin/pages/products/form-components/media.html' %}
+                    {% include 'admin/pages/products/form-sections/media.html' %}
                 </div>
 
-                <button type="submit" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-theme-clr hover:bg-theme-hvr-clr">
-                    Publish
-                </button>
+                <div class="w-full flex justify-end gap-4">
+                    <a href="{{ url_for('web.web_admin.products.products') }}" class="site-btn inline-flex items-center justify-center font-medium px-6 py-3 text-base rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </a>
+                    {{ render_button("Publish", "primary", "lg", "rounded", btn_type="submit") }}
+                </div>
             {% endblock %}
         </form>
 </section>
 
-<!-- <script src="{{ url_for('static', filename='web_admin/js/publish.js') }}"></script> -->
-<script src="{{ url_for('static', filename='web_admin/js/new_cat.js') }}"></script>
-<script src="{{ url_for('static', filename='web_admin/js/add_tags.js') }}"></script>
-<script src="{{ url_for('static', filename='web_admin/js/upload_prod_img.js') }}"></script>
-<!-- <script src="{{ url_for('static', filename='web_admin/js/add_variations.js') }}"></script> -->
-<script src="{{ url_for('static', filename='web_admin/library/sortable/sortable.min.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='admin/js/publish.js') }}"></script> -->
+<script src="{{ url_for('static', filename='admin/js/new_cat.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='admin/js/upload_prod_img.js') }}"></script> -->
+<script src="{{ url_for('static', filename='admin/library/sortable/sortable.min.js') }}"></script>
+<script src="{{ url_for('static', filename='admin/js/add_variations.js') }}"></script>
+<script>
+    // Form validation before submission
+    document.getElementById('add-user-form').addEventListener('submit', function(e) {
+        const variantsInput = document.getElementById('variants-data-input');
+        
+        if (variantsInput && variantsInput.value) {
+            try {
+                const variants = JSON.parse(variantsInput.value);
+                
+                // Check if any variants exist but are not configured
+                const unconfigured = variants.filter(v => !v.price_ngn || v.price_ngn <= 0);
+                
+                if (unconfigured.length > 0) {
+                    e.preventDefault();
+                    
+                    const confirmMsg = `You have ${unconfigured.length} variant(s) without pricing.\n\n` +
+                        `Unconfigured variants will not be created.\n\n` +
+                        `Do you want to continue?`;
+                    
+                    if (!confirm(confirmMsg)) {
+                        return false;
+                    }
+                    
+                    // Filter out unconfigured variants
+                    const configured = variants.filter(v => v.price_ngn && v.price_ngn > 0);
+                    variantsInput.value = JSON.stringify(configured);
+                    
+                    // Re-submit
+                    this.submit();
+                }
+            } catch (e) {
+                console.error('Failed to parse variants data', e);
+            }
+        }
+    });
+</script>
+{% block extra_js %}{% endblock %}
 {% endblock %}

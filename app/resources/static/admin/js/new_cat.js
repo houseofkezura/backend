@@ -202,7 +202,7 @@
 			// Redirect to login page if unauthorized
 			const currentPath =
 				window.location.pathname + window.location.search;
-			window.location.replace(`/web-admin/login?next=${currentPath}`);
+			window.location.replace(`/admin/login?next=${currentPath}`);
 			return;
 		}
 

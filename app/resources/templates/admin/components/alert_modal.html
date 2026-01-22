@@ -1,6 +1,6 @@
 {% from 'admin/macros/alerts.html' import render_alert %}
 
-<div id="alert-box" class="alert-box fit-main flex flex-col items-center justify-center gap-y-4 fixed top-18 left-0 z-50 w-full pointer-events-none">
+<div id="alert-box" class="alert-box fit-main flex flex-col items-center justify-center gap-y-4 fixed top-18 left-0 z-50 pointer-events-none">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}

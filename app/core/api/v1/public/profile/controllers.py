@@ -7,6 +7,7 @@ from app.extensions import db
 from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.models.user import AppUser, Profile, Address
+from app.models.loyalty import LoyaltyAccount
 from app.schemas.profile import UpdateProfileRequest
 from app.logging import log_error, log_event
 
@@ -48,8 +49,7 @@ class ProfileController:
             profile_data = current_user.to_dict()
             
             # Include loyalty information if available
-            from app.models.loyalty import LoyaltyAccount
-            loyalty_account = LoyaltyAccount.query.filter_by(user_id=current_user.id).first()
+            loyalty_account: LoyaltyAccount = LoyaltyAccount.query.filter_by(user_id=current_user.id).first()
             if loyalty_account:
                 profile_data["loyalty"] = loyalty_account.to_dict()
             

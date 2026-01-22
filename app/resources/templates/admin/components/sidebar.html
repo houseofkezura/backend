@@ -51,7 +51,7 @@
             <li>
                 <span class="flex items-center p-2 rounded-lg text-gray-900 hover:bg-gray-100 group"
                     aria-controls="dropdown-settings-menu" data-collapse-toggle="dropdown-settings-menu">
-                    <a href="" class="flex items-center flex-1">
+                    <a class="flex items-center flex-1">
                         <i class="bx bxs-cog shrink-0 w-6 h-6 transition duration-75 text-gray-500 group-hover:text-gray-900 text-2xl text-center my-auto"></i>
                         <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Settings</span>
                     </a>
@@ -62,7 +62,7 @@
                         <a href="{{ url_for('web.web_admin.web_admin_settings.general_settings') }}" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100">General Settings</a>
                     </li>
                     <li>
-                        <a href="" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100">Payment Settings</a>
+                        <a href="{{ url_for('web.web_admin.web_admin_settings.payment_settings') }}" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100">Payment Settings</a>
                     </li>
                 </ul>
             </li>

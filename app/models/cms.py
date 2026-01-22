@@ -97,3 +97,4 @@ class B2BInquiry(db.Model):
 
 
 
+

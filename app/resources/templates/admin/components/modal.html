@@ -1,0 +1,17 @@
+{% from 'admin/macros/buttons.html' import render_button %}
+
+<div class="modal-box stay-middle hidden">
+	<div class="modal card">
+		<div class="modal-head flex justify-between items-center">
+			<span class="modal-title"></span>
+			<span class="close-modal" id="close-modal">&times;</span>
+		</div>
+		<div class="modal-body"></div>
+		<div class="modal-foot flex justify-between items-center">
+			{{ render_button("Cancel", "outline", "md", "rounded", classes="plain-btn", id="cancel-modal") }}
+			<div class="btn-wrap">
+                {{ render_button("Done", "primary", "md", "rounded", classes="site-btn", id="done-modal") }}
+			</div>
+		</div>
+	</div>
+</div>

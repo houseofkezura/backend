@@ -3,7 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "flowbite/src/themes/minimal";
 
-@plugin "flowbite/plugin";
+/* @plugin "flowbite/plugin"; */
 @source "../../node_modules/flowbite";
 
 @custom-variant dark (&:is(.dark *));
@@ -27,7 +27,7 @@
 
 
 :root {
-    --background: #e8ebed;
+    --background: #edf2f7;
     --foreground: #333333;
     --card: #ffffff;
     --card-foreground: #333333;
@@ -44,7 +44,7 @@
     --destructive: #ce3b3b;
     --destructive-foreground: #ffffff;
     --border: #dcdfe2;
-    --input: #f4f5f7;
+    --input: #dcdfe2;
     --ring: #e05d38;
     
     --sidebar: #dee0e3;
@@ -225,11 +225,22 @@
     }
 
     .site-btn {
-        @apply transition-all ease-in-out duration-300 scale-100;
+        @apply transition-all ease-in-out duration-300 scale-100 cursor-pointer;
     }
 
     .site-btn:active {
         @apply scale-98;
+    }
+    .btn-primary {
+        @apply bg-primary text-white hover:bg-primary/90;
+    }
+
+    .btn-secondary {
+        @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white hover:bg-red-700;
     }
 
     .stay-middle {
@@ -283,20 +294,27 @@
     }
 
     /* Form Components */
+    .form-group {
+        @apply mb-4;
+    }
+    .form-group label {
+        @apply mb-2 text-sm font-medium text-foreground;
+    }
+    .form-control,
     .form-input {
-        @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
+        @apply w-full px-3 py-2 text-sm border border-input rounded-lg bg-transparent text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all;
     }
 
     .form-textarea {
-        @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors resize-y;
+        @apply w-full px-3 py-2 text-sm border border-input rounded-lg bg-transparent text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-y;
     }
 
     .form-select {
-        @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
+        @apply w-full px-3 py-2 text-sm border border-input rounded-lg bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
     }
 
     .form-label {
-        @apply block mb-2 text-sm font-medium text-gray-900;
+        @apply block mb-2 text-sm font-medium text-foreground;
     }
 
     .form-label-required::after {
@@ -313,15 +331,15 @@
     }
 
     .form-section {
-        @apply bg-white rounded-lg shadow border border-gray-200 p-6 mb-6;
+        @apply bg-card text-card-foreground shadow;
     }
 
     .form-section-header {
-        @apply flex items-center gap-2 mb-4 pb-4 border-b border-gray-200;
+        @apply flex items-center gap-2;
     }
 
     .form-section-title {
-        @apply text-lg font-semibold text-gray-900;
+        @apply text-lg font-semibold text-foreground;
     }
 
     .form-section-icon {
@@ -342,22 +360,217 @@
     }
 
     .collapsible.collapsed .collapsible-body {
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-top: 0;
-        margin-bottom: 0;
+        @apply max-h-0 py-0 my-0;
     }
 
-    .btn-primary {
-        @apply inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/20 transition-colors;
+    .collapsible {
+        @apply w-full rounded-lg shadow border border-t-4 border-primary bg-card text-card-foreground
+    }
+    .collapsible.collapsed {
+        height: var(--header-height) !important;
+        @apply border-t-3 border-border self-start
+    }
+    .collapsible-header {
+        @apply relative px-5 py-4 border-b border-border cursor-pointer
+    }
+    .collapsible-title {
+        @apply flex items-center gap-2
+    }
+    .collapsible-body {
+        @apply px-5 py-4
+    }
+    .collapsible-body,
+    .collapsible-foot {
+        @apply overflow-hidden transition-all duration-300;
     }
 
-    .btn-secondary {
-        @apply inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-gray-900 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 transition-colors;
+    .collapsible.collapsed .collapsible-header {
+        @apply border-b-transparent!;
+    }
+    .collapsible-header::before,
+    .collapsible-header::after {
+        @apply h-0.5 w-3.5 absolute right-5 top-6 float-right transition-transform duration-500 bg-foreground;
+        content: '';
+    }
+    .collapsible-header::after {
+        transform-origin: center;
+    }
+    .collapsed .collapsible-header::before{
+        transform: rotate(180deg);
+    }
+    .collapsed .collapsible-header::after {
+        transform: rotate(90deg);
     }
 
-    .btn-danger {
-        @apply inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white rounded-lg bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-200 transition-colors;
+    .collapsible.collapsed .collapsible-body,
+    .collapsible.collapsed .collapsible-foot {
+        @apply h-0! py-0 px-4.5
+    }
+
+    .media-input {
+        @apply flex items-center justify-center
+    }
+
+    /* Modal */
+    .modal-box {
+        @apply fixed! inset-0 bg-black/20 flex items-center justify-center z-50;
+    }
+    .modal {
+        @apply bg-card rounded-lg shadow-lg min-w-96 min-h-96;
+    }
+    .modal-body {
+        @apply p-4 pt-6 max-h-96 overflow-y-auto min-h-65;
+    }
+    .modal-body>.alert {
+        @apply absolute left-1/2 z-10 transform -translate-x-1/2 -translate-y-1/2;
+        width: calc(100% - (1.25rem + 1.25rem));
+    }
+    .modal-body>.alert.visible {
+        @apply py-2.5 px-3 m-0 mb-4 transform -translate-y-1/2;
+    }
+    .modal-foot,
+    .modal-head {
+        @apply min-h-15 border-b border-border p-3;
+    }
+    .modal-foot {
+        @apply w-full border-t border-border border-b-transparent;
+    }
+    .close-modal {
+        @apply float-right text-2xl font-bold p-1 ml-5 cursor-pointer;
+    }
+    .modal-title {
+        @apply text-lg font-medium m-0 flex items-center;
+    }
+
+    /* Variations */
+    .var-options {
+        @apply flex flex-wrap items-center gap-2 my-2.5 mx-0;
+    }
+    .var-type {
+        @apply inline border-2 border-border px-2.5 py-2 cursor-pointer;
+    }
+    .var-type.selected {
+        @apply bg-[#3cb37161];
+    }
+
+    .variation-name {
+        @apply mb-5;
+    }
+    .var-name-input-box {
+        @apply flex!;
+    }
+    .val-box {
+        @apply h-10 mb-1.5 flex gap-3.5 w-full;
+    }
+    .val-box div {
+        @apply transition-all duration-300;
+    }
+    .var-name-input-box,
+    .val-input-box {
+        @apply inline-flex gap-1.25 grow;
+    }
+    .val-input {
+        @apply inline grow;
+    }
+    .val-act {
+        @apply w-21.5 flex gap-1.5;
+    }
+    .the-picker {
+        @apply absolute right-0 w-full border-none outline-none z-[-1];
+        visibility: hidden;
+    }
+    .act-btn {
+        @apply rounded-md border border-border w-15 text-sm flex justify-center items-center relative bg-transparent text-foreground cursor-pointer;
+    }
+    .val-act .act-btn {
+        @apply m-0! w-10;
+    }
+    .del-val {
+        @apply text-red-600 border border-red-600;
+    }
+    .move-val:hover {
+        @apply cursor-grab;
+    }
+    .move-val:active {
+        @apply cursor-grabbing;
+    }
+
+    #prod-vars {
+        @apply my-4.5 mx-0;
+    }
+    .prod-var-type {
+        @apply py-3.5 px-2 mb-2.5 rounded-md border border-border flex gap-2.5 items-center;
+    }
+    .var-type-info {
+        @apply grow;
+    }
+    .var-type-values {
+        @apply flex flex-wrap gap-2.5 mt-2;
+    }
+    .var-type-values span {
+        @apply text-sm text-gray-500 bg-[#dde0e4] px-2.5 py-px rounded-full;
+    }
+    .var-type-act {
+        @apply w-26 flex gap-1.5 h-12.5 text-foreground;
+    }
+    .var-type-act .act-btn {
+        @apply w-12.5;
+    }
+
+
+    #all-variants {
+        @apply m-0;
+    }
+    .a-variant {
+        @apply flex items-center justify-between p-4 mb-2.5 rounded-lg bg-white border border-gray-200 shadow-sm relative cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary;
+    }
+    .a-variant:hover {
+        @apply bg-gray-50;
+    }
+    .a-variant .bx {
+        @apply text-xl text-gray-400 transition-colors;
+    }
+    .a-variant:hover .bx {
+        @apply text-primary;
+    }
+    .a-variant label {
+        @apply text-sm font-medium m-0 pointer-events-none text-gray-900;
+    }
+    .a-variant .price {
+        @apply text-xs mt-1;
+    }
+    .a-variant-info {
+        @apply flex-1;
+    }
+    
+    /* Variant details form styling */
+    .variant-details-form .form-group {
+        @apply mb-4;
+    }
+    .variant-details-form .form-label {
+        @apply block mb-2 text-sm font-medium text-gray-900;
+    }
+    .variant-details-form .form-input {
+        @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
+    }
+    
+    /* Modal alert styling */
+    .modal-alert {
+        @apply animate-[fade-in];
+    }
+    
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
     }
 }

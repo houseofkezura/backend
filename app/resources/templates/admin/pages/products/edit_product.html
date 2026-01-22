@@ -1,199 +1,34 @@
-{% extends 'admin/pages/products/add_product.html' %}
+{% extends 'admin/pages/products/new_products.html' %}
+{% block title %}Edit Product - {{ product.name }}{% endblock %}
 
-{% block title %}Edit Product - {{ super() }}{% endblock %}
+{% block form_title %}Edit Product{% endblock %}
+{% block form_action %}{{ url_for('web.web_admin.products.edit_product', identifier=product.id) }}{% endblock %}
 
-{% block content %}
-<div class="max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Edit Product</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ product.name }}</p>
-        </div>
-        <a href="{{ url_for('web.web_admin.products.products') }}" class="btn-secondary">
-            <i class="bx bx-arrow-back mr-2"></i>
-            Back to Products
-        </a>
-    </div>
+{% block form_content %}
+    {{ super() }}
+    
+    <!-- Pass existing variants to JavaScript -->
+    {% if existing_variants %}
+    <input type="hidden" id="existing-variants-json" value="{{ existing_variants|tojson|forceescape }}">
+    {% endif %}
+{% endblock %}
 
-    <form method="POST" action="{{ url_for('web.web_admin.products.edit_product', product_id=product.id) }}" enctype="multipart/form-data" id="product-form" class="space-y-6">
-        {{ form.csrf_token }}
-
-        {% call form_section("Basic Information", "bx bxs-info-circle") %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-group">
-                    {{ form.name.label(class="form-label form-label-required") }}
-                    {{ form.name(class="form-input", placeholder="Enter product name") }}
-                    {% if form.name.errors %}
-                        {% for error in form.name.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.sku.label(class="form-label") }}
-                    {{ form.sku(class="form-input", placeholder="Leave blank to auto-generate") }}
-                    {% if form.sku.errors %}
-                        {% for error in form.sku.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group md:col-span-2">
-                    {{ form.slug.label(class="form-label") }}
-                    {{ form.slug(class="form-input", placeholder="URL-friendly identifier") }}
-                    {% if form.slug.errors %}
-                        {% for error in form.slug.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group md:col-span-2">
-                    {{ form.description.label(class="form-label") }}
-                    <textarea name="{{ form.description.name }}" id="{{ form.description.id }}" class="form-textarea" rows="4" placeholder="Product description">{{ form.description.data or product.description or '' }}</textarea>
-                    {% if form.description.errors %}
-                        {% for error in form.description.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endcall %}
-
-        {% call form_section("Category & Status", "bx bxs-category") %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-group">
-                    {{ form.category_id.label(class="form-label form-label-required") }}
-                    {{ form.category_id(class="form-select") }}
-                    {% if form.category_id.errors %}
-                        {% for error in form.category_id.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.launch_status.label(class="form-label") }}
-                    {{ form.launch_status(class="form-select") }}
-                    {% if form.launch_status.errors %}
-                        {% for error in form.launch_status.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                {% if category_field %}
-                <div class="form-group md:col-span-2">
-                    <label class="form-label">Additional Categories (Optional)</label>
-                    {{ category_field | safe }}
-                </div>
-                {% endif %}
-            </div>
-        {% endcall %}
-
-        {% call form_section("Category & Status", "bx bxs-category") %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-group">
-                    {{ form.category_id.label(class="form-label form-label-required") }}
-                    {{ form.category_id(class="form-select") }}
-                    {% if form.category_id.errors %}
-                        {% for error in form.category_id.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.launch_status.label(class="form-label") }}
-                    {{ form.launch_status(class="form-select") }}
-                    {% if form.launch_status.errors %}
-                        {% for error in form.launch_status.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endcall %}
-
-        {% call form_section("Product Details", "bx bxs-detail", collapsed=True) %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-group">
-                    {{ form.material.label(class="form-label") }}
-                    {{ form.material(class="form-input", placeholder="Product material") }}
-                    {% if form.material.errors %}
-                        {% for error in form.material.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group md:col-span-2">
-                    {{ form.details.label(class="form-label") }}
-                    <textarea name="{{ form.details.name }}" id="{{ form.details.id }}" class="form-textarea" rows="4" placeholder="Additional product details">{{ form.details.data or product.details or '' }}</textarea>
-                    {% if form.details.errors %}
-                        {% for error in form.details.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group md:col-span-2">
-                    {{ form.care.label(class="form-label") }}
-                    <textarea name="{{ form.care.name }}" id="{{ form.care.id }}" class="form-textarea" rows="4" placeholder="Product care instructions">{{ form.care.data or product.care or '' }}</textarea>
-                    {% if form.care.errors %}
-                        {% for error in form.care.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endcall %}
-
-        {% call form_section("SEO Settings", "bx bxs-search-alt-2", collapsed=True) %}
-            <div class="grid grid-cols-1 gap-6">
-                <div class="form-group">
-                    {{ form.meta_title.label(class="form-label") }}
-                    {{ form.meta_title(class="form-input", placeholder="SEO meta title") }}
-                    {% if form.meta_title.errors %}
-                        {% for error in form.meta_title.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.meta_description.label(class="form-label") }}
-                    <textarea name="{{ form.meta_description.name }}" id="{{ form.meta_description.id }}" class="form-textarea" rows="3" placeholder="SEO meta description">{{ form.meta_description.data or product.meta_description or '' }}</textarea>
-                    {% if form.meta_description.errors %}
-                        {% for error in form.meta_description.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.meta_keywords.label(class="form-label") }}
-                    {{ form.meta_keywords(class="form-input", placeholder="Keywords (comma-separated)") }}
-                    {% if form.meta_keywords.errors %}
-                        {% for error in form.meta_keywords.errors %}
-                            <p class="form-error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endcall %}
-
-        <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
-            <a href="{{ url_for('web.web_admin.products.products') }}" class="btn-secondary">
-                Cancel
-            </a>
-            <button type="submit" class="btn-primary">
-                <i class="bx bx-save mr-2"></i>
-                Update Product
-            </button>
-        </div>
-    </form>
-</div>
+{% block extra_js %}
+<script>
+    // Load existing variants when editing
+    document.addEventListener('DOMContentLoaded', function() {
+        const existingVariantsInput = document.getElementById('existing-variants-json');
+        if (existingVariantsInput && existingVariantsInput.value) {
+            try {
+                const variants = JSON.parse(existingVariantsInput.value);
+                if (variants && variants.length > 0) {
+                    // Populate variants display
+                    window.loadExistingVariants(variants);
+                }
+            } catch (e) {
+                console.error('Failed to load existing variants', e);
+            }
+        }
+    });
+</script>
 {% endblock %}

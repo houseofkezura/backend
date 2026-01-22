@@ -7,15 +7,15 @@
     {% if pagination.items %}
 
         <div class="relative overflow-x-auto">
-            <div id="main-header" class="flex items-center justify-between flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white">
+            <div id="main-header" class="flex items-center justify-between flex-wrap lg:flex-row space-y-4 lg:space-y-0 mb-6">
                 <h1 class="text-2xl font-bold">Products</h1>
                 {% if 'Super Admin' in CURRENT_USER.roles or 'Admin' in CURRENT_USER.roles or 'Operations' in CURRENT_USER.roles %}
-                    <a href="{{ url_for('web.web_admin.products.add_new_product') }}" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Product </span></a>
+                    <a href="{{ url_for('web.web_admin.products.add_new_product') }}" class="btn inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Product </span></a>
                 {% endif %}
             </div>
 
             <div
-                class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4 bg-white">
+                class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 mb-4">
                 <div>
                     <button id="dropdownActionButton" data-dropdown-toggle="dropdownAction"
                         class="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5"
@@ -30,7 +30,7 @@
                     </button>
                     <!-- Dropdown menu -->
                     <div id="dropdownAction"
-                        class="z-10 hidden divide-y divide-gray-100 rounded-lg shadow w-44 text-gray-700 bg-gray-50 border border-outline-clr">
+                        class="z-10 hidden divide-y divide-gray-100 rounded-lg shadow w-44 text-gray-700 bg-gray-50 border border-border">
                         <ul class="py-1 text-sm text-gray-700" aria-labelledby="dropdownActionButton">
                             <li>
                                 <a href="#"
@@ -55,13 +55,13 @@
                     </div>
                     <form method="GET" action="{{ url_for('web.web_admin.products.products') }}">
                         <input type="text" id="table-search-products" name="search"
-                            class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-primary focus:border-primary"
+                            class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 outline-none focus:ring-primary focus:border-primary"
                             placeholder="Search products..." value="{{ search_term }}">
                     </form>
                 </div>
             </div>
             
-            <div class="rounded-lg shadow-md border border-outline-clr overflow-y-hidden">
+            <div class="rounded-lg shadow-md border border-border overflow-y-hidden">
             <table class="w-full shadow-md lg:rounded-lg text-sm text-left rtl:text-right text-gray-500">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
@@ -98,7 +98,7 @@
 
                 <tbody>
                     {% for product in pagination.items %}
-                    <tr class="bg-white border-b hover:bg-gray-50">
+                    <tr class="bg-card border-b hover:bg-gray-50">
                         <td class="w-4 p-4">
                             <div class="flex items-center">
                                 <input id="checkbox-table-search-1" type="checkbox"
@@ -141,9 +141,9 @@
                             <div class="font-normal text-gray-500 text-xs mt-1">{{ product.created_at.strftime('%b %d, %Y') if product.created_at else '—' }}</div>
                         </td>
                         <td class="px-6 py-4 flex items-center gap-2">
-                            <a href="{{ url_for('web.web_admin.products.view_product', product_id=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">View</a>
-                            <a href="{{ url_for('web.web_admin.products.edit_product', product_id=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-primary text-primary hover:bg-alert-info">Edit</a>
-                            <form method="POST" action="{{ url_for('web.web_admin.products.delete_product', product_id=product.id) }}" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline">
+                            <a href="{{ url_for('web.web_admin.products.view_product', identifier=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">View</a>
+                            <a href="{{ url_for('web.web_admin.products.edit_product', identifier=product.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-primary text-primary hover:bg-alert-info">Edit</a>
+                            <form method="POST" action="{{ url_for('web.web_admin.products.delete_product', identifier=product.id) }}" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline">
                                 <button type="submit" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-alert-danger-solid text-alert-danger-solid hover:bg-alert-danger">Delete</button>
                             </form>
                         </td>

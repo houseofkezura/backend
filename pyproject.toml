@@ -30,4 +30,5 @@ dependencies = [
     "typing-extensions>=4.15.0",
     "quas-utils>=0.0.6",
     "flask-wtf>=1.2.2",
+    "pycountry>=24.6.1",
 ]
