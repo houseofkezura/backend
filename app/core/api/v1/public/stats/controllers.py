@@ -36,20 +36,20 @@ class StatsController:
             order_stats = {
                 "total_orders": order_base_query.count(),
                 "pending_orders": order_base_query.filter(
-                    Order.status.in_([OrderStatus.PENDING, OrderStatus.AWAITING_PAYMENT])
+                    Order.status.in_([str(OrderStatus.PENDING), str(OrderStatus.AWAITING_PAYMENT)])
                 ).count(),
-                "paid_orders": order_base_query.filter(Order.status == OrderStatus.PAID).count(),
-                "processing_orders": order_base_query.filter(Order.status == OrderStatus.PROCESSING).count(),
+                "paid_orders": order_base_query.filter(Order.status == str(OrderStatus.PAID)).count(),
+                "processing_orders": order_base_query.filter(Order.status == str(OrderStatus.PROCESSING)).count(),
                 "completed_orders": order_base_query.filter(
-                    Order.status.in_([OrderStatus.DELIVERED, OrderStatus.SHIPPED])
+                    Order.status.in_([str(OrderStatus.DELIVERED), str(OrderStatus.SHIPPED)])
                 ).count(),
                 "cancelled_orders": order_base_query.filter(
-                    Order.status.in_([OrderStatus.CANCELLED, OrderStatus.FAILED])
+                    Order.status.in_([str(OrderStatus.CANCELLED), str(OrderStatus.FAILED)])
                 ).count(),
             }
             
             # Calculate order total spent
-            paid_orders = order_base_query.filter(Order.status == OrderStatus.PAID).all()
+            paid_orders = order_base_query.filter(Order.status == str(OrderStatus.PAID)).all()
             order_total_spent = sum(float(o.amount) for o in paid_orders)
             order_stats["total_spent"] = round(order_total_spent, 2)
             

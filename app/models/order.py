@@ -25,7 +25,7 @@ class Order(db.Model):
     user_id: M[Optional[uuid.UUID]] = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=True, index=True)
     
     # Order status
-    status: M[OrderStatus] = db.Column(db.Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING, index=True)
+    status: M[str] = db.Column(db.String(50), nullable=False, default=str(OrderStatus.PENDING), index=True)
     
     # Pricing breakdown
     subtotal: M[float] = db.Column(db.Numeric(14, 2), nullable=False)
@@ -90,7 +90,7 @@ class Order(db.Model):
         
         data = {
             'id': str(self.id),
-            'status': str(self.status.value) if isinstance(self.status, OrderStatus) else str(self.status),
+            'status': str(self.status),
             'subtotal': float(self.subtotal),
             'shipping_cost': float(self.shipping_cost),
             'discount': float(self.discount),

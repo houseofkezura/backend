@@ -42,11 +42,11 @@ class AdminOrderController:
             query = Order.query
             
             if status:
-                try:
-                    status_enum = OrderStatus(status)
-                    query = query.filter_by(status=status_enum)
-                except ValueError:
+                # Validate status is a valid OrderStatus value
+                valid_statuses = [str(s) for s in OrderStatus]
+                if status not in valid_statuses:
                     return error_response("Invalid status", 400)
+                query = query.filter_by(status=status)
             
             if user_id:
                 try:
@@ -149,13 +149,13 @@ class AdminOrderController:
             if not new_status:
                 return error_response("Status is required", 400)
             
-            try:
-                status_enum = OrderStatus(new_status)
-            except ValueError:
+            # Validate status is a valid OrderStatus value
+            valid_statuses = [str(s) for s in OrderStatus]
+            if new_status not in valid_statuses:
                 return error_response("Invalid status", 400)
             
             old_status = order.status
-            order.status = status_enum
+            order.status = new_status
             db.session.commit()
             
             # Create audit log
@@ -165,7 +165,7 @@ class AdminOrderController:
                 resource_type="order",
                 resource_id=order_uuid,
                 meta={
-                    "old_status": str(old_status.value) if hasattr(old_status, 'value') else str(old_status),
+                    "old_status": str(old_status),
                     "new_status": new_status,
                     "notes": notes,
                 }
@@ -230,11 +230,11 @@ class AdminOrderController:
                 return error_response("Order not found", 404)
             
             # Check if order can be cancelled
-            if order.status in [OrderStatus.DELIVERED, OrderStatus.CANCELLED, OrderStatus.REFUNDED]:
-                return error_response(f"Cannot cancel order with status: {order.status.value}", 400)
+            if order.status in [str(OrderStatus.DELIVERED), str(OrderStatus.CANCELLED), str(OrderStatus.REFUNDED)]:
+                return error_response(f"Cannot cancel order with status: {order.status}", 400)
             
             old_status = order.status
-            order.status = OrderStatus.CANCELLED
+            order.status = str(OrderStatus.CANCELLED)
             db.session.commit()
             
             # Create audit log
@@ -244,7 +244,7 @@ class AdminOrderController:
                 resource_type="order",
                 resource_id=order_uuid,
                 meta={
-                    "old_status": str(old_status.value) if hasattr(old_status, 'value') else str(old_status),
+                    "old_status": str(old_status),
                 }
             )
             

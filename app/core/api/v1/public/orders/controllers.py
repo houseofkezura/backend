@@ -48,10 +48,10 @@ class OrdersController:
                 return error_response("Order not found", 404)
             
             # Check if order can be cancelled
-            if order.status in [OrderStatus.SHIPPED, OrderStatus.DELIVERED]:
+            if order.status in [str(OrderStatus.SHIPPED), str(OrderStatus.DELIVERED)]:
                 return error_response("Cannot cancel order that has been shipped", 400)
             
-            order.status = OrderStatus.CANCELLED
+            order.status = str(OrderStatus.CANCELLED)
             db.session.commit()
             
             return success_response(

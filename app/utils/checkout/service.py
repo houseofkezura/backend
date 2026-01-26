@@ -207,7 +207,7 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         # Step 6: Create provisional order
         order = Order()
         order.user_id = current_user.id if current_user else None
-        order.status = OrderStatus.PENDING_PAYMENT
+        order.status = str(OrderStatus.PENDING_PAYMENT)
         order.subtotal = Decimal(str(subtotal))
         order.shipping_cost = Decimal(str(shipping_cost))
         order.discount = Decimal(str(discount))

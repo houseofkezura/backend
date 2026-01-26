@@ -55,7 +55,7 @@ class CrmController:
                 return error_response("Order not found", 404)
             
             # Validate order is delivered
-            if order.status != OrderStatus.DELIVERED:
+            if order.status != str(OrderStatus.DELIVERED):
                 return error_response("Can only rate orders that have been delivered", 400)
             
             # Check if rating already exists
