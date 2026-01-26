@@ -382,6 +382,20 @@ class B2BInquiryDataModel(BaseModel):
     updated_at: Optional[str] = None
 
 
+class WaitlistEntryDataModel(BaseModel):
+    """Waitlist entry data model."""
+    class Config:
+        extra = "forbid"
+    
+    id: str
+    email: str
+    status: str
+    invited_at: Optional[str] = None
+    converted_at: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
 class StaffDataModel(BaseModel):
     """Staff data model."""
     class Config:
@@ -694,6 +708,26 @@ class B2BInquiryData(BaseModel):
     inquiry_id: str
 
 
+# Waitlist response data schemas
+class WaitlistEntryData(BaseModel):
+    """Data returned after waitlist entry creation."""
+    class Config:
+        extra = "forbid"
+    
+    entry_id: str
+
+
+class WaitlistCheckData(BaseModel):
+    """Data returned for waitlist check."""
+    class Config:
+        extra = "forbid"
+    
+    email: str
+    is_on_waitlist: bool
+    status: Optional[str] = None
+    entry_id: Optional[str] = None
+
+
 # Payment response data schemas
 class PaymentInitData(BaseModel):
     """Data returned after payment initialization."""
@@ -941,6 +975,37 @@ class B2BInquiryListData(BaseModel):
     page: int
     per_page: int
     total_pages: int
+
+
+class WaitlistListData(BaseModel):
+    """Data returned for waitlist entry list."""
+    class Config:
+        extra = "forbid"
+    
+    entries: List[WaitlistEntryDataModel]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+
+
+class WaitlistStatsData(BaseModel):
+    """Data returned for waitlist statistics."""
+    class Config:
+        extra = "forbid"
+    
+    total: int
+    pending: int
+    invited: int
+    converted: int
+
+
+class WaitlistStatusUpdateData(BaseModel):
+    """Data returned after waitlist status update."""
+    class Config:
+        extra = "forbid"
+    
+    entry: WaitlistEntryDataModel
 
 
 class LoyaltyAccountListData(BaseModel):

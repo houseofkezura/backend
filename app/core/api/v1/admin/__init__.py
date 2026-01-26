@@ -12,6 +12,7 @@ from .categories import bp as categories_bp
 from .b2b import bp as b2b_bp
 from .crm import bp as crm_bp
 from .revamps import bp as revamps_bp
+from .waitlist import bp as waitlist_bp
 
 def create_api_v1_admin_blueprint():
     bp: Blueprint = Blueprint("api_v1_admin", __name__, url_prefix="/admin") 
@@ -27,4 +28,5 @@ def create_api_v1_admin_blueprint():
     bp.register_blueprint(crm_bp)
     bp.register_blueprint(revamps_bp)
     bp.register_blueprint(categories_bp)
+    bp.register_blueprint(waitlist_bp)
     return bp

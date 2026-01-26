@@ -26,3 +26,4 @@ from .loyalty import LoyaltyAccount, LoyaltyLedger
 from .cms import CmsPage, B2BInquiry
 from .audit import AuditLog
 from .revamp import RevampRequest
+from .waitlist import WaitlistEntry
