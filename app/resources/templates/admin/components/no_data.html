@@ -1,0 +1,72 @@
+{% from 'admin/macros/buttons.html' import render_link_button %}
+
+{# 
+    No Data Component
+    Displays when there's no data in the database
+    
+    Usage:
+    {% with data_in_db='Product', data_in_db_url=url_for('web.web_admin.products.add_new_product') %}
+        {% include 'admin/components/no_data.html' %}
+    {% endwith %}
+    
+    Optional parameters:
+    - data_in_db: The type of data (e.g., "Product", "Category", "Order")
+    - data_in_db_url: URL to create new data
+    - icon: Custom icon class (default: "bx bx-package")
+    - title: Custom title (default: "No {{ data_in_db }}s yet")
+    - description: Custom description
+    - action_text: Custom action button text (default: "Add New {{ data_in_db }}")
+#}
+
+{% set icon = icon|default('bx bx-package') %}
+{% set title = title|default('No ' ~ (data_in_db|lower) ~ 's yet') %}
+{% set description = description|default('Get started by creating your first ' ~ (data_in_db|lower) ~ '. Click the button below to add a new one.') %}
+{% set action_text = action_text|default('Add New ' ~ data_in_db) %}
+
+<div class="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
+    <div class="max-w-md w-full text-center">
+        <!-- Icon -->
+        <div class="mb-6 flex justify-center">
+            <div class="relative">
+                <div class="w-24 h-24 rounded-full bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                    <i class="{{ icon }} text-5xl text-primary/60"></i>
+                </div>
+                <!-- Decorative circles -->
+                <div class="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary/20 animate-pulse"></div>
+                <div class="absolute -bottom-2 -left-2 w-6 h-6 rounded-full bg-primary/15 animate-pulse" style="animation-delay: 0.5s;"></div>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-3">
+            {{ title }}
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 mb-8 leading-relaxed">
+            {{ description }}
+        </p>
+
+        <!-- Action Button -->
+        {% if data_in_db_url %}
+            <div class="flex justify-center">
+                {{ render_link_button(action_text, data_in_db_url, "primary", "lg", "rounded", "", "bx bx-plus", "left") }}
+            </div>
+        {% endif %}
+
+        <!-- Helpful Tips (Optional) -->
+        <div class="mt-8 pt-8 border-t border-gray-200">
+            <p class="text-xs text-gray-500 mb-3">💡 Quick Tips:</p>
+            <ul class="text-xs text-gray-500 space-y-1 text-left max-w-xs mx-auto">
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>Make sure you have the necessary permissions to create {{ data_in_db|lower }}s</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>Fill in all required fields when creating a new {{ data_in_db|lower }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

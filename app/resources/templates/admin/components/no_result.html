@@ -1,0 +1,88 @@
+{% from 'admin/macros/buttons.html' import render_link_button %}
+
+{# 
+    No Search Results Component
+    Displays when a search returns no results
+    
+    Usage:
+    {% with search_term='search query', data_in_db='Product', data_in_db_url=url_for('web.web_admin.products.products') %}
+        {% include 'admin/components/no_result.html' %}
+    {% endwith %}
+    
+    Parameters:
+    - search_term: The search query that returned no results
+    - data_in_db: The type of data being searched (e.g., "Product", "Category")
+    - data_in_db_url: URL to go back to all items or clear search
+    - icon: Custom icon class (default: "bx bx-search")
+    - title: Custom title
+    - description: Custom description
+#}
+
+{% set icon = icon|default('bx bx-search') %}
+{% set title = title|default('No results found') %}
+{% set description = description|default('We couldn\'t find any ' ~ (data_in_db|lower) ~ 's matching "' ~ search_term ~ '". Try adjusting your search terms or filters.') %}
+
+<div class="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
+    <div class="max-w-md w-full text-center">
+        <!-- Icon -->
+        <div class="mb-6 flex justify-center">
+            <div class="relative">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center border-2 border-gray-200">
+                    <i class="{{ icon }} text-5xl text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-3">
+            {{ title }}
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+            {{ description }}
+        </p>
+
+        <!-- Search Term Display -->
+        {% if search_term %}
+            <div class="mb-6 inline-flex items-center px-4 py-2 bg-gray-100 rounded-lg">
+                <i class="bx bx-search text-gray-500 mr-2"></i>
+                <span class="text-sm font-medium text-gray-700">Search: "{{ search_term }}"</span>
+            </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            {% if data_in_db_url %}
+                {{ render_link_button('View All ' ~ data_in_db ~ 's', data_in_db_url, "primary", "md", "rounded", "", "bx bx-list-ul", "left") }}
+            {% endif %}
+            
+            <button 
+                type="button" 
+                onclick="document.getElementById('table-search-products')?.focus(); document.getElementById('table-search-products')?.select();"
+                class="inline-flex items-center justify-center font-medium px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <i class="bx bx-edit mr-2"></i>
+                <span>Try Different Search</span>
+            </button>
+        </div>
+
+        <!-- Helpful Tips -->
+        <div class="mt-8 pt-8 border-t border-gray-200">
+            <p class="text-xs text-gray-500 mb-3">💡 Search Tips:</p>
+            <ul class="text-xs text-gray-500 space-y-1 text-left max-w-xs mx-auto">
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>Check for typos or spelling errors</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>Try using fewer or different keywords</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>Use broader search terms</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
