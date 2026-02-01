@@ -58,6 +58,75 @@ class EmailService:
         }
         self.send_html(to, "Your eSIM is Ready!", "mail/esim-activation.html", merged_context)
 
+    def send_order_confirmation(
+        self,
+        to: str,
+        order: Any,
+        items: list[dict[str, Any]] | None = None,
+        *,
+        context: Mapping[str, Any] | None = None
+    ) -> None:
+        """
+        Send order confirmation email with order details and tracking link.
+        
+        Args:
+            to: Recipient email address
+            order: Order model instance
+            items: List of order item dicts with 'variant', 'quantity', 'unit_price'
+            context: Additional context for template
+        """
+        from datetime import datetime
+        from ..helpers.site import get_platform_url
+        
+        # Build tracking URL
+        platform_url = get_platform_url()
+        tracking_url = f"{platform_url}/orders/{order.order_number}"
+        
+        # Extract customer name from shipping address or order
+        shipping_address = order.shipping_address or {}
+        customer_name = shipping_address.get("name") or shipping_address.get("first_name", "")
+        
+        # Format items for template
+        formatted_items = []
+        if items:
+            for item in items:
+                variant = item.get("variant")
+                formatted_items.append({
+                    "name": variant.sku if variant else "Unknown Item",
+                    "quantity": item.get("quantity", 1),
+                    "unit_price": float(item.get("unit_price", 0)),
+                    "variant": {"sku": variant.sku if variant else ""},
+                })
+        elif hasattr(order, "items") and order.items:
+            for order_item in order.items:
+                formatted_items.append({
+                    "name": order_item.variant.sku if order_item.variant else "Unknown Item",
+                    "quantity": order_item.quantity,
+                    "unit_price": float(order_item.unit_price),
+                    "variant": {"sku": order_item.variant.sku if order_item.variant else ""},
+                })
+        
+        merged_context = {
+            "order_number": order.order_number,
+            "customer_name": customer_name,
+            "items": formatted_items,
+            "subtotal": float(order.subtotal),
+            "shipping_cost": float(order.shipping_cost),
+            "discount": float(order.discount),
+            "total": float(order.total),
+            "currency": order.currency or "NGN",
+            "shipping_address": shipping_address,
+            "tracking_url": tracking_url,
+            "current_year": datetime.now().year,
+            **(context or {})
+        }
+        self.send_html(
+            to,
+            f"Order Confirmation - {order.order_number}",
+            "mail/order-confirmation.html",
+            merged_context
+        )
+
     def _send_async(self, message: Message) -> None:
         """Queue email send on a background thread."""
         # Capture the current app instance before the thread

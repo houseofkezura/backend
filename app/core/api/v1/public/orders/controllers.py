@@ -110,12 +110,13 @@ class OrdersController:
     @staticmethod
     def get_order(order_id: str) -> Response:
         """
-        Get a specific order by ID.
+        Get a specific order by ID or order number.
         
         Supports both authenticated users and guest orders (via email query param).
+        The identifier can be either a UUID or a human-readable order number (e.g., KEZ-A7B3C9D2).
         
         Args:
-            order_id: Order identifier
+            order_id: Order identifier (UUID or order number)
         """
         try:
             current_user = get_current_user()
@@ -124,12 +125,22 @@ class OrdersController:
             if not current_user and not guest_email:
                 return error_response("Unauthorized or email required for guest orders", 401)
             
+            # Try to parse as UUID first; if it fails, treat as order_number
+            order_uuid = None
+            order_number = None
             try:
                 order_uuid = uuid.UUID(order_id)
             except ValueError:
-                return error_response("Invalid order ID format", 400)
+                # Not a valid UUID, treat as order_number
+                order_number = order_id.upper()  # Normalize to uppercase
             
-            query = Order.query.filter_by(id=order_uuid)
+            # Build query based on identifier type
+            if order_uuid:
+                query = Order.query.filter_by(id=order_uuid)
+            else:
+                query = Order.query.filter_by(order_number=order_number)
+            
+            # Apply user/guest filter
             if current_user:
                 query = query.filter_by(user_id=current_user.id)
             elif guest_email:

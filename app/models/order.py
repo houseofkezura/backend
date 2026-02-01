@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Dict, Any
 from datetime import datetime
+import secrets
+import string
 
 from sqlalchemy.orm import Mapped as M, relationship  # type: ignore
 from sqlalchemy.dialects.postgresql import UUID, JSON
@@ -24,6 +26,9 @@ class Order(db.Model):
     id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id: M[Optional[uuid.UUID]] = db.Column(UUID(as_uuid=True), db.ForeignKey('app_user.id'), nullable=True, index=True)
     
+    # Human-readable order number (e.g., KEZ-A7B3C9D2)
+    order_number: M[str] = db.Column(db.String(12), unique=True, nullable=False, index=True)
+    
     # Order status
     status: M[str] = db.Column(db.String(50), nullable=False, default=str(OrderStatus.PENDING), index=True)
     
@@ -42,6 +47,42 @@ class Order(db.Model):
     
     # Payment
     payment_ref: M[Optional[str]] = db.Column(db.String(255), nullable=True)
+    
+    @staticmethod
+    def generate_order_number(max_attempts: int = 10) -> str:
+        """
+        Generate a unique, human-readable order number.
+        
+        Format: KEZ-XXXXXXXX (8 uppercase alphanumeric characters after prefix).
+        Uses cryptographically secure random generation and checks database
+        for collisions, retrying up to max_attempts times.
+        
+        Args:
+            max_attempts: Maximum number of generation attempts before raising an error.
+        
+        Returns:
+            A unique order number string (e.g., 'KEZ-A7B3C9D2').
+        
+        Raises:
+            RuntimeError: If unable to generate a unique number after max_attempts.
+        """
+        # Use only uppercase letters and digits, excluding ambiguous characters (0, O, I, L, 1)
+        alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+        prefix = "KEZ-"
+        
+        for _ in range(max_attempts):
+            random_part = ''.join(secrets.choice(alphabet) for _ in range(8))
+            candidate = f"{prefix}{random_part}"
+            
+            # Check if this order number already exists
+            existing = Order.query.filter_by(order_number=candidate).first()
+            if existing is None:
+                return candidate
+        
+        raise RuntimeError(
+            f"Failed to generate unique order number after {max_attempts} attempts. "
+            "This indicates an extremely unlikely collision scenario or database issue."
+        )
     
     # Shipping address snapshot (stored as JSON for guest orders)
     shipping_address: M[Dict[str, Any]] = db.Column(JSON, nullable=True)
@@ -90,6 +131,7 @@ class Order(db.Model):
         
         data = {
             'id': str(self.id),
+            'order_number': self.order_number,
             'status': str(self.status),
             'subtotal': float(self.subtotal),
             'shipping_cost': float(self.shipping_cost),

@@ -204,8 +204,9 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         # Step 5: Calculate total
         total = subtotal + shipping_cost - discount
         
-        # Step 6: Create provisional order
+        # Step 6: Create provisional order with unique order number
         order = Order()
+        order.order_number = Order.generate_order_number()
         order.user_id = current_user.id if current_user else None
         order.status = str(OrderStatus.PENDING_PAYMENT)
         order.subtotal = Decimal(str(subtotal))
@@ -237,6 +238,7 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         payment_manager = PaymentManager()
         extra_meta = {
             "order_id": str(order.id),
+            "order_number": order.order_number,
             "guest_email": request.email,
             "guest_token": request.guest_token,
             "guest_phone": request.phone,
@@ -248,7 +250,7 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
             currency=order.currency,
             user=current_user,
             payment_type=PaymentType.ORDER_PAYMENT,
-            narration=f"Payment for order {order.id}",
+            narration=f"Payment for order {order.order_number}",
             extra_meta=extra_meta,
         )
         
@@ -256,7 +258,22 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
         order.payment_ref = payment_response.get("reference")
         db.session.commit()
         
-        log_event(f"Checkout initialized: Order {order.id}, Total: {total}")
+        log_event(f"Checkout initialized: Order {order.order_number}, Total: {total}")
+        
+        # Step 8: Send order confirmation email
+        recipient_email = current_user.email if current_user else request.email
+        if recipient_email:
+            try:
+                from ..emailing import email_service
+                email_service.send_order_confirmation(
+                    to=recipient_email,
+                    order=order,
+                    items=items_to_order,
+                )
+            except Exception as email_err:
+                log_error("Failed to send order confirmation email", error=email_err)
+                # Don't fail checkout if email fails
+        
         
         result = CheckoutResult(
             success=True,

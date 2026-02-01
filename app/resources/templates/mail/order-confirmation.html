@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Order Confirmation - {{ order_number }}</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				font-family:
+					-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+					"Helvetica Neue", Arial, sans-serif;
+				line-height: 1.6;
+				color: #333333;
+				background-color: #f4f4f4;
+				padding: 20px;
+			}
+			.email-container {
+				max-width: 600px;
+				margin: 0 auto;
+				background-color: #ffffff;
+				border-radius: 8px;
+				overflow: hidden;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			}
+			.email-header {
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: #ffffff;
+				padding: 30px 20px;
+				text-align: center;
+			}
+			.email-header h1 {
+				font-size: 24px;
+				font-weight: 600;
+				margin-bottom: 10px;
+			}
+			.email-header .icon {
+				font-size: 48px;
+				margin-bottom: 10px;
+			}
+			.order-number-display {
+				background-color: rgba(255, 255, 255, 0.2);
+				padding: 10px 20px;
+				border-radius: 6px;
+				display: inline-block;
+				font-size: 20px;
+				font-weight: 700;
+				letter-spacing: 2px;
+				margin-top: 10px;
+			}
+			.email-body {
+				padding: 40px 30px;
+			}
+			.greeting {
+				font-size: 18px;
+				color: #333333;
+				margin-bottom: 20px;
+			}
+			.success-message {
+				background-color: #d4edda;
+				border-left: 4px solid #28a745;
+				padding: 15px;
+				margin: 20px 0;
+				border-radius: 4px;
+			}
+			.success-message p {
+				font-size: 16px;
+				color: #155724;
+				margin: 0;
+				font-weight: 600;
+			}
+			.info-section {
+				margin: 30px 0;
+			}
+			.info-section h2 {
+				font-size: 20px;
+				color: #333333;
+				margin-bottom: 15px;
+				border-bottom: 2px solid #e9ecef;
+				padding-bottom: 10px;
+			}
+			.info-item {
+				margin: 15px 0;
+				padding: 15px;
+				background-color: #f8f9fa;
+				border-radius: 6px;
+			}
+			.info-label {
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 1px;
+				color: #6c757d;
+				margin-bottom: 5px;
+			}
+			.info-value {
+				font-size: 16px;
+				color: #333333;
+				font-weight: 600;
+				word-break: break-all;
+			}
+			.order-summary-table {
+				width: 100%;
+				border-collapse: collapse;
+				margin: 20px 0;
+			}
+			.order-summary-table th,
+			.order-summary-table td {
+				padding: 12px;
+				text-align: left;
+				border-bottom: 1px solid #e9ecef;
+			}
+			.order-summary-table th {
+				background-color: #f8f9fa;
+				font-weight: 600;
+				font-size: 12px;
+				text-transform: uppercase;
+				color: #6c757d;
+			}
+			.order-summary-table td {
+				font-size: 14px;
+			}
+			.order-summary-table .total-row {
+				font-weight: 700;
+				font-size: 16px;
+				background-color: #f8f9fa;
+			}
+			.button {
+				display: inline-block;
+				padding: 14px 30px;
+				background-color: #667eea;
+				color: #ffffff;
+				text-decoration: none;
+				border-radius: 5px;
+				margin: 20px 0;
+				font-weight: 600;
+				text-align: center;
+			}
+			.button-container {
+				text-align: center;
+				margin: 30px 0;
+			}
+			.shipping-box {
+				background-color: #e7f3ff;
+				border-left: 4px solid #2196f3;
+				padding: 20px;
+				margin: 20px 0;
+				border-radius: 4px;
+			}
+			.shipping-box h3 {
+				font-size: 16px;
+				color: #1976d2;
+				margin-bottom: 10px;
+			}
+			.shipping-box p {
+				font-size: 14px;
+				color: #555555;
+				margin: 5px 0;
+			}
+			.email-footer {
+				background-color: #f8f9fa;
+				padding: 20px 30px;
+				text-align: center;
+				border-top: 1px solid #e9ecef;
+			}
+			.email-footer p {
+				font-size: 12px;
+				color: #6c757d;
+				margin: 5px 0;
+			}
+			@media only screen and (max-width: 600px) {
+				.email-body {
+					padding: 30px 20px;
+				}
+				.order-summary-table th,
+				.order-summary-table td {
+					padding: 8px;
+					font-size: 12px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="email-container">
+			<div class="email-header">
+				<div class="icon">🛍️</div>
+				<h1>Order Confirmed!</h1>
+				<div class="order-number-display">{{ order_number }}</div>
+			</div>
+
+			<div class="email-body">
+				<div class="greeting">
+					Hello{% if customer_name %} {{ customer_name }}{% endif %},
+				</div>
+
+				<div class="success-message">
+					<p>
+						🎉 Thank you for your order! We've received it and are
+						getting it ready.
+					</p>
+				</div>
+
+				<div class="info-section">
+					<h2>Order Summary</h2>
+
+					<table class="order-summary-table">
+						<thead>
+							<tr>
+								<th>Item</th>
+								<th>Qty</th>
+								<th style="text-align: right">Price</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for item in items %}
+							<tr>
+								<td>{{ item.name or item.variant.sku }}</td>
+								<td>{{ item.quantity }}</td>
+								<td style="text-align: right">
+									{{ currency }} {{
+									"%.2f"|format(item.unit_price *
+									item.quantity) }}
+								</td>
+							</tr>
+							{% endfor %}
+							<tr>
+								<td colspan="2">Subtotal</td>
+								<td style="text-align: right">
+									{{ currency }} {{ "%.2f"|format(subtotal) }}
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">Shipping</td>
+								<td style="text-align: right">
+									{{ currency }} {{
+									"%.2f"|format(shipping_cost) }}
+								</td>
+							</tr>
+							{% if discount > 0 %}
+							<tr>
+								<td colspan="2">Discount</td>
+								<td style="text-align: right; color: #28a745">
+									-{{ currency }} {{ "%.2f"|format(discount)
+									}}
+								</td>
+							</tr>
+							{% endif %}
+							<tr class="total-row">
+								<td colspan="2">Total</td>
+								<td style="text-align: right">
+									{{ currency }} {{ "%.2f"|format(total) }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				{% if shipping_address %}
+				<div class="shipping-box">
+					<h3>📦 Shipping Address</h3>
+					{% if shipping_address.street %}
+					<p>{{ shipping_address.street }}</p>
+					{% endif %} {% if shipping_address.city or
+					shipping_address.state %}
+					<p>
+						{{ shipping_address.city }}{% if shipping_address.city
+						and shipping_address.state %}, {% endif %}{{
+						shipping_address.state }}
+					</p>
+					{% endif %} {% if shipping_address.postal_code %}
+					<p>{{ shipping_address.postal_code }}</p>
+					{% endif %} {% if shipping_address.country %}
+					<p>{{ shipping_address.country }}</p>
+					{% endif %}
+				</div>
+				{% endif %}
+
+				<div class="button-container">
+					<a href="{{ tracking_url }}" class="button"
+						>Track Your Order</a
+					>
+				</div>
+
+				<div
+					style="
+						margin-top: 30px;
+						padding: 15px;
+						background-color: #fff3cd;
+						border-left: 4px solid #ffc107;
+						border-radius: 4px;
+					"
+				>
+					<p style="font-size: 14px; color: #856404; margin: 0">
+						<strong>💡 Tip:</strong> Save your order number
+						<strong>{{ order_number }}</strong> for easy tracking.
+						You can use it to check your order status anytime.
+					</p>
+				</div>
+			</div>
+
+			<div class="email-footer">
+				<p>
+					This is an automated message. Please do not reply to this
+					email.
+				</p>
+				<p>Need help? Contact our support team for assistance.</p>
+				<p>&copy; {{ current_year }} Kezura. All rights reserved.</p>
+			</div>
+		</div>
+	</body>
+</html>

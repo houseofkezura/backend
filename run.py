@@ -12,4 +12,6 @@ flask_app = create_app()
 
 if __name__ == "__main__":
     # For local development
-    flask_app.run(host="0.0.0.0", port=5050, debug=flask_app.config.get("DEBUG", True))
+    port = flask_app.config.get("PORT", 5050)
+    debug = flask_app.config.get("DEBUG", True)
+    flask_app.run(host="0.0.0.0", port=port, debug=debug)
