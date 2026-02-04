@@ -5,11 +5,12 @@ This guide provides detailed instructions for building an admin interface using 
 ## Table of Contents
 1. [Authentication](#authentication)
 2. [Product Management](#product-management)
-3. [Variant Management](#variant-management)
-4. [Inventory Management](#inventory-management)
-5. [Order Management](#order-management)
-6. [User Management](#user-management)
-7. [Common Patterns](#common-patterns)
+3. [Material Management](#material-management)
+4. [Variant Management](#variant-management)
+5. [Inventory Management](#inventory-management)
+6. [Order Management](#order-management)
+7. [User Management](#user-management)
+8. [Common Patterns](#common-patterns)
 
 ---
 
@@ -74,7 +75,7 @@ Authorization: Bearer <clerk_token>
 ### Understanding Products and Variants
 
 **Product**: The base product (e.g., "Kezura Mav Bone Straight Hair")
-- Has: name, SKU, category, description, care instructions, details, material, status
+- Has: name, SKU, category, description, care instructions, details, material_id (links to material), status
 - Does NOT have: price, color, stock (these are on variants)
 
 **Variant**: A specific configuration of a product (e.g., "32 inches, Black color")
@@ -97,7 +98,7 @@ Authorization: Bearer <clerk_token>
   "category": "Wigs",  // Required: "Wigs", "Bundles", or "Hair Care"
   "care": "Detangle gently with wide-tooth comb",
   "details": "100% human hair, virgin quality",
-  "material": "Human Hair",
+  "material_id": "uuid",  // Optional - link to a ProductMaterial
   "status": "In-Stock",  // Optional, default: "In-Stock"
   "meta_title": "SEO Title",  // Optional
   "meta_description": "SEO Description",  // Optional
@@ -143,7 +144,13 @@ Authorization: Bearer <clerk_token>
       "category": "Wigs",
       "care": "Detangle gently with wide-tooth comb",
       "details": "100% human hair, virgin quality",
-      "material": "Human Hair",
+      "material_id": "uuid",  // ID of linked material, or null
+      "material": {  // Full material object, or null if not linked
+        "id": "uuid",
+        "name": "100% Human Hair",
+        "description": "Premium quality human hair",
+        "usage_count": 5
+      },
       "status": "In-Stock",
       "price_ngn": 50000.00,  // Minimum price from variants
       "price_usd": 50.00,  // Minimum price from variants
@@ -202,7 +209,7 @@ Authorization: Bearer <clerk_token>
   "category": "Bundles",
   "care": "Updated care instructions",
   "details": "Updated details",
-  "material": "Updated material",
+  "material_id": "uuid",  // Link to material (use empty string "" to unlink)
   "status": "Out of Stock",  // Use "status" not "launch_status"
   "meta_title": "Updated SEO Title"
 }
@@ -446,6 +453,128 @@ const response = await fetch(`/api/v1/admin/products/${productId}/variants/${var
 ```
 
 **Note:** This only removes the association between variant and image. The media file itself is not deleted.
+
+---
+
+## Material Management
+
+### Overview
+
+Materials are reusable entities that can be linked to multiple products. Each material tracks its usage count (how many products use it).
+
+### Create Material
+
+**Endpoint:** `POST /api/v1/admin/products/materials`
+
+**Required Role:** Super Admin, Operations
+
+**Request Body:**
+```json
+{
+  "name": "100% Human Hair",  // Required, must be unique
+  "description": "Premium quality virgin human hair"  // Optional
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Material created successfully",
+  "data": {
+    "material": {
+      "id": "uuid",
+      "name": "100% Human Hair",
+      "description": "Premium quality virgin human hair",
+      "usage_count": 0,
+      "created_at": "2026-02-04T01:00:00Z",
+      "updated_at": "2026-02-04T01:00:00Z"
+    }
+  }
+}
+```
+
+### List Materials
+
+**Endpoint:** `GET /api/v1/admin/products/materials`
+
+**Required Role:** Super Admin, Admin, Operations
+
+**Query Parameters:**
+- `page` (optional, default: 1): Page number
+- `per_page` (optional, default: 50): Items per page
+- `search` (optional): Search in material name
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Materials retrieved successfully",
+  "data": {
+    "materials": [
+      {
+        "id": "uuid",
+        "name": "100% Human Hair",
+        "description": "Premium quality virgin human hair",
+        "usage_count": 5
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "per_page": 50,
+      "total": 10,
+      "pages": 1
+    }
+  }
+}
+```
+
+### Get Single Material
+
+**Endpoint:** `GET /api/v1/admin/products/materials/{material_id}`
+
+**Required Role:** Super Admin, Admin, Operations
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Material retrieved successfully",
+  "data": {
+    "material": {
+      "id": "uuid",
+      "name": "100% Human Hair",
+      "description": "Premium quality virgin human hair",
+      "usage_count": 5,
+      "products": [  // Included when fetching single material
+        { "id": "uuid", "name": "Curly Wig", "sku": "KZ-WG-0A12" }
+      ]
+    }
+  }
+}
+```
+
+### Update Material
+
+**Endpoint:** `PATCH /api/v1/admin/products/materials/{material_id}`
+
+**Required Role:** Super Admin, Operations
+
+**Request Body:** (All fields optional)
+```json
+{
+  "name": "Updated Material Name",
+  "description": "Updated description"
+}
+```
+
+### Delete Material
+
+**Endpoint:** `DELETE /api/v1/admin/products/materials/{material_id}`
+
+**Required Role:** Super Admin, Operations
+
+**Note:** Can only delete materials that are not in use (usage_count = 0). Returns 409 Conflict if material is in use.
 
 ---
 
@@ -701,7 +830,7 @@ const productResponse = await fetch('/api/v1/admin/products', {
     description: 'Premium hair extension',
     care: 'Detangle gently',
     details: '100% human hair',
-    material: 'Human Hair',
+    material_id: 'material-uuid',  // Optional - link to a pre-created material
     status: 'In-Stock'
     // SKU will be auto-generated as KZ-WG-XXXX
   })

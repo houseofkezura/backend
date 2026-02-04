@@ -58,7 +58,7 @@ All requests are JSON; send `Content-Type: application/json`.
 
 ## Customer-Facing (high level)
 - Products: `GET /products`, `GET /products/:slug`  
-  Public endpoints return products with fields: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material`, `status`, `images`, `image_urls`, `variants` (with pricing, attributes, inventory, images).
+  Public endpoints return products with fields: `id`, `name`, `sku`, `slug`, `description`, `category`, `care`, `details`, `material_id`, `material` (object with name, description, usage_count), `status`, `images`, `image_urls`, `variants` (with pricing, attributes, inventory, images).
 - Variants: `GET /products/variants/:variant_id`  
   Get a single variant by ID with inherited product information (description, care, materials, product images). Returns variant-specific images and product images separately.
 - Cart: `GET /cart`, `POST /cart/items`, `PUT /cart/items/:id`, `DELETE /cart/items/:id`  
@@ -83,8 +83,8 @@ Headers: `Authorization: Bearer <clerk_token>`
 - `GET /products` – list (filters via query).
 - `GET /products/{id}` – get one.
 - `POST /products` – create product (+optional variants).  
-  Body: `CreateProductRequest` → `{ name, sku?, slug?, description?, category, care?, details?, material?, metadata?, meta_title?, meta_description?, meta_keywords?, status? (default: "In-Stock"), launch_status? (legacy), variants?: [ { sku, price_ngn, price_usd?, weight_g?, attributes, media_ids? } ] }`  
-  **Note**: `sku` is optional and will be auto-generated from product name if not provided. If provided, must be unique. `status` is preferred over `launch_status`.
+  Body: `CreateProductRequest` → `{ name, sku?, slug?, description?, category, care?, details?, material_id?, metadata?, meta_title?, meta_description?, meta_keywords?, status? (default: "In-Stock"), launch_status? (legacy), variants?: [ { sku, price_ngn, price_usd?, weight_g?, attributes, media_ids? } ] }`  
+  **Note**: `sku` is optional and will be auto-generated from product name if not provided. If provided, must be unique. `status` is preferred over `launch_status`. `material_id` links to a pre-created ProductMaterial.
 - `PATCH /products/{id}` – update; body: `UpdateProductRequest` (all fields optional, `sku` must be unique if provided).
 - `DELETE /products/{id}` – delete.
 - Variant CRUD: `POST /products/{id}/variants`, `PATCH /products/{id}/variants/{variant_id}`, `DELETE /products/{id}/variants/{variant_id}`.
@@ -97,11 +97,19 @@ Headers: `Authorization: Bearer <clerk_token>`
 - `category` (string, required): Product category
 - `care` (string, optional): Product care instructions
 - `details` (string, optional): Product details
-- `material` (string, optional): Product material
+- `material_id` (string UUID, optional): Link to a ProductMaterial
+- `material` (object, read-only): Material object with `id`, `name`, `description`, `usage_count` (null if not linked)
 - `status` (string, optional, default: "In-Stock"): Product status (preferred over `launch_status`)
 - `launch_status` (string, optional, legacy): Use `status` instead
 - `metadata` (object, optional): Additional metadata
 - `meta_title`, `meta_description`, `meta_keywords` (strings, optional): SEO fields
+
+### Materials (`/api/v1/admin/products/materials`)
+- `GET /materials` – list all materials with usage counts.
+- `GET /materials/{id}` – get single material with linked products.
+- `POST /materials` – create material. Body: `{ name, description? }`
+- `PATCH /materials/{id}` – update material. Body: `{ name?, description? }`
+- `DELETE /materials/{id}` – delete material (only if not in use).
 
 ### Inventory (`/api/v1/admin/inventory`)
 - `GET /inventory` – list; query: `low_stock_only`, `sku`, `page`, `per_page`.
@@ -222,7 +230,11 @@ curl -X POST https://api.example.com/api/v1/checkout \
       "description": "Premium bone straight hair extension",
       "care": "Detangle gently with wide-tooth comb",
       "details": "100% human hair, virgin quality",
-      "material": "Human Hair",
+      "material": {
+        "id": "uuid",
+        "name": "100% Human Hair",
+        "description": "Premium quality"
+      },
       "product_images": [
         {
           "id": "uuid",
@@ -399,7 +411,11 @@ const cartResponse3 = await fetch(`/api/v1/cart?cart_id=${cartId}`);
           "description": "Premium bone straight hair extension",
           "care": "Detangle gently",
           "details": "100% human hair",
-          "material": "Human Hair",
+          "material": {
+            "id": "uuid",
+            "name": "Human Hair",
+            "description": "Premium quality"
+          },
           "product_images": [...],
           "product_image_urls": [...]
         },
