@@ -1,5 +1,5 @@
 """
-Product, ProductVariant, and Inventory models for the e-commerce catalog.
+Product, ProductVariant, ProductMaterial, and Inventory models for the e-commerce catalog.
 """
 
 from __future__ import annotations
@@ -34,6 +34,49 @@ product_categories = db.Table("product_categories",
     db.Column("product_category_id", UUID(as_uuid=True), db.ForeignKey("product_category.id"), primary_key=True)
 )
 
+
+class ProductMaterial(db.Model):
+    """
+    ProductMaterial model representing materials that can be used for products.
+    Admins can create materials and link them to products.
+    """
+    __tablename__ = "product_material"
+    
+    id: M[uuid.UUID] = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name: M[str] = db.Column(db.String(255), nullable=False, unique=True, index=True)
+    description: M[Optional[str]] = db.Column(db.Text)
+    
+    # Timestamps
+    created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
+    updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
+    
+    # Relationship to products (backref)
+    products = relationship("Product", back_populates="product_material")
+    
+    def __repr__(self) -> str:
+        return f"<ProductMaterial {self.id}, {self.name}>"
+    
+    @property
+    def usage_count(self) -> int:
+        """Get the count of products using this material."""
+        return len(self.products) if self.products else 0
+    
+    def to_dict(self, include_products: bool = False) -> Dict[str, Any]:
+        """Convert material to dictionary."""
+        data = {
+            "id": str(self.id),
+            "name": self.name,
+            "description": self.description or "",
+            "usage_count": self.usage_count,
+            "created_at": to_gmt1_or_none(self.created_at),
+            "updated_at": to_gmt1_or_none(self.updated_at),
+        }
+        
+        if include_products:
+            data["products"] = [{"id": str(p.id), "name": p.name, "sku": p.sku} for p in self.products]
+        
+        return data
+
 class Product(db.Model):
     """
     Product model representing a base product (e.g., a wig style).
@@ -52,7 +95,9 @@ class Product(db.Model):
     # Product details
     care: M[Optional[str]] = db.Column(db.Text)  # Product care instructions
     details: M[Optional[str]] = db.Column(db.Text)  # Product details
-    material: M[Optional[str]] = db.Column(db.String(255))  # Product material
+    
+    # Material reference (nullable FK to ProductMaterial)
+    material_id: M[Optional[uuid.UUID]] = db.Column(UUID(as_uuid=True), db.ForeignKey("product_material.id", ondelete="SET NULL"), nullable=True, index=True)
     
     # SEO fields
     meta_title: M[Optional[str]] = db.Column(db.String(255))
@@ -70,6 +115,7 @@ class Product(db.Model):
     variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
     images = relationship("Media", secondary="product_media", lazy="dynamic", backref="products")
     categories = db.relationship("ProductCategory", secondary=product_categories, backref=db.backref("products", lazy="dynamic"))
+    product_material = relationship("ProductMaterial", back_populates="products")
     
     def __repr__(self) -> str:
         return f"<Product {self.id}, {self.name}>"
@@ -100,7 +146,8 @@ class Product(db.Model):
             "category": self.category,
             "care": self.care or "",
             "details": self.details or "",
-            "material": self.material or "",
+            "material_id": str(self.material_id) if self.material_id else None,
+            "material": self.product_material.to_dict() if self.product_material else None,
             "metadata": self.product_metadata or {},
             "meta_title": self.meta_title,
             "meta_description": self.meta_description,

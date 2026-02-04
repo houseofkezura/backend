@@ -12,7 +12,7 @@ import random
 import string
 
 from app.extensions import db
-from app.models.product import Product, ProductVariant, Inventory
+from app.models.product import Product, ProductVariant, Inventory, ProductMaterial
 from app.models.category import ProductCategory
 from app.models.media import Media
 from app.schemas.products import CreateProductRequest, UpdateProductRequest, CreateProductVariantRequest, UpdateProductVariantRequest
@@ -107,7 +107,19 @@ class AdminProductController:
             product.category = category_name
             product.care = payload.care or ""
             product.details = payload.details or ""
-            product.material = payload.material or ""
+            
+            # Link material if provided
+            if payload.material_id:
+                try:
+                    material_uuid = uuid.UUID(payload.material_id)
+                    material = ProductMaterial.query.get(material_uuid)
+                    if material:
+                        product.material_id = material_uuid
+                    else:
+                        return error_response("Material not found", 404)
+                except ValueError:
+                    return error_response("Invalid material ID format", 400)
+            
             product.product_metadata = payload.metadata or {}
             product.meta_title = payload.meta_title
             product.meta_description = payload.meta_description
@@ -222,8 +234,20 @@ class AdminProductController:
                 product.care = payload.care
             if payload.details is not None:
                 product.details = payload.details
-            if payload.material is not None:
-                product.material = payload.material
+            if payload.material_id is not None:
+                if payload.material_id == "":
+                    # Unlink material
+                    product.material_id = None
+                else:
+                    try:
+                        material_uuid = uuid.UUID(payload.material_id)
+                        material = ProductMaterial.query.get(material_uuid)
+                        if material:
+                            product.material_id = material_uuid
+                        else:
+                            return error_response("Material not found", 404)
+                    except ValueError:
+                        return error_response("Invalid material ID format", 400)
             if payload.metadata is not None:
                 product.product_metadata = payload.metadata
             if payload.meta_title is not None:
@@ -850,3 +874,218 @@ class AdminProductController:
             db.session.rollback()
             return error_response("Failed to remove image", 500)
 
+
+class AdminMaterialController:
+    """Controller for admin product material endpoints."""
+
+    @staticmethod
+    def create_material() -> Response:
+        """
+        Create a new product material.
+        
+        Requires admin authentication.
+        """
+        from app.schemas.materials import CreateMaterialRequest
+        
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            payload = CreateMaterialRequest.model_validate(request.get_json())
+            
+            # Check if material with this name exists
+            existing = ProductMaterial.query.filter_by(name=payload.name).first()
+            if existing:
+                return error_response("Material with this name already exists", 409)
+            
+            material = ProductMaterial()
+            material.name = payload.name
+            material.description = payload.description or ""
+            
+            db.session.add(material)
+            db.session.commit()
+            
+            log_event(f"Material created: {material.id} by admin {current_user.id}")
+            
+            return success_response(
+                "Material created successfully",
+                201,
+                {"material": material.to_dict()}
+            )
+        except Exception as e:
+            log_error("Failed to create material", error=e)
+            db.session.rollback()
+            return error_response("Failed to create material", 500)
+
+    @staticmethod
+    def list_materials() -> Response:
+        """
+        List all product materials with optional search.
+        
+        Requires admin authentication.
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            # Get query parameters
+            page = request.args.get('page', 1, type=int)
+            per_page = request.args.get('per_page', 50, type=int)
+            search = request.args.get('search', type=str)
+            
+            # Build query
+            query = ProductMaterial.query
+            
+            if search:
+                query = query.filter(ProductMaterial.name.ilike(f'%{search}%'))
+            
+            query = query.order_by(ProductMaterial.name.asc())
+            
+            # Paginate
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+            
+            materials = [m.to_dict() for m in pagination.items]
+            
+            return success_response(
+                "Materials retrieved successfully",
+                200,
+                {
+                    "materials": materials,
+                    "pagination": {
+                        "page": page,
+                        "per_page": per_page,
+                        "total": pagination.total,
+                        "pages": pagination.pages
+                    }
+                }
+            )
+        except Exception as e:
+            log_error("Failed to list materials", error=e)
+            return error_response("Failed to retrieve materials", 500)
+
+    @staticmethod
+    def get_material(material_id: str) -> Response:
+        """
+        Get a single product material by ID.
+        
+        Args:
+            material_id: Material ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                material_uuid = uuid.UUID(material_id)
+            except ValueError:
+                return error_response("Invalid material ID format", 400)
+            
+            material = ProductMaterial.query.get(material_uuid)
+            if not material:
+                return error_response("Material not found", 404)
+            
+            return success_response(
+                "Material retrieved successfully",
+                200,
+                {"material": material.to_dict(include_products=True)}
+            )
+        except Exception as e:
+            log_error(f"Failed to get material {material_id}", error=e)
+            return error_response("Failed to retrieve material", 500)
+
+    @staticmethod
+    def update_material(material_id: str) -> Response:
+        """
+        Update a product material.
+        
+        Args:
+            material_id: Material ID
+        """
+        from app.schemas.materials import UpdateMaterialRequest
+        
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                material_uuid = uuid.UUID(material_id)
+            except ValueError:
+                return error_response("Invalid material ID format", 400)
+            
+            material = ProductMaterial.query.get(material_uuid)
+            if not material:
+                return error_response("Material not found", 404)
+            
+            payload = UpdateMaterialRequest.model_validate(request.get_json())
+            
+            # Update fields
+            if payload.name is not None:
+                # Check name uniqueness
+                existing = ProductMaterial.query.filter_by(name=payload.name).filter(ProductMaterial.id != material_uuid).first()
+                if existing:
+                    return error_response("Material with this name already exists", 409)
+                material.name = payload.name
+            
+            if payload.description is not None:
+                material.description = payload.description
+            
+            db.session.commit()
+            
+            log_event(f"Material updated: {material_id} by admin {current_user.id}")
+            
+            return success_response(
+                "Material updated successfully",
+                200,
+                {"material": material.to_dict()}
+            )
+        except Exception as e:
+            log_error(f"Failed to update material {material_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to update material", 500)
+
+    @staticmethod
+    def delete_material(material_id: str) -> Response:
+        """
+        Delete a product material.
+        
+        Only allowed if the material is not in use by any products.
+        
+        Args:
+            material_id: Material ID
+        """
+        try:
+            current_user = get_current_user()
+            if not current_user:
+                return error_response("Unauthorized", 401)
+            
+            try:
+                material_uuid = uuid.UUID(material_id)
+            except ValueError:
+                return error_response("Invalid material ID format", 400)
+            
+            material = ProductMaterial.query.get(material_uuid)
+            if not material:
+                return error_response("Material not found", 404)
+            
+            # Check if material is in use
+            if material.usage_count > 0:
+                return error_response(
+                    f"Cannot delete material that is used by {material.usage_count} product(s). "
+                    "Unlink products first.",
+                    409
+                )
+            
+            db.session.delete(material)
+            db.session.commit()
+            
+            log_event(f"Material deleted: {material_id} by admin {current_user.id}")
+            
+            return success_response("Material deleted successfully", 200)
+        except Exception as e:
+            log_error(f"Failed to delete material {material_id}", error=e)
+            db.session.rollback()
+            return error_response("Failed to delete material", 500)

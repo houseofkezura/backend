@@ -274,3 +274,117 @@ def remove_variant_image(product_id: str, variant_id: str, image_id: str):
     """Remove an image from a product variant."""
     return AdminProductController.remove_variant_image(product_id, variant_id, image_id)
 
+
+# =============================================================================
+# MATERIAL ROUTES
+# =============================================================================
+
+from .controllers import AdminMaterialController
+from app.schemas.materials import CreateMaterialRequest, UpdateMaterialRequest
+
+
+@bp.post("/materials")
+@roles_required("Super Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    request_body=CreateMaterialRequest,
+    tags=["Admin - Products"],
+    summary="Create Material",
+    description="Create a new product material. Requires admin role.",
+    responses={
+        "201": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "409": None,
+        "500": None,
+    },
+)
+def create_material():
+    """Create a new product material."""
+    return AdminMaterialController.create_material()
+
+
+@bp.get("/materials")
+@roles_required("Super Admin", "Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Products"],
+    summary="List Materials",
+    description="List all product materials with optional search. Requires admin role.",
+    responses={
+        "200": None,
+        "401": None,
+        "403": None,
+        "500": None,
+    },
+)
+def list_materials():
+    """List all product materials."""
+    return AdminMaterialController.list_materials()
+
+
+@bp.get("/materials/<material_id>")
+@roles_required("Super Admin", "Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Products"],
+    summary="Get Material",
+    description="Get a single product material by ID. Requires admin role.",
+    responses={
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "500": None,
+    },
+)
+def get_material(material_id: str):
+    """Get a product material by ID."""
+    return AdminMaterialController.get_material(material_id)
+
+
+@bp.patch("/materials/<material_id>")
+@roles_required("Super Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    request_body=UpdateMaterialRequest,
+    tags=["Admin - Products"],
+    summary="Update Material",
+    description="Update a product material. Requires admin role.",
+    responses={
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
+    },
+)
+def update_material(material_id: str):
+    """Update a product material."""
+    return AdminMaterialController.update_material(material_id)
+
+
+@bp.delete("/materials/<material_id>")
+@roles_required("Super Admin", "Operations")
+@endpoint(
+    security=SecurityScheme.ADMIN_BEARER,
+    tags=["Admin - Products"],
+    summary="Delete Material",
+    description="Delete a product material. Only allowed if the material is not in use. Requires admin role.",
+    responses={
+        "200": None,
+        "400": ValidationErrorData,
+        "401": None,
+        "403": None,
+        "404": None,
+        "409": None,
+        "500": None,
+    },
+)
+def delete_material(material_id: str):
+    """Delete a product material."""
+    return AdminMaterialController.delete_material(material_id)

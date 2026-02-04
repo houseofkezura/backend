@@ -40,7 +40,7 @@ class CreateProductRequest(BaseModel):
     category_id: Optional[int] = Field(None, description="Optional category ID to link")
     care: Optional[str] = Field("", description="Product care instructions")
     details: Optional[str] = Field("", description="Product details")
-    material: Optional[str] = Field("", description="Product material")
+    material_id: Optional[str] = Field(None, description="Optional material ID to link")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
     meta_title: Optional[str] = Field(None, max_length=255, description="SEO meta title")
     meta_description: Optional[str] = Field(None, description="SEO meta description")
@@ -60,7 +60,7 @@ class UpdateProductRequest(BaseModel):
     category_id: Optional[int] = None
     care: Optional[str] = None
     details: Optional[str] = None
-    material: Optional[str] = None
+    material_id: Optional[str] = Field(None, description="Material ID to link (set to empty string to unlink)")
     metadata: Optional[Dict[str, Any]] = None
     meta_title: Optional[str] = Field(None, max_length=255)
     meta_description: Optional[str] = None
