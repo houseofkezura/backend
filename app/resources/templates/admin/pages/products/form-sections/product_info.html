@@ -22,4 +22,14 @@
             </div>
         {% endfor %}
     {% endcall %}
+
+    {% call render_form_group() %}
+        {{ render_label("material", "Material", classes="block mb-2 text-sm font-medium") }}
+        {{ form.material(class_='form-control form-select block w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary p-2.5') }}
+        {% for error in form.material.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endcall %}
 {% endcall %}

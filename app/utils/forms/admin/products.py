@@ -25,6 +25,8 @@ class MultiCheckboxField(SelectMultipleField):
     option_widget = widgets.CheckboxInput()
 
 
+from app.models.product import ProductMaterial
+
 class ProductForm(FlaskForm):
     """
     Form for creating/editing products.
@@ -59,6 +61,17 @@ class ProductForm(FlaskForm):
     )
     colors = StringField('Colors', validators=[Optional()])
     
+    # Images
+    images = FileField(
+        'Product Images', 
+        validators=[
+            Optional(),
+            FileAllowed(['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], 'Images only!')
+        ],
+        render_kw={'multiple': True},
+        description="Upload product images"
+    )
+
     # Product Details
     care = TextAreaField(
         'Care Instructions',
@@ -72,16 +85,21 @@ class ProductForm(FlaskForm):
         description="Additional product details"
     )
     
-    material = StringField(
+    material = SelectField(
         'Material',
-        validators=[Optional(), Length(max=255)],
-        description="Product material"
+        validators=[Optional()],
+        coerce=str,
+        description="Select product material"
     )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Populate category choices
         self.product_category.choices = get_category_choices()
+        
+        # Populate material choices
+        materials = ProductMaterial.query.order_by(ProductMaterial.name).all()
+        self.material.choices = [("", "Select Material")] + [(str(m.id), m.name) for m in materials]
 
 
 # Legacy alias for backward compatibility

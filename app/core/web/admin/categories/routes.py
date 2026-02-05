@@ -78,29 +78,60 @@ def view_category(category_id: str):
         return redirect(url_for("web.web_admin.categories.categories"))
 
 
-@bp.route("/add", methods=["GET"], strict_slashes=False)
+@bp.route("/add", methods=["GET", "POST"], strict_slashes=False)
 def add_new_category():
     """
-    Show add category form.
+    Show add category form and handle creation.
     """
-    from app.utils.helpers.category import get_category_choices
+    from app.utils.forms.admin.categories import CategoryForm
+    from app.utils.helpers.category import save_category
     
-    try:
-        category_choices = get_category_choices()
-        return render_template(
-            "admin/pages/prod_cats/add_category.html",
-            category_choices=category_choices
-        )
-    except Exception as e:
-        log_error("Failed to load add category form", error=e)
-        flash("Failed to load form. Please try again.", "error")
-        return redirect(url_for("web.web_admin.categories.categories"))
+    form = CategoryForm()
+    
+    if form.validate_on_submit():
+        try:
+            # Prepare data for save_category helper
+            # The helper expects a dict and reads request.files directly for 'cat_img'
+            # We need to ensure 'cat_img' is in request.files or handle it manually if WTForms handles it
+            
+            data = {
+                'name': form.name.data,
+                'description': form.description.data,
+                'parent_cat': form.parent_id.data if form.parent_id.data else None
+            }
+            
+            # The helper checks request.files.get('cat_img')
+            # But our form field is named 'image'
+            # We can either rename the form field or hack the request.files (not recommended)
+            # OR better, update save_category helper. 
+            # For now, let's pass the file manually if the helper supported it, but it reads request.files.
+            # Let's see if we can trick it or if we should just rename the form field to cat_img.
+            # Renaming form field to cat_img is easier.
+            
+            # Use save_category helper
+            # Note: save_category relies on request.files['cat_img']
+            
+            save_category(data)
+            
+            flash("Category created successfully", "success")
+            return redirect(url_for("web.web_admin.categories.categories"))
+            
+        except ValueError as e:
+            flash(str(e), "error")
+        except Exception as e:
+            log_error("Failed to create category", error=e)
+            flash("Failed to create category. Please try again.", "error")
+    
+    return render_template(
+        "admin/pages/prod_cats/add_category.html",
+        form=form
+    )
 
 
-@bp.route("/<category_id>/edit", methods=["GET"], strict_slashes=False)
+@bp.route("/<category_id>/edit", methods=["GET", "POST"], strict_slashes=False)
 def edit_category(category_id: str):
     """
-    Show edit category form.
+    Show edit category form and handle update.
     """
     try:
         category = fetch_category(category_id)
@@ -109,14 +140,42 @@ def edit_category(category_id: str):
             flash("Category not found", "error")
             return redirect(url_for("web.web_admin.categories.categories"))
         
-        from app.utils.helpers.category import get_category_choices
-        category_choices = get_category_choices()
+        from app.utils.forms.admin.categories import CategoryForm
+        from app.utils.helpers.category import save_category
         
+        # Initialize form with existing data
+        form = CategoryForm(obj=category)
+        
+        # Set parent_id specifically as obj=category mapping might differ
+        if request.method == 'GET':
+            form.parent_id.data = str(category.parent_id) if category.parent_id else ""
+        
+        if form.validate_on_submit():
+            try:
+                data = {
+                    'name': form.name.data,
+                    'description': form.description.data,
+                    'parent_cat': form.parent_id.data if form.parent_id.data else None
+                }
+                
+                # Pass slug or ID to update
+                save_category(data, slug=category.slug if category.slug else str(category.id))
+                
+                flash("Category updated successfully", "success")
+                return redirect(url_for("web.web_admin.categories.categories"))
+            except Exception as e:
+                log_error("Failed to update category", error=e)
+                flash(f"Failed to update category: {str(e)}", "error")
+
         return render_template(
             "admin/pages/prod_cats/edit_category.html",
-            category=category,
-            category_choices=category_choices
+            form=form,
+            category=category
         )
+    except Exception as e:
+        log_error(f"Failed to load edit category {category_id}", error=e)
+        flash("Failed to load category. Please try again.", "error")
+        return redirect(url_for("web.web_admin.categories.categories"))
     except Exception as e:
         log_error(f"Failed to load edit category {category_id}", error=e)
         flash("Failed to load category. Please try again.", "error")

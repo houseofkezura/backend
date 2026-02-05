@@ -154,8 +154,8 @@ class Product(db.Model):
             "meta_keywords": self.meta_keywords,
             "status": self.launch_status,  # Alias for launch_status
             "launch_status": self.launch_status,
-            "created_at": to_gmt1_or_none(self.created_at),
-            "updated_at": to_gmt1_or_none(self.updated_at),
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
         }
         
         # Calculate price, color, and stock from variants (always, even if not including full variant objects)

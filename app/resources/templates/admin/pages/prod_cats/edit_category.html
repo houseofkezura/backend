@@ -1,0 +1,91 @@
+{% extends 'admin/base/index.html' %}
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_group %}
+{% from 'admin/macros/buttons.html' import render_button %}
+
+{% block title %}Edit Category - {{ super() }}{% endblock %}
+
+{% block content %}
+<section class="lg:pt-1">
+    <div id="main-header"
+        class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Edit Category: {{ category.name }}</h2>
+    </div>
+
+    <form method="post" class="pt-2" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        
+        <div class="flex gap-4 sm:gap-6 flex-col sm:flex-row mb-4">
+            <div class="w-full">
+                {% call form_section("Category Information", "bx bxs-category") %}
+                    {% call render_form_group() %}
+                        {{ render_label("name", "Category Name", required=True, classes="block mb-2 text-sm font-medium") }}
+                        {{ form.name(class_='form-control form-input block w-full', placeholder='Enter category name') }}
+                        {% for error in form.name.errors %}
+                            <div class="alert alert-error form-error" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endcall %}
+
+                    {% call render_form_group() %}
+                        {{ render_label("slug", "Slug", classes="block mb-2 text-sm font-medium") }}
+                        {{ form.slug(class_='form-control form-input block w-full', placeholder='URL friendly name (optional)') }}
+                        {% for error in form.slug.errors %}
+                            <div class="alert alert-error form-error" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endcall %}
+
+                    {% call render_form_group() %}
+                        {{ render_label("description", "Description", classes="block mb-2 text-sm font-medium") }}
+                        {{ form.description(class_='form-control form-textarea rounded-lg block w-full', rows="4", placeholder='Category description') }}
+                        {% for error in form.description.errors %}
+                            <div class="alert alert-error form-error" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endcall %}
+
+                    {% call render_form_group() %}
+                        {{ render_label("parent_id", "Parent Category", classes="block mb-2 text-sm font-medium") }}
+                        {{ form.parent_id(class_='form-control form-select block w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary p-2.5') }}
+                        {% for error in form.parent_id.errors %}
+                            <div class="alert alert-error form-error" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endcall %}
+
+                    {% call render_form_group() %}
+                        {{ render_label("cat_img", "Category Image", classes="block mb-2 text-sm font-medium") }}
+                        
+                        {% if category.media_id %}
+                            <div class="mb-2">
+                                <img src="{{ category.get_thumbnail() }}" alt="{{ category.name }}" class="h-20 w-20 object-cover rounded-md border border-gray-200">
+                                <p class="text-xs text-gray-500 mt-1">Current image</p>
+                            </div>
+                        {% endif %}
+
+                        {{ form.cat_img(class_='form-control form-input block w-full') }}
+                        <p class="text-xs text-gray-500 mt-1">Upload to replace current image. Accepts images (jpg, png, webp).</p>
+                        {% for error in form.cat_img.errors %}
+                            <div class="alert alert-error form-error" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endcall %}
+                {% endcall %}
+            </div>
+        </div>
+
+        <div class="w-full flex justify-end gap-4">
+            <a href="{{ url_for('web.web_admin.categories.categories') }}" class="site-btn inline-flex items-center justify-center font-medium px-6 py-3 text-base rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition-colors">
+                Cancel
+            </a>
+            {{ render_button("Update Category", "primary", "lg", "rounded", btn_type="submit") }}
+        </div>
+    </form>
+</section>
+{% endblock %}

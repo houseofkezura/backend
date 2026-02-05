@@ -135,7 +135,7 @@ def add_new_product():
                     else:
                         form_data[key] = values
                 
-                product = save_product(form_data)
+                product = save_product(form_data, files=request.files)
                 
                 current_user = getattr(g, 'current_user', None)
                 if current_user:
@@ -182,7 +182,7 @@ def edit_product(identifier: str):
             description=product.description or "",
             care=product.care or "",
             details=product.details or "",
-            material=product.material or "",
+            material=str(product.material_id) if product.material_id else "",
             colors=product.product_metadata.get('colors', '') if product.product_metadata else ''
         )
         
@@ -208,7 +208,7 @@ def edit_product(identifier: str):
                             form_data[key] = values
                     
                     # Update product
-                    product = save_product(form_data, product=product)
+                    product = save_product(form_data, product=product, files=request.files)
                     
                     current_user = getattr(g, 'current_user', None)
                     if current_user:

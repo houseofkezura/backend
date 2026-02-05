@@ -72,6 +72,8 @@ def fetch_product(identifier: str) -> Optional[Product]:
         return None
 
 
+from app.utils.helpers.media import save_media
+
 def save_product(form_data: dict, product: Optional[Product] = None, files: dict = None) -> Product:
     """
     Create or update a product from form data.
@@ -82,6 +84,7 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
     - Multiple category relationships
     - Product images
     - Variants with pricing and inventory
+    - Material linking
     
     Args:
         form_data: Form data dictionary (from request.form)
@@ -103,7 +106,7 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
         description = form_data.get('description', '').strip()
         care = form_data.get('care', '').strip()
         details = form_data.get('details', '').strip()
-        material = form_data.get('material', '').strip()
+        material_id_str = form_data.get('material', '').strip()
         colors = form_data.get('colors', '').strip()
         
         # Get primary category
@@ -157,9 +160,18 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
             product.description = description or ""
             product.care = care or ""
             product.details = details or ""
-            product.material = material or ""
+            # product.material = material or "" # REMOVED: potentially incorrect field
             product.category = category_name
             product.slug = product_slug
+            
+            # Update Material ID
+            if material_id_str:
+                try:
+                    product.material_id = uuid.UUID(material_id_str)
+                except ValueError:
+                    product.material_id = None
+            else:
+                product.material_id = None
             
             # Update metadata (preserve existing, update colors)
             if not product.product_metadata:
@@ -185,6 +197,14 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
                 except (ValueError, TypeError):
                     continue
             
+            # Handle Image Uploads
+            if files and 'images' in files:
+                uploaded_files = files.getlist('images')
+                for file in uploaded_files:
+                    if file and file.filename:
+                        media = save_media(file)
+                        product.images.append(media)
+
             db.session.flush()
             db.session.commit()
             
@@ -214,8 +234,15 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
             new_product.category = category_name
             new_product.care = care or ""
             new_product.details = details or ""
-            new_product.material = material or ""
+            # new_product.material = material or "" # REMOVED
             new_product.launch_status = "In-Stock"  # Default status
+
+            # Set Material ID
+            if material_id_str:
+                try:
+                    new_product.material_id = uuid.UUID(material_id_str)
+                except ValueError:
+                    new_product.material_id = None
             
             # Store colors in metadata if provided
             if colors:
@@ -244,6 +271,16 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
             if 'variants_data' in form_data and form_data['variants_data']:
                 _handle_variants(new_product if not product else product, form_data['variants_data'])
             
+            # Handle Image Uploads (for new product)
+            if files and 'images' in files:
+                uploaded_files = files.getlist('images')
+                for file in uploaded_files:
+                    if file and file.filename:
+                        media = save_media(file)
+                        new_product.images.append(media)
+            
+            db.session.commit()
+
             # Refresh product
             new_product = Product.query.get(new_product.id)
             return new_product

@@ -4,14 +4,17 @@
 
 {% call form_section("Media", "bx bxs-image", collapsed=True) %}
     {% call render_form_group() %}
-        <p class="text-sm text-gray-600 mb-4">
-            Upload product images after creating the product. You can manage images through the product details page.
-        </p>
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-3">
-            <h4 class="text-sm font-semibold text-yellow-900 mb-2">📸 Image Management:</h4>
-            <p class="text-sm text-yellow-800">
-                After saving this product, you'll be able to upload multiple images, set a primary image, and manage variant-specific images from the product details page.
-            </p>
-        </div>
+        {{ render_label("images", "Product Images", classes="block mb-2 text-sm font-medium") }}
+        {{ form.images(class_='form-control form-input block w-full', multiple=True, id='product-images-input') }}
+        <p class="text-xs text-gray-500 mt-1">Accepts images (jpg, png, webp). Select multiple files.</p>
+        
+        <!-- Image Preview Container -->
+        <div id="image-preview-container" class="flex flex-wrap gap-4 mt-4"></div>
+        
+        {% for error in form.images.errors %}
+            <div class="alert alert-error form-error" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
     {% endcall %}
 {% endcall %}

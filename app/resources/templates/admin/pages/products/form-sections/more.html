@@ -4,16 +4,6 @@
 
 {% call form_section("More", "bx bxs-detail", collapsed=True) %}
     {% call render_form_group() %}
-        {{ render_label("material", "Material", classes="block mb-2 text-sm font-medium") }}
-        {{ form.material(class_='form-control form-input block w-full', placeholder='Product material') }}
-        {% for error in form.material.errors %}
-            <div class="alert alert-error form-error" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    {% endcall %}
-
-    {% call render_form_group() %}
         {{ render_label("details", "Product Details", classes="block mb-2 text-sm font-medium") }}
         {{ form.details(class_='form-control form-textarea rounded-lg block w-full', rows="4", placeholder='Additional product details') }}
         {% for error in form.details.errors %}

@@ -15,7 +15,7 @@ class PaymentConfig:
 class Config(PaymentConfig):
     # Environment
     ENV = os.getenv("ENV") or "development"
-    PORT = os.getenv("PORT") or 5051
+    PORT = os.getenv("PORT") or 5050
     DEBUG = (ENV == "development")  # Enable debug mode only in development
     SECRET_KEY = os.getenv("SECRET_KEY") or os.environ.get("SECRET_KEY")
     EMERGENCY_MODE = os.getenv("EMERGENCY_MODE") or os.environ.get("EMERGENCY_MODE") or False

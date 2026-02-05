@@ -7,14 +7,14 @@
     {% if pagination.items %}
         
         <div class="relative overflow-x-auto">
-            <div id="main-header" class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6 bg-white">
+            <div id="main-header" class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6">
                 <h1 class="text-2xl font-bold">Categories</h1>
                 {% if 'Super Admin' in CURRENT_USER.roles or 'Admin' in CURRENT_USER.roles or 'Operations' in CURRENT_USER.roles %}
                     <a href="{{ url_for('web.web_admin.categories.add_new_category') }}" class="btn inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Category </span></a>
                 {% endif %}
             </div>
 
-            <div class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4 bg-white">
+            <div class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4">
                 <div>
                     <button id="dropdownActionButton" data-dropdown-toggle="dropdownAction"
                         class="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5"
