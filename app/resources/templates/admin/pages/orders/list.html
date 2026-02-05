@@ -1,0 +1,130 @@
+{% extends 'admin/base/index.html' %}
+{% from 'admin/macros/buttons.html' import render_button %}
+
+{% block title %}Orders - {{ super() }}{% endblock %}
+
+{% block content %}
+    {% if pagination.items %}
+        
+        <div class="relative overflow-x-auto">
+            <div id="main-header" class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-6">
+                <h1 class="text-2xl font-bold">Orders</h1>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 pb-4">
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <select onchange="window.location.href=this.value" class="block p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-primary focus:border-primary">
+                            <option value="{{ url_for('web.web_admin.orders.orders', search=search_term) }}" {% if not current_status %}selected{% endif %}>All Statuses</option>
+                            {% for status in OrderStatus %}
+                                <option value="{{ url_for('web.web_admin.orders.orders', status=status.value, search=search_term) }}" {% if current_status == status.value %}selected{% endif %}>{{ status.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <label for="table-search" class="sr-only">Search</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <form method="GET" action="{{ url_for('web.web_admin.orders.orders') }}">
+                        {% if current_status %}
+                            <input type="hidden" name="status" value="{{ current_status }}">
+                        {% endif %}
+                        <input type="text" id="table-search-orders" name="search"
+                            class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-primary focus:border-primary"
+                            placeholder="Search order #, email..." value="{{ search_term }}">
+                    </form>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="rounded-lg shadow-md border border-outline-clr overflow-y-hidden">
+                <table class="w-full shadow-md lg:rounded-lg text-sm text-left rtl:text-right text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Order #</th>
+                            <th scope="col" class="px-6 py-3">Date</th>
+                            <th scope="col" class="px-6 py-3">Customer</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
+                            <th scope="col" class="px-6 py-3">Total</th>
+                            <th scope="col" class="px-6 py-3">Items</th>
+                            <th scope="col" class="px-6 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in pagination.items %}
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                {{ order.order_number }}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    {% if order.app_user %}
+                                        <span class="font-medium text-gray-900">{{ order.app_user.first_name }} {{ order.app_user.last_name }}</span>
+                                        <span class="text-xs text-gray-500">{{ order.app_user.email }}</span>
+                                    {% else %}
+                                        <span class="font-medium text-gray-900">Guest</span>
+                                        <span class="text-xs text-gray-500">{{ order.guest_email }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% set status_colors = {
+                                    'PENDING': 'bg-yellow-100 text-yellow-800',
+                                    'PAID': 'bg-blue-100 text-blue-800',
+                                    'PROCESSING': 'bg-purple-100 text-purple-800',
+                                    'SHIPPED': 'bg-indigo-100 text-indigo-800',
+                                    'DELIVERED': 'bg-green-100 text-green-800',
+                                    'CANCELLED': 'bg-red-100 text-red-800',
+                                    'REFUNDED': 'bg-gray-100 text-gray-800'
+                                } %}
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ status_colors.get(order.status, 'bg-gray-100 text-gray-800') }}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-900">
+                                {{ order.currency }} {{ "{:,.2f}".format(order.total) }}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ order.items|length }} items
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="{{ url_for('web.web_admin.orders.view_order', order_id=order.id) }}" class="font-medium text-primary hover:underline">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% set prev_url = url_for('web.web_admin.orders.orders', page=pagination.prev_num, search=search_term, status=current_status) if pagination.prev_num else None %}
+            {% set next_url = url_for('web.web_admin.orders.orders', page=pagination.next_num, search=search_term, status=current_status) if pagination.next_num else None %}
+            {% set page_num_url = url_for('web.web_admin.orders.orders', search=search_term, status=current_status) %}
+
+            {% with prev_url=prev_url, next_url=next_url, page_num_url=page_num_url, pagination=pagination, total_pages=total_pages %}
+                {% include 'admin/components/pagination.html' %}
+            {% endwith %}
+        </div>
+
+    {% elif search_term or current_status %}
+        {% with search_term=search_term, data_in_db='Order', data_in_db_url=url_for('web.web_admin.orders.orders') %}
+            {% include 'admin/components/no_result.html' %}
+        {% endwith %}
+    {% else %}
+        <div class="flex flex-col items-center justify-center py-12">
+            <div class="text-center">
+                <h3 class="mt-2 text-sm font-semibold text-gray-900">No orders</h3>
+                <p class="mt-1 text-sm text-gray-500">No orders have been placed yet.</p>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

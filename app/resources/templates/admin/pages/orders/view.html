@@ -1,0 +1,208 @@
+{% extends 'admin/base/index.html' %}
+{% from 'admin/components/form_section.html' import form_section %}
+{% from 'admin/macros/forms.html' import render_label, render_form_group %}
+
+{% block title %}Order #{{ order.order_number }} - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Order #{{ order.order_number }}</h1>
+            <p class="text-sm text-gray-500">{{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ url_for('web.web_admin.orders.orders') }}" class="btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                Back to List
+            </a>
+            <!-- Placeholder for future status update functionality -->
+            {% set status_colors = {
+                'PENDING': 'bg-yellow-100 text-yellow-800',
+                'PAID': 'bg-blue-100 text-blue-800',
+                'PROCESSING': 'bg-purple-100 text-purple-800',
+                'SHIPPED': 'bg-indigo-100 text-indigo-800',
+                'DELIVERED': 'bg-green-100 text-green-800',
+                'CANCELLED': 'bg-red-100 text-red-800',
+                'REFUNDED': 'bg-gray-100 text-gray-800'
+            } %}
+            <span class="px-3 py-1 text-sm font-medium rounded-full {{ status_colors.get(order.status, 'bg-gray-100 text-gray-800') }}">
+                {{ order.status }}
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Items -->
+            <div class="bg-white rounded-lg shadow-sm border border-outline-clr p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
+                <div class="relative overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Product</th>
+                                <th scope="col" class="px-4 py-3 text-right">Price</th>
+                                <th scope="col" class="px-4 py-3 text-center">Qty</th>
+                                <th scope="col" class="px-4 py-3 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr class="border-b last:border-0 hover:bg-gray-50">
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center gap-4">
+                                        {% if item.variant and item.variant.product and item.variant.product.images %}
+                                            <img src="{{ item.variant.product.get_thumbnail() }}" alt="" class="w-12 h-12 rounded object-cover">
+                                        {% else %}
+                                            <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400">
+                                                <i class="bx bxs-image"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="font-medium text-gray-900">
+                                                {% if item.variant and item.variant.product %}
+                                                    {{ item.variant.product.name }}
+                                                {% else %}
+                                                    Product Unavailable
+                                                {% endif %}
+                                            </div>
+                                            <!-- Variant Info -->
+                                            <div class="text-xs text-gray-500 mt-0.5">
+                                                {% if item.variant %}
+                                                    {% if item.variant.sku %}SKU: {{ item.variant.sku }} | {% endif %}
+                                                    {% if item.variant.attributes %}
+                                                        {{ item.variant.attributes | map(attribute='1') | join(', ') }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    Variant Unavailable ({{ item.variant_id }})
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 text-right">
+                                    {{ order.currency }} {{ "{:,.2f}".format(item.unit_price) }}
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    {{ item.quantity }}
+                                </td>
+                                <td class="px-4 py-4 text-right font-medium text-gray-900">
+                                    {{ order.currency }} {{ "{:,.2f}".format(item.line_total) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="font-medium text-gray-900 border-t">
+                                <td colspan="3" class="px-4 py-3 text-right mt-4">Subtotal</td>
+                                <td class="px-4 py-3 text-right">{{ order.currency }} {{ "{:,.2f}".format(order.subtotal) }}</td>
+                            </tr>
+                            <tr class="text-gray-500">
+                                <td colspan="3" class="px-4 py-2 text-right">Shipping</td>
+                                <td class="px-4 py-2 text-right">{{ order.currency }} {{ "{:,.2f}".format(order.shipping_cost) }}</td>
+                            </tr>
+                            {% if order.discount > 0 %}
+                            <tr class="text-green-600">
+                                <td colspan="3" class="px-4 py-2 text-right">Discount</td>
+                                <td class="px-4 py-2 text-right">-{{ order.currency }} {{ "{:,.2f}".format(order.discount) }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="text-lg font-bold text-gray-900 border-t-2 border-dashed border-gray-200">
+                                <td colspan="3" class="px-4 py-4 text-right">Total</td>
+                                <td class="px-4 py-4 text-right">{{ order.currency }} {{ "{:,.2f}".format(order.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Payment Info (Example Layout) -->
+            <div class="bg-white rounded-lg shadow-sm border border-outline-clr p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Information</h3>
+                <div class="text-sm text-gray-700 grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="block text-gray-500 text-xs">Reference</span>
+                        <span class="font-mono">{{ order.payment_ref or "N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-gray-500 text-xs">Payment Method</span>
+                        <span>Paystack (Assumed)</span>
+                    </div>
+                    <div>
+                        <span class="block text-gray-500 text-xs">Status</span>
+                        <span class="font-medium text-gray-900">{{ order.status }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="space-y-6">
+            <!-- Customer Details -->
+            <div class="bg-white rounded-lg shadow-sm border border-outline-clr p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer</h3>
+                {% if order.app_user %}
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {{ order.app_user.first_name[0] if order.app_user.first_name else 'U' }}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">{{ order.app_user.first_name }} {{ order.app_user.last_name }}</p>
+                            <p class="text-xs text-gray-500">Registered User</p>
+                        </div>
+                    </div>
+                {% else %}
+                   <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                            <i class="bx bxs-user"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Guest User</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Contact Info</h4>
+                        <div class="flex items-center gap-2 text-gray-700">
+                           <i class="bx bxs-envelope text-gray-400"></i>
+                           <span>{{ order.app_user.email if order.app_user else order.guest_email }}</span>
+                        </div>
+                         <div class="flex items-center gap-2 text-gray-700 mt-1">
+                           <i class="bx bxs-phone text-gray-400"></i>
+                           <span>{{ order.app_user.phone_number if order.app_user and order.app_user.phone_number else (order.guest_phone or "No phone") }}</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100">
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Shipping Address</h4>
+                        {% if order.shipping_address %}
+                            <p class="text-gray-700 leading-relaxed">
+                                {{ order.shipping_address.get('address', '') }}<br>
+                                {{ order.shipping_address.get('city', '') }}, {{ order.shipping_address.get('state', '') }}<br>
+                                {{ order.shipping_address.get('country', '') }} {{ order.shipping_address.get('zip_code', '') }}
+                            </p>
+                        {% else %}
+                             <p class="text-gray-500 italic">No shipping address provided</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Internal Info -->
+            <div class="bg-white rounded-lg shadow-sm border border-outline-clr p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Internal Info</h3>
+                <div class="space-y-2 text-sm">
+                    <div>
+                        <span class="text-gray-500">Order ID:</span>
+                        <span class="block font-mono text-xs text-gray-700">{{ order.id }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
