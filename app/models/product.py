@@ -219,10 +219,14 @@ class ProductVariant(db.Model):
     # Contains: length, texture, color, lace_type, density, cap_size, hair_type
     attributes: M[Dict[str, Any]] = db.Column(JSON, default=dict)
     
+    # Material reference (nullable FK to ProductMaterial - variant can have its own material)
+    material_id: M[Optional[uuid.UUID]] = db.Column(UUID(as_uuid=True), db.ForeignKey("product_material.id", ondelete="SET NULL"), nullable=True, index=True)
+    
     # Relationships
     product = relationship("Product", back_populates="variants")
     inventory = relationship("Inventory", back_populates="variant", uselist=False, cascade="all, delete-orphan")
     images = relationship("Media", secondary="variant_media", lazy="dynamic", backref="variants")
+    variant_material = relationship("ProductMaterial", foreign_keys=[material_id])
     
     # Timestamps
     created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
@@ -265,6 +269,8 @@ class ProductVariant(db.Model):
             "is_in_stock": self.is_in_stock,
             "stock_quantity": self.stock_quantity,
             "stock": self.stock_quantity,  # Alias for stock_quantity
+            "material_id": str(self.material_id) if self.material_id else None,
+            "material": self.variant_material.to_dict() if self.variant_material else None,
             "created_at": to_gmt1_or_none(self.created_at),
             "updated_at": to_gmt1_or_none(self.updated_at),
         }

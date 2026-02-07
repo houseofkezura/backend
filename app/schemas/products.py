@@ -27,6 +27,7 @@ class CreateProductVariantRequest(BaseModel):
     price_usd: Optional[Decimal] = Field(None, gt=0, description="Price in USD")
     weight_g: Optional[int] = Field(None, gt=0, description="Weight in grams")
     attributes: Optional[ProductVariantAttributes] = Field(None, description="Variant attributes (color, length, texture, etc.)")
+    material_id: Optional[str] = Field(None, description="Optional material ID to link")
     media_ids: Optional[List[str]] = Field(None, description="List of media IDs")
 
 
@@ -76,6 +77,7 @@ class UpdateProductVariantRequest(BaseModel):
     price_usd: Optional[Decimal] = Field(None, gt=0)
     weight_g: Optional[int] = Field(None, gt=0)
     attributes: Optional[ProductVariantAttributes] = None
+    material_id: Optional[str] = Field(None, description="Material ID to link (set to empty string to unlink)")
     media_ids: Optional[List[str]] = None
 
 

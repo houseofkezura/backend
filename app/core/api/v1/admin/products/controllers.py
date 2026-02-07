@@ -459,6 +459,18 @@ class AdminProductController:
                     variant.attributes = {}
                 variant.attributes["media_ids"] = payload.media_ids
             
+            # Link material if provided
+            if payload.material_id:
+                try:
+                    material_uuid = uuid.UUID(payload.material_id)
+                    material = ProductMaterial.query.get(material_uuid)
+                    if material:
+                        variant.material_id = material_uuid
+                    else:
+                        return error_response("Material not found", 404)
+                except ValueError:
+                    return error_response("Invalid material ID format", 400)
+            
             db.session.add(variant)
             db.session.flush()
             
@@ -532,6 +544,20 @@ class AdminProductController:
                 if not variant.attributes:
                     variant.attributes = {}
                 variant.attributes["media_ids"] = payload.media_ids
+            if payload.material_id is not None:
+                if payload.material_id == "":
+                    # Unlink material
+                    variant.material_id = None
+                else:
+                    try:
+                        material_uuid = uuid.UUID(payload.material_id)
+                        material = ProductMaterial.query.get(material_uuid)
+                        if material:
+                            variant.material_id = material_uuid
+                        else:
+                            return error_response("Material not found", 404)
+                    except ValueError:
+                        return error_response("Invalid material ID format", 400)
             
             db.session.commit()
             

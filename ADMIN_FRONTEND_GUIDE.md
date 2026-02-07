@@ -79,8 +79,9 @@ Authorization: Bearer <clerk_token>
 - Does NOT have: price, color, stock (these are on variants)
 
 **Variant**: A specific configuration of a product (e.g., "32 inches, Black color")
-- Has: SKU, price_ngn, price_usd, color, length, texture, stock, attributes
+- Has: SKU, price_ngn, price_usd, color, length, texture, stock, attributes, material_id (optional)
 - Belongs to: One product
+- Can optionally have its own material, independent of the product's material
 
 ### Create Product
 
@@ -602,6 +603,7 @@ Materials are reusable entities that can be linked to multiple products. Each ma
     "cap_size": "Medium",
     "hair_type": "Human Hair"
   },
+  "material_id": "uuid",  // Optional - link variant to a specific material
   "media_ids": ["uuid1", "uuid2"]  // Optional
 }
 ```
