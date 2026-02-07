@@ -108,17 +108,18 @@ class AdminProductController:
             product.care = payload.care or ""
             product.details = payload.details or ""
             
-            # Link material if provided
-            if payload.material_id:
-                try:
-                    material_uuid = uuid.UUID(payload.material_id)
-                    material = ProductMaterial.query.get(material_uuid)
-                    if material:
-                        product.material_id = material_uuid
-                    else:
-                        return error_response("Material not found", 404)
-                except ValueError:
-                    return error_response("Invalid material ID format", 400)
+            # Link materials if provided
+            if payload.material_ids:
+                for mid in payload.material_ids:
+                    try:
+                        material_uuid = uuid.UUID(mid)
+                        material = ProductMaterial.query.get(material_uuid)
+                        if material:
+                            product.materials.append(material)
+                        else:
+                            return error_response(f"Material {mid} not found", 404)
+                    except ValueError:
+                        return error_response(f"Invalid material ID format: {mid}", 400)
             
             product.product_metadata = payload.metadata or {}
             product.meta_title = payload.meta_title
@@ -234,20 +235,19 @@ class AdminProductController:
                 product.care = payload.care
             if payload.details is not None:
                 product.details = payload.details
-            if payload.material_id is not None:
-                if payload.material_id == "":
-                    # Unlink material
-                    product.material_id = None
-                else:
+            if payload.material_ids is not None:
+                # Clear existing materials and set new ones
+                product.materials.clear()
+                for mid in payload.material_ids:
                     try:
-                        material_uuid = uuid.UUID(payload.material_id)
+                        material_uuid = uuid.UUID(mid)
                         material = ProductMaterial.query.get(material_uuid)
                         if material:
-                            product.material_id = material_uuid
+                            product.materials.append(material)
                         else:
-                            return error_response("Material not found", 404)
+                            return error_response(f"Material {mid} not found", 404)
                     except ValueError:
-                        return error_response("Invalid material ID format", 400)
+                        return error_response(f"Invalid material ID format: {mid}", 400)
             if payload.metadata is not None:
                 product.product_metadata = payload.metadata
             if payload.meta_title is not None:
@@ -459,17 +459,18 @@ class AdminProductController:
                     variant.attributes = {}
                 variant.attributes["media_ids"] = payload.media_ids
             
-            # Link material if provided
-            if payload.material_id:
-                try:
-                    material_uuid = uuid.UUID(payload.material_id)
-                    material = ProductMaterial.query.get(material_uuid)
-                    if material:
-                        variant.material_id = material_uuid
-                    else:
-                        return error_response("Material not found", 404)
-                except ValueError:
-                    return error_response("Invalid material ID format", 400)
+            # Link materials if provided
+            if payload.material_ids:
+                for mid in payload.material_ids:
+                    try:
+                        material_uuid = uuid.UUID(mid)
+                        material = ProductMaterial.query.get(material_uuid)
+                        if material:
+                            variant.materials.append(material)
+                        else:
+                            return error_response(f"Material {mid} not found", 404)
+                    except ValueError:
+                        return error_response(f"Invalid material ID format: {mid}", 400)
             
             db.session.add(variant)
             db.session.flush()
@@ -544,20 +545,19 @@ class AdminProductController:
                 if not variant.attributes:
                     variant.attributes = {}
                 variant.attributes["media_ids"] = payload.media_ids
-            if payload.material_id is not None:
-                if payload.material_id == "":
-                    # Unlink material
-                    variant.material_id = None
-                else:
+            if payload.material_ids is not None:
+                # Clear existing materials and set new ones
+                variant.materials.clear()
+                for mid in payload.material_ids:
                     try:
-                        material_uuid = uuid.UUID(payload.material_id)
+                        material_uuid = uuid.UUID(mid)
                         material = ProductMaterial.query.get(material_uuid)
                         if material:
-                            variant.material_id = material_uuid
+                            variant.materials.append(material)
                         else:
-                            return error_response("Material not found", 404)
+                            return error_response(f"Material {mid} not found", 404)
                     except ValueError:
-                        return error_response("Invalid material ID format", 400)
+                        return error_response(f"Invalid material ID format: {mid}", 400)
             
             db.session.commit()
             

@@ -27,7 +27,7 @@ class CreateProductVariantRequest(BaseModel):
     price_usd: Optional[Decimal] = Field(None, gt=0, description="Price in USD")
     weight_g: Optional[int] = Field(None, gt=0, description="Weight in grams")
     attributes: Optional[ProductVariantAttributes] = Field(None, description="Variant attributes (color, length, texture, etc.)")
-    material_id: Optional[str] = Field(None, description="Optional material ID to link")
+    material_ids: Optional[List[str]] = Field(None, description="Optional list of material IDs to link")
     media_ids: Optional[List[str]] = Field(None, description="List of media IDs")
 
 
@@ -41,7 +41,7 @@ class CreateProductRequest(BaseModel):
     category_id: Optional[int] = Field(None, description="Optional category ID to link")
     care: Optional[str] = Field("", description="Product care instructions")
     details: Optional[str] = Field("", description="Product details")
-    material_id: Optional[str] = Field(None, description="Optional material ID to link")
+    material_ids: Optional[List[str]] = Field(None, description="Optional list of material IDs to link")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
     meta_title: Optional[str] = Field(None, max_length=255, description="SEO meta title")
     meta_description: Optional[str] = Field(None, description="SEO meta description")
@@ -61,7 +61,7 @@ class UpdateProductRequest(BaseModel):
     category_id: Optional[int] = None
     care: Optional[str] = None
     details: Optional[str] = None
-    material_id: Optional[str] = Field(None, description="Material ID to link (set to empty string to unlink)")
+    material_ids: Optional[List[str]] = Field(None, description="List of material IDs to link (set to [] to unlink all)")
     metadata: Optional[Dict[str, Any]] = None
     meta_title: Optional[str] = Field(None, max_length=255)
     meta_description: Optional[str] = None
@@ -77,7 +77,7 @@ class UpdateProductVariantRequest(BaseModel):
     price_usd: Optional[Decimal] = Field(None, gt=0)
     weight_g: Optional[int] = Field(None, gt=0)
     attributes: Optional[ProductVariantAttributes] = None
-    material_id: Optional[str] = Field(None, description="Material ID to link (set to empty string to unlink)")
+    material_ids: Optional[List[str]] = Field(None, description="List of material IDs to link (set to [] to unlink all)")
     media_ids: Optional[List[str]] = None
 
 

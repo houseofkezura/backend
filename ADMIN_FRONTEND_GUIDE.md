@@ -75,13 +75,13 @@ Authorization: Bearer <clerk_token>
 ### Understanding Products and Variants
 
 **Product**: The base product (e.g., "Kezura Mav Bone Straight Hair")
-- Has: name, SKU, category, description, care instructions, details, material_id (links to material), status
+- Has: name, SKU, category, description, care instructions, details, material_ids (links to multiple materials), status
 - Does NOT have: price, color, stock (these are on variants)
 
 **Variant**: A specific configuration of a product (e.g., "32 inches, Black color")
-- Has: SKU, price_ngn, price_usd, color, length, texture, stock, attributes, material_id (optional)
+- Has: SKU, price_ngn, price_usd, color, length, texture, stock, attributes, material_ids (optional list)
 - Belongs to: One product
-- Can optionally have its own material, independent of the product's material
+- Can optionally have its own materials, independent of the product's materials
 
 ### Create Product
 
@@ -99,7 +99,7 @@ Authorization: Bearer <clerk_token>
   "category": "Wigs",  // Required: "Wigs", "Bundles", or "Hair Care"
   "care": "Detangle gently with wide-tooth comb",
   "details": "100% human hair, virgin quality",
-  "material_id": "uuid",  // Optional - link to a ProductMaterial
+  "material_ids": ["uuid1", "uuid2"],  // Optional - link to multiple ProductMaterials
   "status": "In-Stock",  // Optional, default: "In-Stock"
   "meta_title": "SEO Title",  // Optional
   "meta_description": "SEO Description",  // Optional
@@ -145,13 +145,15 @@ Authorization: Bearer <clerk_token>
       "category": "Wigs",
       "care": "Detangle gently with wide-tooth comb",
       "details": "100% human hair, virgin quality",
-      "material_id": "uuid",  // ID of linked material, or null
-      "material": {  // Full material object, or null if not linked
-        "id": "uuid",
-        "name": "100% Human Hair",
-        "description": "Premium quality human hair",
-        "usage_count": 5
-      },
+      "material_ids": ["uuid"],  // Array of linked material IDs
+      "materials": [  // Array of full material objects
+        {
+          "id": "uuid",
+          "name": "100% Human Hair",
+          "description": "Premium quality human hair",
+          "usage_count": 5
+        }
+      ],
       "status": "In-Stock",
       "price_ngn": 50000.00,  // Minimum price from variants
       "price_usd": 50.00,  // Minimum price from variants
@@ -210,7 +212,7 @@ Authorization: Bearer <clerk_token>
   "category": "Bundles",
   "care": "Updated care instructions",
   "details": "Updated details",
-  "material_id": "uuid",  // Link to material (use empty string "" to unlink)
+  "material_ids": ["uuid1", "uuid2"],  // List of material IDs (use [] to unlink all)
   "status": "Out of Stock",  // Use "status" not "launch_status"
   "meta_title": "Updated SEO Title"
 }
@@ -603,7 +605,7 @@ Materials are reusable entities that can be linked to multiple products. Each ma
     "cap_size": "Medium",
     "hair_type": "Human Hair"
   },
-  "material_id": "uuid",  // Optional - link variant to a specific material
+  "material_ids": ["uuid1", "uuid2"],  // Optional - link variant to specific materials
   "media_ids": ["uuid1", "uuid2"]  // Optional
 }
 ```

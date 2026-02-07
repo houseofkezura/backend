@@ -127,7 +127,7 @@ class ProductVariantDataModel(BaseModel):
     description: Optional[str] = None
     care: Optional[str] = None
     details: Optional[str] = None
-    material: Optional[str] = None
+    materials: Optional[List[Dict[str, Any]]] = None  # List of material objects
     product_images: Optional[List[Dict[str, Any]]] = None
     product_image_urls: Optional[List[str]] = None
     created_at: Optional[str] = None
@@ -166,7 +166,8 @@ class ProductDataModel(BaseModel):
     category: str
     care: Optional[str] = None
     details: Optional[str] = None
-    material: Optional[str] = None
+    material_ids: Optional[List[str]] = None
+    materials: Optional[List[Dict[str, Any]]] = None  # List of material objects
     metadata: Optional[Dict[str, Any]] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
