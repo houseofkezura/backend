@@ -85,11 +85,11 @@ class ProductForm(FlaskForm):
         description="Additional product details"
     )
     
-    material = SelectField(
-        'Material',
+    materials = SelectMultipleField(
+        'Materials',
         validators=[Optional()],
         coerce=str,
-        description="Select product material"
+        description="Select product materials (hold Ctrl/Cmd to select multiple)"
     )
     
     def __init__(self, *args, **kwargs):
@@ -99,7 +99,7 @@ class ProductForm(FlaskForm):
         
         # Populate material choices
         materials = ProductMaterial.query.order_by(ProductMaterial.name).all()
-        self.material.choices = [("", "Select Material")] + [(str(m.id), m.name) for m in materials]
+        self.materials.choices = [(str(m.id), m.name) for m in materials]
 
 
 # Legacy alias for backward compatibility

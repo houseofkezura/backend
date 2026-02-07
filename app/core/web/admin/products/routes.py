@@ -182,9 +182,12 @@ def edit_product(identifier: str):
             description=product.description or "",
             care=product.care or "",
             details=product.details or "",
-            material=str(product.material_id) if product.material_id else "",
             colors=product.product_metadata.get('colors', '') if product.product_metadata else ''
         )
+        
+        # Pre-populate materials (many-to-many)
+        if product.materials:
+            form.materials.data = [str(m.id) for m in product.materials]
         
         # Set primary category from product's categories relationship
         if product.categories:

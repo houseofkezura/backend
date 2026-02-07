@@ -106,7 +106,9 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
         description = form_data.get('description', '').strip()
         care = form_data.get('care', '').strip()
         details = form_data.get('details', '').strip()
-        material_id_str = form_data.get('material', '').strip()
+        material_ids = form_data.getlist('materials') if hasattr(form_data, 'getlist') else form_data.get('materials', [])
+        if isinstance(material_ids, str):
+            material_ids = [material_ids] if material_ids else []
         colors = form_data.get('colors', '').strip()
         
         # Get primary category
@@ -164,14 +166,17 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
             product.category = category_name
             product.slug = product_slug
             
-            # Update Material ID
-            if material_id_str:
+            # Update Materials (many-to-many)
+            from app.models.product import ProductMaterial
+            product.materials = []
+            for mat_id_str in material_ids:
                 try:
-                    product.material_id = uuid.UUID(material_id_str)
-                except ValueError:
-                    product.material_id = None
-            else:
-                product.material_id = None
+                    mat_uuid = uuid.UUID(mat_id_str)
+                    mat = ProductMaterial.query.get(mat_uuid)
+                    if mat:
+                        product.materials.append(mat)
+                except (ValueError, TypeError):
+                    continue
             
             # Update metadata (preserve existing, update colors)
             if not product.product_metadata:
@@ -237,12 +242,16 @@ def save_product(form_data: dict, product: Optional[Product] = None, files: dict
             # new_product.material = material or "" # REMOVED
             new_product.launch_status = "In-Stock"  # Default status
 
-            # Set Material ID
-            if material_id_str:
+            # Link Materials (many-to-many)
+            from app.models.product import ProductMaterial
+            for mat_id_str in material_ids:
                 try:
-                    new_product.material_id = uuid.UUID(material_id_str)
-                except ValueError:
-                    new_product.material_id = None
+                    mat_uuid = uuid.UUID(mat_id_str)
+                    mat = ProductMaterial.query.get(mat_uuid)
+                    if mat:
+                        new_product.materials.append(mat)
+                except (ValueError, TypeError):
+                    continue
             
             # Store colors in metadata if provided
             if colors:
