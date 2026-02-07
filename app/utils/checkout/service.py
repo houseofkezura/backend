@@ -93,25 +93,30 @@ def calculate_shipping_cost(country: str, weight_g: int, method: str = "standard
     """
     Calculate shipping cost based on zone and method.
     
-    Simplified implementation - in production, this would query shipping zones.
+    NOTE: Shipping cost is DISABLED for now until exact costs are confirmed.
+    Returns 0 for all orders.
     """
+    # Shipping disabled until we have confirmed rates
+    return 0.0
+    
+    # TODO: Re-enable when shipping rates are confirmed
     # Zone 1: Nigeria
-    if country.upper() == "NG" or country.upper() == "NIGERIA":
-        if method == "express":
-            return 5000.0  # ₦5,000
-        return 3000.0  # ₦3,000 standard
-    
-    # Zone 2: Rest of Africa
-    african_countries = ["GH", "KE", "ZA", "EG", "ET", "TZ", "UG", "RW", "ZM", "ZW"]
-    if country.upper() in african_countries:
-        if method == "express":
-            return 15000.0
-        return 10000.0
-    
-    # Zone 3: International
-    if method == "express":
-        return 25000.0
-    return 20000.0
+    # if country.upper() == "NG" or country.upper() == "NIGERIA":
+    #     if method == "express":
+    #         return 5000.0  # ₦5,000
+    #     return 3000.0  # ₦3,000 standard
+    # 
+    # # Zone 2: Rest of Africa
+    # african_countries = ["GH", "KE", "ZA", "EG", "ET", "TZ", "UG", "RW", "ZM", "ZW"]
+    # if country.upper() in african_countries:
+    #     if method == "express":
+    #         return 15000.0
+    #     return 10000.0
+    # 
+    # # Zone 3: International
+    # if method == "express":
+    #     return 25000.0
+    # return 20000.0
 
 
 def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] = None) -> CheckoutResult:

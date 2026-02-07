@@ -53,8 +53,8 @@
                             <tr class="border-b last:border-0 hover:bg-gray-50">
                                 <td class="px-4 py-4">
                                     <div class="flex items-center gap-4">
-                                        {% if item.variant and item.variant.product and item.variant.product.images %}
-                                            <img src="{{ item.variant.product.get_thumbnail() }}" alt="" class="w-12 h-12 rounded object-cover">
+                                        {% if item.variant and item.variant.product and item.variant.product.images.first() %}
+                                            <img src="{{ item.variant.product.images.first().file_url }}" alt="" class="w-12 h-12 rounded object-cover">
                                         {% else %}
                                             <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400">
                                                 <i class="bx bxs-image"></i>
