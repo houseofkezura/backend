@@ -49,7 +49,7 @@ class Config(PaymentConfig):
     CLERK_BACKEND_API = os.getenv("CLERK_BACKEND_API", "https://api.clerk.com/v1")
     
     # Domains
-    APP_DOMAIN = os.getenv("APP_DOMAIN") or "http://localhost:3000"
+    APP_DOMAIN = os.getenv("APP_DOMAIN") or "http://localhost:5173"
     API_DOMAIN = os.getenv("API_DOMAIN") or "http://localhost:5050"
     
     # mail configurations
