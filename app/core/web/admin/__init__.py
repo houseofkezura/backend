@@ -8,6 +8,7 @@ from .settings import bp as settings_bp
 from .products import bp as products_bp
 from .categories import bp as categories_bp
 from .orders import bp as orders_bp
+from .materials import bp as materials_bp
 from app.utils.decorators.auth import roles_required_web, ADMIN_ALLOWED_ROLES
 
 
@@ -22,6 +23,7 @@ def create_web_admin_blueprint():
     web_admin_bp.register_blueprint(products_bp)
     web_admin_bp.register_blueprint(categories_bp)
     web_admin_bp.register_blueprint(orders_bp)
+    web_admin_bp.register_blueprint(materials_bp)
 
     @web_admin_bp.before_request
     def _require_admin_access():

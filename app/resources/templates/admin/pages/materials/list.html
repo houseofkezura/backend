@@ -1,0 +1,91 @@
+{% extends 'admin/base/index.html' %}
+
+{% block title %}Product Materials - {{ super() }}{% endblock %}
+
+{% block content %}
+    {% if pagination.items %}
+        <div class="relative overflow-x-auto">
+            <div id="main-header" class="flex items-center justify-between flex-wrap lg:flex-row space-y-4 lg:space-y-0 mb-6">
+                <h1 class="text-2xl font-bold">Product Materials</h1>
+                <a href="{{ url_for('web.web_admin.materials.add_material') }}" class="btn inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/85">Add New <span class="ml-1 hidden md:inline"> Material </span></a>
+            </div>
+
+            <!-- Search -->
+            <div class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 mb-4">
+                <div></div>
+                <label for="table-search" class="sr-only">Search</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <form method="GET" action="{{ url_for('web.web_admin.materials.materials') }}">
+                        <input type="text" id="table-search-materials" name="search"
+                            class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 outline-none focus:ring-primary focus:border-primary"
+                            placeholder="Search materials..." value="{{ search_term }}">
+                    </form>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="rounded-lg shadow-md border border-border overflow-y-hidden">
+                <table class="w-full shadow-md lg:rounded-lg text-sm text-left rtl:text-right text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Name</th>
+                            <th scope="col" class="px-6 py-3">Description</th>
+                            <th scope="col" class="px-6 py-3">Used By</th>
+                            <th scope="col" class="px-6 py-3">Created</th>
+                            <th scope="col" class="px-6 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for material in pagination.items %}
+                        <tr class="bg-card border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                {{ material.name }}
+                            </td>
+                            <td class="px-6 py-4 max-w-xs truncate">
+                                {{ material.description or '—' }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                    {{ material.usage_count }} products
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ material.created_at.strftime('%b %d, %Y') }}
+                            </td>
+                            <td class="px-6 py-4 flex items-center gap-2">
+                                <a href="{{ url_for('web.web_admin.materials.edit_material', material_id=material.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-primary text-primary hover:bg-alert-info">Edit</a>
+                                <form method="POST" action="{{ url_for('web.web_admin.materials.delete_material', material_id=material.id) }}" onsubmit="return confirm('Are you sure you want to delete this material?');" class="inline">
+                                    <button type="submit" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-alert-danger-solid text-alert-danger-solid hover:bg-alert-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            {% set prev_url = url_for('web.web_admin.materials.materials', page=pagination.prev_num, search=search_term) if pagination.prev_num else None %}
+            {% set next_url = url_for('web.web_admin.materials.materials', page=pagination.next_num, search=search_term) if pagination.next_num else None %}
+            {% set page_num_url = url_for('web.web_admin.materials.materials', search=search_term) %}
+
+            {% with prev_url=prev_url, next_url=next_url, page_num_url=page_num_url, pagination=pagination, total_pages=total_pages %}
+                {% include 'admin/components/pagination.html' %}
+            {% endwith %}
+        </div>
+
+    {% elif search_term %}
+        {% with search_term=search_term, data_in_db='Material', data_in_db_url=url_for('web.web_admin.materials.materials') %}
+            {% include 'admin/components/no_result.html' %}
+        {% endwith %}
+    {% else %}
+        {% with data_in_db='Material', data_in_db_url=url_for('web.web_admin.materials.add_material') %}
+            {% include 'admin/components/no_data.html' %}
+        {% endwith %}
+    {% endif %}
+{% endblock %}
