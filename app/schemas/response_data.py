@@ -215,6 +215,7 @@ class OrderDataModel(BaseModel):
     amount: float  # Legacy field
     currency: str
     payment_ref: Optional[str] = None
+    payment_url: Optional[str] = None
     shipping_address: Optional[Dict[str, Any]] = None
     packed_by_crm_id: Optional[str] = None
     guest_email: Optional[str] = None

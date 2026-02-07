@@ -259,8 +259,9 @@ def process_checkout(request: CheckoutRequest, current_user: Optional[AppUser] =
             extra_meta=extra_meta,
         )
         
-        # Persist reference on order
+        # Persist reference and authorization URL on order
         order.payment_ref = payment_response.get("reference")
+        order.payment_url = payment_response.get("authorization_url")
         db.session.commit()
         
         log_event(f"Checkout initialized: Order {order.order_number}, Total: {total}")

@@ -47,6 +47,7 @@ class Order(db.Model):
     
     # Payment
     payment_ref: M[Optional[str]] = db.Column(db.String(255), nullable=True)
+    payment_url: M[Optional[str]] = db.Column(db.Text, nullable=True)  # Store authorization_url for re-completing payment
     
     @staticmethod
     def generate_order_number(max_attempts: int = 10) -> str:
@@ -141,6 +142,7 @@ class Order(db.Model):
             'amount': float(self.amount),  # Legacy field
             'currency': self.currency,
             'payment_ref': self.payment_ref,
+            'payment_url': self.payment_url,
             'shipping_address': self.shipping_address or {},
             'packed_by_crm_id': str(self.packed_by_crm_id) if self.packed_by_crm_id else None,
             'guest_email': self.guest_email,

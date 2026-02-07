@@ -134,16 +134,11 @@ class OrdersController:
                 # Not a valid UUID, treat as order_number
                 order_number = order_id.upper()  # Normalize to uppercase
             
-            log_event("order_uuid", order_uuid)
-            log_event("order_number", order_number)
-            
             # Build query based on identifier type
             if order_uuid:
                 query = Order.query.filter_by(id=order_uuid)
             else:
                 query = Order.query.filter_by(order_number=order_number)
-            
-            log_event("query", query)
             
             # Apply user/guest filter
             if guest_email:
@@ -152,8 +147,6 @@ class OrdersController:
                 query = query.filter_by(user_id=current_user.id)
             
             order = query.first()
-            
-            log_event("order", order)
             
             if not order:
                 return error_response(f"Order '{order_id}' not found", 404)

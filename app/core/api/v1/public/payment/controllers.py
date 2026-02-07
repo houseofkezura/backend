@@ -154,8 +154,9 @@ class PaymentController:
                 redirect_url=f"{request.host_url}payment/verify"
             )
             
-            # Update order with payment reference
-            order.payment_ref = payment_response.reference
+            # Update order with payment reference and URL
+            order.payment_ref = payment_response.get("reference")
+            order.payment_url = payment_response.get("authorization_url")
             db.session.commit()
             
             return success_response(
