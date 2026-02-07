@@ -9,7 +9,7 @@ from app.utils.helpers.user import get_current_user
 from app.models.order import Order
 from app.models.user import AppUser
 from app.enums.orders import OrderStatus
-from app.logging import log_error
+from app.logging import log_error, log_event
 
 
 class OrdersController:
@@ -134,19 +134,26 @@ class OrdersController:
                 # Not a valid UUID, treat as order_number
                 order_number = order_id.upper()  # Normalize to uppercase
             
+            log_event("order_uuid", order_uuid)
+            log_event("order_number", order_number)
+            
             # Build query based on identifier type
             if order_uuid:
                 query = Order.query.filter_by(id=order_uuid)
             else:
                 query = Order.query.filter_by(order_number=order_number)
             
+            log_event("query", query)
+            
             # Apply user/guest filter
-            if current_user:
-                query = query.filter_by(user_id=current_user.id)
-            elif guest_email:
+            if guest_email:
                 query = query.filter_by(guest_email=guest_email)
+            elif current_user:
+                query = query.filter_by(user_id=current_user.id)
             
             order = query.first()
+            
+            log_event("order", order)
             
             if not order:
                 return error_response(f"Order '{order_id}' not found", 404)
