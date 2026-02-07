@@ -795,6 +795,46 @@ class InventoryData(BaseModel):
     inventory: InventoryInfo
 
 
+# Material response data schemas
+class MaterialDataModel(BaseModel):
+    """Product material data model."""
+    class Config:
+        extra = "forbid"
+    
+    id: str
+    name: str
+    description: Optional[str] = None
+    usage_count: int
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    products: Optional[List[Dict[str, Any]]] = None  # Optional list of linked products
+
+
+class MaterialData(BaseModel):
+    """Data returned for single material."""
+    class Config:
+        extra = "forbid"
+    
+    material: MaterialDataModel
+
+
+class MaterialCreateData(BaseModel):
+    """Data returned after material creation."""
+    class Config:
+        extra = "forbid"
+    
+    material: MaterialDataModel
+
+
+class MaterialListData(BaseModel):
+    """Data returned for material list."""
+    class Config:
+        extra = "forbid"
+    
+    materials: List[MaterialDataModel]
+    pagination: Optional[Dict[str, Any]] = None
+
+
 # Revamp response data schemas
 class RevampRequestData(BaseModel):
     """Data returned after revamp request creation."""

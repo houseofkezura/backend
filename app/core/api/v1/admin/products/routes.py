@@ -11,6 +11,9 @@ from app.schemas.response_data import (
     ProductCreateData,
     ProductVariantData,
     ValidationErrorData,
+    MaterialData,
+    MaterialCreateData,
+    MaterialListData,
 )
 from app.schemas.products import CreateProductRequest, UpdateProductRequest, CreateProductVariantRequest, UpdateProductVariantRequest
 from app.utils.decorators.auth import roles_required
@@ -292,7 +295,7 @@ from app.schemas.materials import CreateMaterialRequest, UpdateMaterialRequest
     summary="Create Material",
     description="Create a new product material. Requires admin role.",
     responses={
-        "201": None,
+        "201": MaterialCreateData,
         "400": ValidationErrorData,
         "401": None,
         "403": None,
@@ -313,7 +316,7 @@ def create_material():
     summary="List Materials",
     description="List all product materials with optional search. Requires admin role.",
     responses={
-        "200": None,
+        "200": MaterialListData,
         "401": None,
         "403": None,
         "500": None,
@@ -332,7 +335,7 @@ def list_materials():
     summary="Get Material",
     description="Get a single product material by ID. Requires admin role.",
     responses={
-        "200": None,
+        "200": MaterialData,
         "400": ValidationErrorData,
         "401": None,
         "403": None,
@@ -354,7 +357,7 @@ def get_material(material_id: str):
     summary="Update Material",
     description="Update a product material. Requires admin role.",
     responses={
-        "200": None,
+        "200": MaterialData,
         "400": ValidationErrorData,
         "401": None,
         "403": None,
