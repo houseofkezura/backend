@@ -48,7 +48,7 @@ class PaystackProcessor(PaymentProcessor):
         
         url = "https://api.paystack.co/transaction/initialize"
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.secret_key}",
             "Content-Type": "application/json"
         }
         
