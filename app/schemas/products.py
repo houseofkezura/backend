@@ -10,14 +10,27 @@ from decimal import Decimal
 
 
 class ProductVariantAttributes(BaseModel):
-    """Product variant attributes schema."""
-    length: Optional[str] = Field(None, description="Hair length in inches")
-    texture: Optional[str] = Field(None, description="Hair texture")
-    color: Optional[str] = Field(None, description="Hair color")
+    """
+    Product variant attributes schema.
+    
+    Predefined fields for common attributes (hair products) plus support for
+    any additional product-specific attributes (jewelry, accessories, etc.).
+    Extra fields are allowed and passed through to the database.
+    """
+    model_config = {"extra": "allow"}  # Allow any additional fields
+    
+    # Common hair product attributes (optional)
+    length: Optional[str] = Field(None, description="Length in inches")
+    texture: Optional[str] = Field(None, description="Texture")
+    color: Optional[str] = Field(None, description="Color")
     lace_type: Optional[str] = Field(None, description="Lace type")
-    density: Optional[str] = Field(None, description="Hair density")
+    density: Optional[str] = Field(None, description="Density")
     cap_size: Optional[str] = Field(None, description="Cap size")
     hair_type: Optional[str] = Field(None, description="Hair type")
+    
+    # NOTE: Any additional attributes (stone_type, chain_length, etc.) will be
+    # accepted and stored. Use model_dump() to get all fields including extras.
+
 
 
 class CreateProductVariantRequest(BaseModel):

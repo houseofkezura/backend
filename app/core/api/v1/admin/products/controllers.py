@@ -145,10 +145,15 @@ class AdminProductController:
                     variant.price_usd = variant_data.price_usd
                     variant.weight_g = variant_data.weight_g
                     # Convert attributes to dict, handling both Pydantic model and dict
+                    # Use model_dump() to capture all fields including extra (non-predefined) attributes
                     if variant_data.attributes:
                         if isinstance(variant_data.attributes, dict):
                             variant.attributes = variant_data.attributes
+                        elif hasattr(variant_data.attributes, 'model_dump'):
+                            # Pydantic v2: model_dump() preserves extra fields
+                            variant.attributes = variant_data.attributes.model_dump(exclude_none=True)
                         else:
+                            # Fallback for Pydantic v1
                             variant.attributes = variant_data.attributes.dict(exclude_none=True)
                     else:
                         variant.attributes = {}
@@ -446,10 +451,15 @@ class AdminProductController:
             variant.price_usd = payload.price_usd
             variant.weight_g = payload.weight_g
             # Convert attributes to dict, handling both Pydantic model and dict
+            # Use model_dump() to capture all fields including extra (non-predefined) attributes
             if payload.attributes:
                 if isinstance(payload.attributes, dict):
                     variant.attributes = payload.attributes
+                elif hasattr(payload.attributes, 'model_dump'):
+                    # Pydantic v2: model_dump() preserves extra fields
+                    variant.attributes = payload.attributes.model_dump(exclude_none=True)
                 else:
+                    # Fallback for Pydantic v1
                     variant.attributes = payload.attributes.dict(exclude_none=True)
             else:
                 variant.attributes = {}
@@ -537,9 +547,14 @@ class AdminProductController:
                 variant.weight_g = payload.weight_g
             if payload.attributes is not None:
                 # Convert attributes to dict, handling both Pydantic model and dict
+                # Use model_dump() to capture all fields including extra (non-predefined) attributes
                 if isinstance(payload.attributes, dict):
                     variant.attributes = payload.attributes
+                elif hasattr(payload.attributes, 'model_dump'):
+                    # Pydantic v2: model_dump() preserves extra fields
+                    variant.attributes = payload.attributes.model_dump(exclude_none=True)
                 else:
+                    # Fallback for Pydantic v1
                     variant.attributes = payload.attributes.dict(exclude_none=True)
             if payload.media_ids is not None:
                 if not variant.attributes:

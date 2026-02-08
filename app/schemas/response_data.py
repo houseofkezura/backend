@@ -113,7 +113,7 @@ class ProductVariantDataModel(BaseModel):
     price_usd: Optional[float] = None
     price: Optional[float] = None  # Alias for price_ngn
     weight_g: Optional[int] = None
-    attributes: ProductVariantAttributes
+    attributes: Optional[Dict[str, Any]] = None  # Flexible dict for any product type attributes
     color: Optional[str] = None
     is_in_stock: bool
     stock_quantity: Optional[int] = None
