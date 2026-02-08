@@ -194,6 +194,7 @@ class OrderItem(db.Model):
                 "sku": self.variant.sku,
                 "product_id": str(self.variant.product_id),
                 "attributes": self.variant.attributes or {},
+                "image_urls": [img.file_url for img in self.variant.images.all()] if self.variant.images else [],
             }
         
         return {
