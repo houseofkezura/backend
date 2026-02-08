@@ -1,0 +1,100 @@
+{% extends 'admin/base/index.html' %}
+
+{% block title %}Users - {{ super() }}{% endblock %}
+
+{% block content %}
+    {% if pagination.items %}
+        <div class="relative overflow-x-auto">
+            <div id="main-header" class="flex items-center justify-between flex-wrap lg:flex-row space-y-4 lg:space-y-0 mb-6">
+                <h1 class="text-2xl font-bold">Users</h1>
+            </div>
+
+            <div class="flex items-center justify-between flex-column flex-wrap lg:flex-row space-y-4 lg:space-y-0 mb-4">
+                <div></div>
+                <label for="table-search" class="sr-only">Search</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <form method="GET" action="{{ url_for('web.web_admin.users.users') }}">
+                        <input type="text" id="table-search-users" name="search"
+                            class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 outline-none focus:ring-primary focus:border-primary"
+                            placeholder="Search by name, email or username..." value="{{ search_term }}">
+                    </form>
+                </div>
+            </div>
+            
+            <div class="rounded-lg shadow-md border border-border overflow-y-hidden">
+                <table class="w-full shadow-md lg:rounded-lg text-sm text-left rtl:text-right text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">User</th>
+                            <th scope="col" class="px-6 py-3">Username</th>
+                            <th scope="col" class="px-6 py-3">Roles</th>
+                            <th scope="col" class="px-6 py-3">Joined</th>
+                            <th scope="col" class="px-6 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in pagination.items %}
+                        <tr class="bg-card border-b hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    {% if user.profile and user.profile.profile_pic %}
+                                        <img class="size-10 rounded-full object-cover" src="{{ user.profile.profile_pic }}" alt="{{ user.full_name }}">
+                                    {% else %}
+                                        <div class="size-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                            <i class="bx bxs-user text-xl"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="">
+                                        <div class="text-base font-semibold">{{ user.full_name or 'No Name' }}</div>
+                                        <div class="font-normal text-gray-500 text-xs">{{ user.email }}</div>
+                                    </div>
+                                </div>
+                            </th>
+                            <td class="px-6 py-4">
+                                {{ user.username or '—' }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-wrap gap-1">
+                                    {% for role in user.role_names %}
+                                        <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-800">
+                                            {{ role }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ user.date_joined.strftime('%b %d, %Y') if user.date_joined else '—' }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="{{ url_for('web.web_admin.users.view_user', user_id=user.id) }}" class="btn px-3 py-2 text-xs font-medium text-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            {% set prev_url = url_for('web.web_admin.users.users', page=pagination.prev_num, search=search_term) if pagination.prev_num else None %}
+            {% set next_url = url_for('web.web_admin.users.users', page=pagination.next_num, search=search_term) if pagination.next_num else None %}
+            {% set page_num_url = url_for('web.web_admin.users.users', search=search_term) %}
+
+            {% with prev_url=prev_url, next_url=next_url, page_num_url=page_num_url, pagination=pagination, total_pages=total_pages %}
+                {% include 'admin/components/pagination.html' %}
+            {% endwith %}
+        </div>
+    {% elif search_term %}
+        {% with search_term=search_term, data_in_db='User', data_in_db_url=url_for('web.web_admin.users.users') %}
+            {% include 'admin/components/no_result.html' %}
+        {% endwith %}
+    {% else %}
+        {% with data_in_db='User', data_in_db_url=url_for('web.web_admin.users.users') %}
+            {% include 'admin/components/no_data.html' %}
+        {% endwith %}
+    {% endif %}
+{% endblock %}

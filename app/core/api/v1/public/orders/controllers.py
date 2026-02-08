@@ -75,6 +75,11 @@ class OrdersController:
             current_user = get_current_user()
             guest_email = request.args.get("email")
             
+            # Debug logging
+            log_event(f"list_orders called: current_user={current_user}, guest_email={guest_email}")
+            if current_user:
+                log_event(f"list_orders: user_id={current_user.id}, email={current_user.email}")
+            
             if not current_user and not guest_email:
                 return error_response("Unauthorized or email required for guest orders", 401)
             
@@ -84,6 +89,10 @@ class OrdersController:
             query = Order.query
             if current_user:
                 query = query.filter_by(user_id=current_user.id)
+                # Debug: count all orders and user's orders
+                total_orders = Order.query.count()
+                user_orders = Order.query.filter_by(user_id=current_user.id).count()
+                log_event(f"list_orders: total_orders={total_orders}, user_orders={user_orders}")
             elif guest_email:
                 query = query.filter_by(guest_email=guest_email)
             

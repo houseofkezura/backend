@@ -7,11 +7,13 @@ from __future__ import annotations
 from app.extensions.docs import endpoint
 from app.schemas.response_data import CheckoutData, ValidationErrorData
 from app.schemas.checkout import CheckoutRequest
+from app.utils.decorators.auth import optional_customer_auth
 from .controllers import CheckoutController
 from . import bp
 
 
 @bp.post("/")
+@optional_customer_auth
 @endpoint(
     request_body=CheckoutRequest,
     tags=["Checkout"],
@@ -25,6 +27,7 @@ from . import bp
 def create_checkout():
     """Process checkout."""
     return CheckoutController.create_checkout()
+
 
 
 
