@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from flask_jwt_extended import jwt_required
-
 from app.extensions.docs import endpoint, SecurityScheme
 from app.schemas.response_data import StatsData
+from app.utils.decorators.auth import customer_required
 from .controllers import StatsController
 from . import bp
 
 
 @bp.get("")
-@jwt_required()
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     tags=["Statistics"],

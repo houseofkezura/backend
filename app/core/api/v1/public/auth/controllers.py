@@ -313,7 +313,6 @@ class AuthController:
         )
     
     @staticmethod
-    @customer_required
     def change_password() -> Response:
         """
         Change password for authenticated user.

@@ -7,11 +7,13 @@ from __future__ import annotations
 from app.extensions.docs import endpoint, QueryParameter
 from app.schemas.response_data import RatingData, ValidationErrorData
 from app.schemas.crm import CreateRatingRequest
+from app.utils.decorators.auth import optional_customer_auth
 from .controllers import CrmController
 from . import bp
 
 
 @bp.post("/ratings")
+@optional_customer_auth
 @endpoint(
     request_body=CreateRatingRequest,
     tags=["CRM"],
@@ -32,6 +34,7 @@ from . import bp
 def create_rating():
     """Create a CRM staff rating."""
     return CrmController.create_rating()
+
 
 
 

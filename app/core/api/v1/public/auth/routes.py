@@ -26,6 +26,7 @@ from app.schemas.auth import (
     ResetPasswordRequest,
 )
 
+from app.utils.decorators.auth import customer_required
 from . import bp
 
 
@@ -150,6 +151,7 @@ def check_username_availability():
 
 
 @bp.post("/change-password")
+@customer_required
 @endpoint(
     security=SecurityScheme.PUBLIC_BEARER,
     request_body=ChangePasswordRequest,
