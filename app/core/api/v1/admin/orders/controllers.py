@@ -178,20 +178,13 @@ class AdminOrderController:
                 from app.utils.emailing import email_service
                 recipient_email = order.app_user.email if order.app_user else order.guest_email
                 if recipient_email:
-                    # Email service method will be implemented or can use generic send
-                    try:
-                        if hasattr(email_service, 'send_order_status_update'):
-                            email_service.send_order_status_update(
-                                to=recipient_email,
-                                order_id=str(order.id),
-                                old_status=str(old_status.value) if hasattr(old_status, 'value') else str(old_status),
-                                new_status=new_status,
-                            )
-                        else:
-                            # Fallback: log that notification hook is ready
-                            log_event(f"Order status update notification hook ready for order {order.id}")
-                    except AttributeError:
-                        log_event(f"Order status update notification hook ready for order {order.id}")
+                    # Email service method
+                    email_service.send_order_status_update(
+                        to=recipient_email,
+                        order=order,
+                        new_status=new_status,
+                        notes=notes
+                    )
             except Exception as email_error:
                 from app.logging import log_error
                 log_error("Failed to send order status update email", error=email_error)

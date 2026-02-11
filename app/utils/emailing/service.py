@@ -64,7 +64,8 @@ class EmailService:
         order: Any,
         items: list[dict[str, Any]] | None = None,
         *,
-        context: Mapping[str, Any] | None = None
+        context: Mapping[str, Any] | None = None,
+        subject_prefix: str = "Order Confirmation"
     ) -> None:
         """
         Send order confirmation email with order details and tracking link.
@@ -74,6 +75,7 @@ class EmailService:
             order: Order model instance
             items: List of order item dicts with 'variant', 'quantity', 'unit_price'
             context: Additional context for template
+            subject_prefix: Email subject prefix (default: "Order Confirmation")
         """
         from datetime import datetime
         from ..helpers.site import get_platform_url
@@ -122,9 +124,76 @@ class EmailService:
         }
         self.send_html(
             to,
-            f"Order Confirmation - {order.order_number}",
+            f"{subject_prefix} - {order.order_number}",
             "mail/order-confirmation.html",
             merged_context
+        )
+
+    
+    def send_order_status_update(
+        self,
+        to: str,
+        order: Any,
+        new_status: str,
+        notes: str | None = None,
+        *,
+        context: Mapping[str, Any] | None = None
+    ) -> None:
+        """
+        Send email notification when order status changes.
+        
+        Args:
+            to: Recipient email
+            order: Order model instance
+            new_status: New status string (e.g., 'shipped', 'delivered')
+            notes: Optional notes from admin
+            context: Additional context
+        """
+        from datetime import datetime
+        from ..helpers.site import get_platform_url
+        
+        # Build tracking URL
+        platform_url = get_platform_url()
+        tracking_url = f"{platform_url}/orders/{order.order_number}"
+        
+        # Extract customer name
+        shipping_address = order.shipping_address or {}
+        customer_name = shipping_address.get("name") or shipping_address.get("first_name", "")
+        
+        merged_context = {
+            "order_number": order.order_number,
+            "customer_name": customer_name,
+            "new_status": new_status,
+            "notes": notes,
+            "tracking_url": tracking_url,
+            "current_year": datetime.now().year,
+            **(context or {})
+        }
+        
+        self.send_html(
+            to,
+            f"Order Update - {order.order_number}",
+            "mail/order-status-update.html",
+            merged_context
+        )
+
+    def send_payment_received(
+        self,
+        to: str,
+        order: Any,
+        *,
+        context: Mapping[str, Any] | None = None
+    ) -> None:
+        """
+        Send payment received confirmation.
+        
+        Reuses order confirmation template with updated title.
+        """
+        self.send_order_confirmation(
+            to, 
+            order, 
+            context={"title": "Payment Received", **(context or {})},
+            subject_prefix="Payment Received"
         )
 
     def _send_async(self, message: Message) -> None:
@@ -141,6 +210,7 @@ class EmailService:
                     log_error("Email send failed", e)
 
         Thread(target=_target, daemon=True).start()
+
 
 
 # Singleton-like convenience

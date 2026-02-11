@@ -381,7 +381,23 @@ class PaymentManager:
                                 if cart:
                                     for cart_item in list(cart.items):
                                         db.session.delete(cart_item)
+                                        db.session.delete(cart_item)
                                 log_event("order_payment_completed", f"Order payment completed for order_id={order_id}")
+                                
+                                # Send notification email
+                                try:
+                                    recipient_email = None
+                                    if order.app_user:
+                                        recipient_email = order.app_user.email
+                                    elif order.guest_email:
+                                        recipient_email = order.guest_email
+                                    
+                                    if recipient_email:
+                                        from ..emailing import email_service
+                                        email_service.send_payment_received(recipient_email, order)
+                                except Exception as email_err:
+                                    log_error("Failed to send payment received email", error=email_err)
+
                             else:
                                 log_error("Order not found", {"order_id": order_id})
                         except ValueError:
