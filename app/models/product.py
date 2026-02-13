@@ -125,6 +125,7 @@ class Product(db.Model):
     # Timestamps
     created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, index=True)
     updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
+    deleted_at: M[Optional[datetime]] = db.Column(db.DateTime(timezone=True), nullable=True)
     
     # Relationships
     variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
@@ -174,16 +175,17 @@ class Product(db.Model):
         }
         
         # Calculate price, color, and stock from variants (always, even if not including full variant objects)
-        if self.variants:
-            prices_ngn = [float(v.price_ngn) for v in self.variants if v.price_ngn]
-            prices_usd = [float(v.price_usd) for v in self.variants if v.price_usd and v.price_usd]
+        active_variants = [v for v in self.variants if v.deleted_at is None]
+        if active_variants:
+            prices_ngn = [float(v.price_ngn) for v in active_variants if v.price_ngn]
+            prices_usd = [float(v.price_usd) for v in active_variants if v.price_usd]
             data["price_ngn"] = min(prices_ngn) if prices_ngn else None
             data["price_usd"] = min(prices_usd) if prices_usd else None
             data["price"] = data["price_ngn"]  # Alias for price_ngn
             
             # Extract available colors from variants
             colors = []
-            for variant in self.variants:
+            for variant in active_variants:
                 if variant.attributes and variant.attributes.get("color"):
                     color = variant.attributes.get("color")
                     if color and color not in colors:
@@ -191,7 +193,7 @@ class Product(db.Model):
             data["color"] = ", ".join(colors) if colors else ""
             
             # Calculate total stock (sum of all variant stocks)
-            total_stock = sum(v.stock_quantity for v in self.variants)
+            total_stock = sum(v.stock_quantity for v in active_variants)
             data["stock"] = total_stock
         else:
             data["price_ngn"] = None
@@ -208,7 +210,7 @@ class Product(db.Model):
         
         if include_variants:
             # Include variants with all details including prices
-            data["variants"] = [v.to_dict(include_inventory=True) for v in self.variants]
+            data["variants"] = [v.to_dict(include_inventory=True) for v in active_variants]
         
         return data
 
@@ -243,6 +245,7 @@ class ProductVariant(db.Model):
     # Timestamps
     created_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow)
     updated_at: M[datetime] = db.Column(db.DateTime(timezone=True), default=QuasDateTime.aware_utcnow, onupdate=QuasDateTime.aware_utcnow)
+    deleted_at: M[Optional[datetime]] = db.Column(db.DateTime(timezone=True), nullable=True)
     
     def __repr__(self) -> str:
         return f"<ProductVariant {self.id}, SKU: {self.sku}>"

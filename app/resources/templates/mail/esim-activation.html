@@ -3,241 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your eSIM is Ready!</title>
+    <title>Your eSIM is Ready</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* Base Reset */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; }
+        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        
+        /* Typography */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 16px;
             line-height: 1.6;
-            color: #333333;
-            background-color: #f4f4f4;
-            padding: 20px;
+            color: #101828;
+            background-color: #efe6dc;
         }
-        .email-container {
+        h1, h2, h3 {
+            font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+            font-weight: 400;
+            margin: 0;
+            color: #101828;
+        }
+        
+        /* Layout */
+        .wrapper {
+            width: 100%;
+            background-color: #efe6dc;
+            padding: 40px 0;
+        }
+        .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #FDFBF7;
+            border: 1px solid #f6f1eb; 
         }
-        .email-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
-            padding: 30px 20px;
+        .header {
+            background-color: #FDFBF7;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid #efe6dc;
+        }
+        .header-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #101828;
+            margin: 0;
+        }
+        .content {
+            padding: 40px 40px;
+        }
+        
+        /* Elements */
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background-color: #c46034;
+            color: #ffffff !important;
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 0;
+        }
+        .qr-box {
+            background-color: #f6f1eb; 
+            border: 1px solid #efe6dc;
+            padding: 30px; 
+            margin: 30px 0; 
             text-align: center;
         }
-        .email-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
+        .qr-image {
+            max-width: 200px;
+            height: auto;
+            border: 4px solid #fff;
         }
-        .email-header .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        .email-body {
-            padding: 40px 30px;
-        }
-        .greeting {
-            font-size: 18px;
-            color: #333333;
-            margin-bottom: 20px;
-        }
-        .success-message {
-            background-color: #d4edda;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .success-message p {
-            font-size: 16px;
-            color: #155724;
-            margin: 0;
-            font-weight: 600;
-        }
-        .info-section {
+        .details-table {
+            width: 100%;
             margin: 30px 0;
+            border-top: 1px solid #efe6dc;
+            border-bottom: 1px solid #efe6dc;
         }
-        .info-section h2 {
-            font-size: 20px;
-            color: #333333;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 10px;
+        .details-table th {
+            text-align: left;
+            padding: 15px 0;
+            border-bottom: 1px solid #efe6dc;
+            font-family: 'Playfair Display', serif;
+            color: #666;
+            font-size: 14px;
+            font-weight: normal;
         }
-        .info-item {
-            margin: 15px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 6px;
+        .details-table td {
+            padding: 15px 0;
+            border-bottom: 1px solid #f6f1eb;
+            font-size: 14px;
+            color: #101828;
         }
-        .info-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6c757d;
-            margin-bottom: 5px;
+        .manual-details {
+            background-color: #FAF8F5;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #efe6dc;
         }
-        .info-value {
-            font-size: 16px;
-            color: #333333;
+        .code-snippet {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #eee;
+            color: #c46034;
             font-weight: 600;
+            display: block;
+            margin: 5px 0 15px 0;
             word-break: break-all;
         }
-        .qr-container {
+        .footer {
+            background-color: #efe6dc;
+            padding: 30px;
             text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
-        .qr-code {
-            max-width: 300px;
-            width: 100%;
-            height: auto;
-            margin: 20px auto;
-            display: block;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 10px;
-            background-color: #ffffff;
-        }
-        .instructions {
-            background-color: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .instructions h3 {
-            font-size: 16px;
-            color: #1976D2;
-            margin-bottom: 10px;
-        }
-        .instructions ol {
-            margin-left: 20px;
-            color: #555555;
-        }
-        .instructions li {
-            margin: 8px 0;
-            font-size: 14px;
-        }
-        .email-footer {
-            background-color: #f8f9fa;
-            padding: 20px 30px;
-            text-align: center;
-            border-top: 1px solid #e9ecef;
-        }
-        .email-footer p {
             font-size: 12px;
-            color: #6c757d;
-            margin: 5px 0;
+            color: #666;
         }
-        .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: #667eea;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: 600;
-        }
+        
+        /* Mobile */
         @media only screen and (max-width: 600px) {
-            .email-body {
-                padding: 30px 20px;
-            }
-            .qr-code {
-                max-width: 250px;
-            }
+            .content { padding: 30px 20px; }
+            .wrapper { padding: 0; }
         }
     </style>
 </head>
-<body>
-    <div class="email-container">
-        <div class="email-header">
-            <div class="icon">📱</div>
-            <h1>Your eSIM is Ready!</h1>
-        </div>
-        
-        <div class="email-body">
-            <div class="greeting">
-                Hello,
-            </div>
-            
-            <div class="success-message">
-                <p>🎉 Congratulations! Your eSIM purchase has been successfully activated.</p>
-            </div>
-            
-            <div class="info-section">
-                <h2>eSIM Details</h2>
-                
-                {% if offer_id %}
-                <div class="info-item">
-                    <div class="info-label">Offer ID</div>
-                    <div class="info-value">{{ offer_id }}</div>
-                </div>
-                {% endif %}
-                
-                {% if activation_code %}
-                <div class="info-item">
-                    <div class="info-label">Activation Code</div>
-                    <div class="info-value">{{ activation_code }}</div>
-                </div>
-                {% endif %}
-                
-                {% if smdp %}
-                <div class="info-item">
-                    <div class="info-label">SM-DP+ Address</div>
-                    <div class="info-value">{{ smdp }}</div>
-                </div>
-                {% endif %}
-            </div>
-            
-            {% if qr_code %}
-            <div class="qr-container">
-                <h2 style="margin-bottom: 15px;">QR Code</h2>
-                <p style="color: #666; margin-bottom: 15px;">Scan this QR code with your device to install your eSIM:</p>
-                <img src="{{ qr_code }}" alt="eSIM QR Code" class="qr-code" />
-            </div>
-            {% endif %}
-            
-            <div class="instructions">
-                <h3>📋 How to Install Your eSIM</h3>
-                <ol>
-                    <li>Open your device's Settings app</li>
-                    <li>Navigate to Cellular/Mobile Data settings</li>
-                    <li>Tap "Add Cellular Plan" or "Add eSIM"</li>
-                    {% if qr_code %}
-                    <li>Scan the QR code above with your device camera</li>
-                    {% else %}
-                    <li>Enter the activation code manually: <strong>{{ activation_code }}</strong></li>
-                    {% endif %}
-                    <li>Follow the on-screen instructions to complete setup</li>
-                    <li>Your eSIM will be activated and ready to use!</li>
-                </ol>
-            </div>
-            
-            <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                <p style="font-size: 14px; color: #856404; margin: 0;">
-                    <strong>💡 Tip:</strong> Make sure you have a stable internet connection when installing your eSIM. 
-                    If you encounter any issues, please contact our support team.
-                </p>
-            </div>
-        </div>
-        
-        <div class="email-footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>Need help? Contact our support team for assistance.</p>
-            <p>&copy; 2024 Your Company Name. All rights reserved.</p>
-        </div>
+<body style="margin: 0; padding: 0; background-color: #efe6dc;">
+    <div class="wrapper" style="background-color: #efe6dc;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="center">
+                    <table role="presentation" class="container" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #FDFBF7;">
+                        
+                        <!-- Header -->
+                        <tr>
+                            <td class="header" style="padding: 40px 20px; text-align: center; border-bottom: 1px solid #efe6dc;">
+                                <h1 class="header-title" style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; color: #101828; margin: 0;">
+                                    House of Kezura
+                                </h1>
+                            </td>
+                        </tr>
+
+                        <!-- Content -->
+                        <tr>
+                            <td class="content" style="padding: 40px 40px;">
+                                <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 28px; color: #101828; margin-bottom: 10px;">
+                                    Your eSIM is Ready
+                                </h2>
+                                <p style="font-size: 14px; color: #666666; margin-top: 0; margin-bottom: 20px;">
+                                    {{ plan_name }}
+                                </p>
+                                
+                                <p style="font-size: 16px; line-height: 1.6; color: #101828; margin-bottom: 20px;">
+                                    Your eSIM for <strong>{{ region }}</strong> is ready to be activated. Scan the code below to get connected.
+                                </p>
+
+                                <div class="qr-box" style="background-color: #f6f1eb; border: 1px solid #efe6dc; padding: 30px; margin: 30px 0; text-align: center;">
+                                    <img src="{{ qr_code_url }}" alt="eSIM QR Code" class="qr-image" style="max-width: 200px; height: auto; border: 4px solid #fff;">
+                                    <p style="font-size: 12px; color: #666; margin-top: 15px;">Scan with your phone camera</p>
+                                </div>
+
+                                <!-- Manual Activation -->
+                                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-top: 30px; margin-bottom: 15px; color: #101828;">Manual Activation</h3>
+                                <div class="manual-details" style="background-color: #FAF8F5; padding: 20px; border: 1px solid #efe6dc;">
+                                    <span style="font-size: 12px; text-transform: uppercase; color: #666;">SM-DP+ Address</span>
+                                    <span class="code-snippet" style="font-family: 'Courier New', Courier, monospace; background-color: #fff; padding: 10px; border: 1px solid #eee; color: #101828; display: block; margin: 5px 0 15px 0;">{{ smdp_address }}</span>
+                                    
+                                    <span style="font-size: 12px; text-transform: uppercase; color: #666;">Activation Code</span>
+                                    <span class="code-snippet" style="font-family: 'Courier New', Courier, monospace; background-color: #fff; padding: 10px; border: 1px solid #eee; color: #c46034; font-weight: 600; display: block; margin: 5px 0 0 0;">{{ activation_code }}</span>
+                                </div>
+
+                                <!-- Plan Details -->
+                                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-top: 40px; margin-bottom: 0; color: #101828;">Plan Details</h3>
+                                <table class="details-table" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; margin: 20px 0; border-top: 1px solid #efe6dc;">
+                                    <tr>
+                                        <th style="text-align: left; padding: 15px 0; border-bottom: 1px solid #f6f1eb;">Data Access</th>
+                                        <td style="padding: 15px 0; border-bottom: 1px solid #f6f1eb;">{{ data_amount }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="text-align: left; padding: 15px 0; border-bottom: 1px solid #f6f1eb;">Validity</th>
+                                        <td style="padding: 15px 0; border-bottom: 1px solid #f6f1eb;">{{ duration_days }} Days</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="text-align: left; padding: 15px 0; border-bottom: 1px solid #f6f1eb;">Coverage</th>
+                                        <td style="padding: 15px 0; border-bottom: 1px solid #f6f1eb;">{{ region }}</td>
+                                    </tr>
+                                </table>
+
+                                <!-- CTA -->
+                                <div style="text-align: center; margin-top: 40px; margin-bottom: 20px;">
+                                    <a href="{{ instructions_url }}" class="btn" style="display: inline-block; padding: 14px 32px; background-color: #c46034; color: #ffffff; text-decoration: none; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Setup Instructions</a>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td class="footer" style="padding: 30px; text-align: center; background-color: #efe6dc;">
+                                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">&copy; {{ current_year }} House of Kezura. All rights reserved.</p>
+                                <p style="font-size: 12px; color: #999;">
+                                    This is an automated message. Please do not reply directly to this email.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>
-

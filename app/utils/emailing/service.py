@@ -49,11 +49,18 @@ class EmailService:
             esim_purchase: EsimPurchase model instance
             context: Additional context for template
         """
+        from ..helpers.site import get_platform_url
+        
         merged_context = {
-            "offer_id": esim_purchase.offer_id,
-            "qr_code": esim_purchase.esim_qr or "",
-            "activation_code": esim_purchase.activation_code or "",
-            "smdp": esim_purchase.smdp or "",
+            "offer_id": getattr(esim_purchase, "offer_id", "") or (context or {}).get("offer_id", ""),
+            "qr_code_url": getattr(esim_purchase, "esim_qr", "") or (context or {}).get("qr_code_url", ""),
+            "activation_code": getattr(esim_purchase, "activation_code", "") or (context or {}).get("activation_code", ""),
+            "smdp_address": getattr(esim_purchase, "smdp", "") or (context or {}).get("smdp_address", ""),
+            "plan_name": getattr(esim_purchase, "plan_name", "eSIM Plan") or (context or {}).get("plan_name", "eSIM Plan"),
+            "data_amount": getattr(esim_purchase, "data_amount", "") or (context or {}).get("data_amount", ""),
+            "duration_days": getattr(esim_purchase, "duration_days", "") or (context or {}).get("duration_days", ""),
+            "region": getattr(esim_purchase, "region", "") or (context or {}).get("region", ""),
+            "instructions_url": f"{get_platform_url()}/esim/instructions",
             **(context or {})
         }
         self.send_html(to, "Your eSIM is Ready!", "mail/esim-activation.html", merged_context)
@@ -154,7 +161,7 @@ class EmailService:
         
         # Build tracking URL
         platform_url = get_platform_url()
-        tracking_url = f"{platform_url}/orders/{order.order_number}"
+        tracking_url = f"{platform_url}/order-confirmation?oderId={order.id}&oderNumber={order.order_number}"
         
         # Extract customer name
         shipping_address = order.shipping_address or {}

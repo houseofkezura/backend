@@ -20,6 +20,7 @@ from quas_utils.api import success_response, error_response
 from app.utils.helpers.user import get_current_user
 from app.utils.helpers.media import save_media
 from app.logging import log_error, log_event
+from quas_utils.date_time import QuasDateTime
 
 
 class AdminProductController:
@@ -301,7 +302,7 @@ class AdminProductController:
             launch_status = request.args.get('launch_status', type=str)
             
             # Build query
-            query = Product.query
+            query = Product.query.filter(Product.deleted_at.is_(None))
             
             if search:
                 query = query.filter(
@@ -392,7 +393,14 @@ class AdminProductController:
             if not product:
                 return error_response("Product not found", 404)
             
-            db.session.delete(product)
+            # Soft delete product and its variants
+            now = QuasDateTime.aware_utcnow()
+            product.deleted_at = now
+            
+            # Soft delete variants
+            for variant in product.variants:
+                variant.deleted_at = now
+                
             db.session.commit()
             
             log_event(f"Product deleted: {product_id} by admin {current_user.id}")
@@ -612,7 +620,7 @@ class AdminProductController:
             if not variant:
                 return error_response("Variant not found", 404)
             
-            db.session.delete(variant)
+            variant.deleted_at = QuasDateTime.aware_utcnow()
             db.session.commit()
             
             log_event(f"Variant deleted: {variant_id} by admin {current_user.id}")

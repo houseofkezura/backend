@@ -32,7 +32,7 @@ class ProductController:
             filters = ProductFilterRequest.model_validate(request.args.to_dict())
             
             # Build base query
-            query: Query = Product.query
+            query: Query = Product.query.filter(Product.deleted_at.is_(None))
             
             # Apply search filter
             if filters.search:
@@ -68,7 +68,7 @@ class ProductController:
             # This is a simplified approach - in production, you'd want more sophisticated filtering
             product_data = []
             for product in products:
-                variants = product.variants
+                variants = [v for v in product.variants if v.deleted_at is None]
                 
                 # Apply variant-level filters
                 if filters.texture or filters.length or filters.color or filters.lace_type or filters.density:
@@ -146,7 +146,7 @@ class ProductController:
         Public endpoint - no authentication required.
         """
         try:
-            product = Product.query.filter_by(slug=slug).first()
+            product = Product.query.filter_by(slug=slug).filter(Product.deleted_at.is_(None)).first()
             
             if not product:
                 return error_response("Product not found", 404)
@@ -188,6 +188,8 @@ class ProductController:
             
             # Simple search on product name and description
             query = Product.query.filter(
+                Product.deleted_at.is_(None)
+            ).filter(
                 or_(
                     Product.name.ilike(f"%{q}%"),
                     Product.description.ilike(f"%{q}%"),
@@ -223,12 +225,15 @@ class ProductController:
         Public endpoint - no authentication required.
         """
         try:
-            product = Product.query.get(product_id)
+            product = Product.query.filter(
+                Product.id == product_id,
+                Product.deleted_at.is_(None)
+            ).first()
             
             if not product:
                 return error_response("Product not found", 404)
             
-            variants = [v.to_dict(include_inventory=True) for v in product.variants]
+            variants = [v.to_dict(include_inventory=True) for v in product.variants if v.deleted_at is None]
             
             return success_response(
                 "Variants retrieved successfully",
@@ -252,7 +257,10 @@ class ProductController:
             except ValueError:
                 return error_response("Invalid variant ID format", 400)
             
-            variant = ProductVariant.query.get(variant_uuid)
+            variant = ProductVariant.query.filter(
+                ProductVariant.id == variant_uuid,
+                ProductVariant.deleted_at.is_(None)
+            ).first()
             
             if not variant:
                 return error_response("Variant not found", 404)
