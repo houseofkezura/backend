@@ -22,8 +22,16 @@ class EmailService:
 
     def send_html(self, to: str | list[str], subject: str, template: str, context: Mapping[str, Any] | None = None, *, reply_to: str | None = None) -> None:
         """Render a Jinja template and send an HTML email asynchronously."""
+        from config import Config
         recipients: list[str] = [to] if isinstance(to, str) else list(to)
-        html_body: str = render_template(template, **(context or {}))
+        
+        # Ensure base context includes wordmark logo
+        merged_context = {
+            "wordmark_url": f"{Config.API_DOMAIN}/static/public/img/wordmark.png",
+            **(context or {})
+        }
+        
+        html_body: str = render_template(template, **merged_context)
 
         message = Message(
             subject=subject,
@@ -89,7 +97,7 @@ class EmailService:
         
         # Build tracking URL
         platform_url = get_platform_url()
-        tracking_url = f"{platform_url}/orders/{order.order_number}"
+        tracking_url = f"{platform_url}/order-confirmation?oderId={order.id}&oderNumber={order.order_number}"
         
         # Extract customer name from shipping address or order
         shipping_address = order.shipping_address or {}
