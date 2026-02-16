@@ -61,6 +61,8 @@ class CreateProductRequest(BaseModel):
     meta_keywords: Optional[str] = Field(None, max_length=500, description="SEO meta keywords")
     status: Optional[str] = Field("In-Stock", description="Product status (default: In-Stock)")
     launch_status: Optional[str] = Field(None, description="Launch status (legacy field, use status instead)")
+    linked_product_ids: Optional[List[str]] = Field(None, description="List of individual product IDs to link as pieces of this set")
+    related_product_ids: Optional[List[str]] = Field(None, description="List of product IDs to show as related/recommended")
     variants: Optional[List[CreateProductVariantRequest]] = Field(None, description="Initial variants")
 
 
@@ -81,6 +83,8 @@ class UpdateProductRequest(BaseModel):
     meta_keywords: Optional[str] = Field(None, max_length=500)
     status: Optional[str] = Field(None, description="Product status")
     launch_status: Optional[str] = None
+    linked_product_ids: Optional[List[str]] = Field(None, description="List of product IDs to link (set to [] to unlink all)")
+    related_product_ids: Optional[List[str]] = Field(None, description="List of product IDs to relate (set to [] to unlink all)")
 
 
 class UpdateProductVariantRequest(BaseModel):

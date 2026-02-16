@@ -126,8 +126,33 @@ class AdminProductController:
             product.meta_title = payload.meta_title
             product.meta_description = payload.meta_description
             product.meta_keywords = payload.meta_keywords
-            # Use status if provided, otherwise launch_status, otherwise default to "In-Stock"
             product.launch_status = payload.status or payload.launch_status or "In-Stock"
+            
+            # Link products if provided
+            if payload.linked_product_ids:
+                for lpid in payload.linked_product_ids:
+                    try:
+                        lp_uuid = uuid.UUID(lpid)
+                        linked_product = Product.query.get(lp_uuid)
+                        if linked_product:
+                            product.linked_products.append(linked_product)
+                        else:
+                            return error_response(f"Linked product {lpid} not found", 404)
+                    except ValueError:
+                        return error_response(f"Invalid linked product ID format: {lpid}", 400)
+            
+            # Relate products if provided
+            if payload.related_product_ids:
+                for rpid in payload.related_product_ids:
+                    try:
+                        rp_uuid = uuid.UUID(rpid)
+                        related_product = Product.query.get(rp_uuid)
+                        if related_product:
+                            product.related_products.append(related_product)
+                        else:
+                            return error_response(f"Related product {rpid} not found", 404)
+                    except ValueError:
+                        return error_response(f"Invalid related product ID format: {rpid}", 400)
             
             db.session.add(product)
             db.session.flush()
@@ -267,6 +292,34 @@ class AdminProductController:
                 product.launch_status = payload.status
             elif payload.launch_status is not None:
                 product.launch_status = payload.launch_status
+            
+            # Update linked products
+            if payload.linked_product_ids is not None:
+                product.linked_products.clear()
+                for lpid in payload.linked_product_ids:
+                    try:
+                        lp_uuid = uuid.UUID(lpid)
+                        linked_product = Product.query.get(lp_uuid)
+                        if linked_product:
+                            product.linked_products.append(linked_product)
+                        else:
+                            return error_response(f"Linked product {lpid} not found", 404)
+                    except ValueError:
+                        return error_response(f"Invalid linked product ID format: {lpid}", 400)
+            
+            # Update related products
+            if payload.related_product_ids is not None:
+                product.related_products.clear()
+                for rpid in payload.related_product_ids:
+                    try:
+                        rp_uuid = uuid.UUID(rpid)
+                        related_product = Product.query.get(rp_uuid)
+                        if related_product:
+                            product.related_products.append(related_product)
+                        else:
+                            return error_response(f"Related product {rpid} not found", 404)
+                    except ValueError:
+                        return error_response(f"Invalid related product ID format: {rpid}", 400)
             
             db.session.commit()
             

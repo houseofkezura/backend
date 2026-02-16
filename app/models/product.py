@@ -48,6 +48,20 @@ variant_materials = db.Table(
     db.Column("material_id", UUID(as_uuid=True), db.ForeignKey("product_material.id", ondelete="CASCADE"), primary_key=True),
 )
 
+# Association table for linked products (sets/pieces) - self-referential many-to-many
+product_links = db.Table(
+    "product_links",
+    db.Column("parent_id", UUID(as_uuid=True), db.ForeignKey("product.id", ondelete="CASCADE"), primary_key=True),
+    db.Column("child_id", UUID(as_uuid=True), db.ForeignKey("product.id", ondelete="CASCADE"), primary_key=True),
+)
+
+# Association table for related products (recommendations) - self-referential many-to-many
+product_relations = db.Table(
+    "product_relations",
+    db.Column("product_id", UUID(as_uuid=True), db.ForeignKey("product.id", ondelete="CASCADE"), primary_key=True),
+    db.Column("related_id", UUID(as_uuid=True), db.ForeignKey("product.id", ondelete="CASCADE"), primary_key=True),
+)
+
 
 class ProductMaterial(db.Model):
     """
@@ -133,6 +147,23 @@ class Product(db.Model):
     categories = db.relationship("ProductCategory", secondary=product_categories, backref=db.backref("products", lazy="dynamic"))
     materials = relationship("ProductMaterial", secondary="product_materials", back_populates="products")
     
+    # Self-referential relationships
+    linked_products = relationship(
+        "Product",
+        secondary=product_links,
+        primaryjoin=id == product_links.c.parent_id,
+        secondaryjoin=id == product_links.c.child_id,
+        backref=db.backref("parent_sets", lazy="dynamic")
+    )
+    
+    related_products = relationship(
+        "Product",
+        secondary=product_relations,
+        primaryjoin=id == product_relations.c.product_id,
+        secondaryjoin=id == product_relations.c.related_id,
+        backref=db.backref("related_to", lazy="dynamic")
+    )
+    
     def __repr__(self) -> str:
         return f"<Product {self.id}, {self.name}>"
     
@@ -172,6 +203,10 @@ class Product(db.Model):
             "launch_status": self.launch_status,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            
+            # Linked and Related Products (IDs only by default to avoid recursion)
+            "linked_product_ids": [str(p.id) for p in self.linked_products] if self.linked_products else [],
+            "related_product_ids": [str(p.id) for p in self.related_products] if self.related_products else [],
         }
         
         # Calculate price, color, and stock from variants (always, even if not including full variant objects)
